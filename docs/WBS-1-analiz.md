@@ -128,6 +128,285 @@ Her gereksinim aşağıdaki alanlarla yazılır:
 Her modül için alt başlıklar: Moodle'daki karşılığı · İş akışları · Kullanıcı ihtiyaçları · İş kuralları (korunacak) · Hatalar ve eksikler (düzeltilecek) · Veri modeli · Yetkilendirme · Bağımlılıklar ve entegrasyonlar · Gereksinimler · Test senaryoları · İlk sürüme alınsın mı?
 
 ### 4.1 Kimlik ve yetkilendirme (Sinem)
+#### 4.1.1 Moodle'daki karşılığı
+
+Kimlik doğrulama ve yetkilendirme Moodle'da tek bir modülden oluşmaz. Kimlik doğrulama eklentileri, oturum yönetimi, kullanıcı hesapları ve bağlama dayalı rol-yetenek (role-capability) sistemi birlikte çalışır.
+
+Bu analiz Moodle 5.3.1, revizyon `cfe123f2` temel alınarak hazırlanmıştır. Dosya yolları `public/` dizinine görecelidir.
+
+| Bileşen | Kaynak kod | Görevi |
+| --- | --- | --- |
+| Giriş işlemleri | `login/index.php` | Kullanıcının sisteme girişini yönetir. |
+| Kimlik doğrulama | `lib/moodlelib.php:3795` — `authenticate_user_login()` | Kullanıcı adı, parola, hesap durumu ve doğrulama eklentilerini kontrol eder. |
+| Oturum oluşturma | `lib/moodlelib.php:4074` — `complete_user_login()` | Başarılı doğrulamadan sonra kullanıcı oturumunu oluşturur. |
+| Oturum ve erişim zorunluluğu | `lib/moodlelib.php:2259` — `require_login()` | Giriş, ders erişimi ve oturumla ilgili kontrolleri uygular. |
+| Yetenek kontrolü | `lib/accesslib.php:432` — `has_capability()` | Kullanıcının belirtilen bağlamda ilgili yeteneğe sahip olup olmadığını değerlendirir. |
+| Yetki zorunluluğu | `lib/accesslib.php:872` — `require_capability()` | Yetki bulunmuyorsa istisna oluşturur. |
+| Site yöneticisi kontrolü | `lib/accesslib.php:702` — `is_siteadmin()` | Site yöneticisi durumunu kontrol eder. |
+| Kimlik doğrulama eklentileri | `auth/` | Manual, email, LDAP, OAuth2 ve diğer doğrulama yöntemleri. |
+| Parola işlemleri | `login/forgot_password.php`, `login/change_password.php` | Parola sıfırlama ve değiştirme işlemleri. |
+| Yetkilendirme verileri | `lib/db/install.xml` | Kullanıcı, rol, yetenek ve bağlam verilerinin şeması. |
+
+#### 4.1.2 İş akışları
+
+**A. Kullanıcının sisteme giriş yapması**
+
+1. Kullanıcı giriş ekranında kimlik bilgilerini girer.
+2. `authenticate_user_login()` kullanıcıyı belirler ve ilgili doğrulama eklentisini kullanır.
+3. Hesabın silinmiş, askıya alınmış veya kilitlenmiş olması gibi durumlar kontrol edilir.
+4. Kimlik doğrulama başarılıysa `complete_user_login()` oturumu oluşturur.
+5. Giriş zamanı ve oturum bilgileri güncellenir; giriş olayı tetiklenir.
+6. Zorunlu parola değişikliği gerekiyorsa kullanıcı ilgili sayfaya yönlendirilir.
+
+**B. Kullanıcının korumalı bir sayfaya erişmesi**
+
+1. Kullanıcı bir ders veya yönetim sayfasını açar.
+2. `require_login()` oturumun ve ilgili ders erişiminin geçerliliğini değerlendirir.
+3. İşlem belirli bir yetenek gerektiriyorsa `require_capability()` çağrılır.
+4. `has_capability()` kullanıcının rollerini, bağlamını ve yetenek izinlerini değerlendirir.
+5. İzin varsa işlem sürdürülür; yoksa erişim reddedilir.
+
+**C. Rol ve bağlam değerlendirmesi**
+
+1. Kullanıcının sistem, kategori, ders veya etkinlik bağlamındaki rolleri belirlenir.
+2. İlgili rollerin yetenek izinleri değerlendirilir.
+3. `CAP_PROHIBIT` gibi engelleyici izinler dikkate alınır.
+4. Nihai yetki kararı, bağlam hiyerarşisi ve etkin rol bilgilerine göre verilir.
+
+#### 4.1.3 Kullanıcı ihtiyaçları ve şikâyetler
+
+Kullanıcı anketi henüz tamamlanmadığından doğrulanmış kullanıcı şikâyetleri bu aşamada bulunmamaktadır.
+
+Ankette değerlendirilmesi önerilen konular:
+
+- Giriş ve parola sıfırlama işlemlerinin anlaşılabilirliği.
+- Yetki hatası mesajlarının kullanıcıya açıklığı.
+- Öğrenci ve öğretmenlerin yalnızca kendi yetkilerine uygun işlemleri görmesi.
+- Oturum süresi dolduğunda kullanıcı deneyimi.
+- Dersler arasında değişen yetkilerin kullanıcı tarafından anlaşılması.
+
+Bu maddeler doğrulanmış şikâyet değil, araştırılacak kullanıcı ihtiyaçlarıdır.
+
+#### 4.1.4 İş kuralları: korunacaklar
+
+| Kimlik | Kural | Eski kod |
+| --- | --- | --- |
+| AUTH-BR-01 | Kullanıcı sisteme giriş yapmadan önce etkin kimlik doğrulama yöntemi üzerinden doğrulanır. | `lib/moodlelib.php:3795` |
+| AUTH-BR-02 | Silinmiş veya askıya alınmış kullanıcıların normal giriş yapması engellenir. | `authenticate_user_login()` |
+| AUTH-BR-03 | Hesap kilitleme etkinse kilitli hesapların giriş denemeleri reddedilir. | `authenticate_user_login()` |
+| AUTH-BR-04 | Başarısız giriş denemeleri kayıt altına alınır ve ilgili olay tetiklenir. | `authenticate_user_login()` |
+| AUTH-BR-05 | Başarılı girişten sonra kullanıcı oturumu oluşturulur ve giriş olayı tetiklenir. | `complete_user_login()` |
+| AUTH-BR-06 | Zorunlu parola değişikliği koşulu varsa kullanıcı normal iş akışına devam etmeden parola değiştirme sürecine yönlendirilir. | `complete_user_login()` |
+| AUTH-BR-07 | Korunan sayfalara erişimde geçerli oturum ve ilgili erişim koşulları denetlenir. | `lib/moodlelib.php:2259` |
+| AUTH-BR-08 | Yetkiler yalnızca kullanıcı rolüne değil, rolün geçerli olduğu bağlama göre değerlendirilir. | `lib/accesslib.php:432, 788` |
+| AUTH-BR-09 | İlgili bağlamda geçerli `CAP_PROHIBIT` izni erişimi engeller. | `lib/accesslib.php:788-843` |
+| AUTH-BR-10 | Misafir veya anonim kullanıcılar yazma işlemleri ve riskli yetenekler açısından sınırlandırılır. | `lib/accesslib.php:432-582` |
+| AUTH-BR-11 | Bağlam kilitleri belirli yazma yeteneklerini sınırlandırabilir. | `has_capability()` |
+| AUTH-BR-12 | Yetki kontrolü başarısızsa `require_capability()` işlemi istisnayla durdurur. | `lib/accesslib.php:872-877` |
+| AUTH-BR-13 | Site yöneticisi için özel yetki davranışları bulunur; ancak tüm güvenlik ve oturum kontrolleri koşulsuz atlanmaz. | `has_capability()`, `require_login()` |
+| AUTH-BR-14 | Ders erişimi, yalnızca oturum açılmış olmasına değil, ders kaydı ve ilgili erişim kurallarına da bağlıdır. | `require_login()` |
+
+#### 4.1.5 Hatalar ve eksikler: düzeltilecekler (aday)
+
+İncelenen kaynak kodda doğrudan doğrulanmış bir AUTH yazılım hatası tespit edilmemiştir.
+
+| Kimlik | Gözlem | Durum | Doğrulama |
+| --- | --- | --- | --- |
+| AUTH-BUG-01 | Geliştirme yapılandırmasında yetkisiz erişim hatasıyla birlikte çağrı yığını görüntülenmiştir. `debug=0` ve `debugdisplay=0` ayarlarıyla yapılan tekrarda çağrı yığını görüntülenmemiştir. | **Doğrulanmış Moodle hatası değil; yapılandırmaya bağlı gözlem.** | T-AUTH-02, T-AUTH-10 |
+| AUTH-BUG-02 | Yanlış parola ve hesap kilitleme durumlarındaki hata mesajlarının kullanıcı deneyimi ve bilgi ifşası açısından değerlendirilmesi gerekmektedir. | Araştırılacak; hata doğrulanmadı | T-AUTH-05, T-AUTH-06 |
+
+Bu maddeler doğrulanmadan `D` sınıfında kesin hata düzeltme gereksinimi olarak değerlendirilmez.
+
+#### 4.1.6 Veri modeli
+
+Moodle'ın kimlik ve yetkilendirme altyapısı, kullanıcı hesapları ile bağlama dayalı rol ve yetenek yönetimini birbirine bağlayan altı temel tablo üzerinden incelenmiştir. Tabloların alanları, anahtarları ve indeksleri `lib/db/install.xml` dosyasından doğrulanmıştır.
+
+**Temel tablolar**
+
+| Tablo | Açıklama | Önemli alanlar |
+| --- | --- | --- |
+| `user` | Kullanıcı hesaplarını ve kimlik bilgilerini saklar. | `id`, `username`, `password`, `auth`, `confirmed`, `deleted`, `suspended`, `email`, `lastlogin` |
+| `role` | Sistemdeki rolleri tanımlar. | `id`, `name`, `shortname`, `description`, `archetype` |
+| `context` | Yetkilerin geçerli olduğu bağlamları ve hiyerarşiyi tutar. | `id`, `contextlevel`, `instanceid`, `path`, `depth`, `locked` |
+| `capabilities` | Sistemde tanımlı yetenekleri saklar. | `id`, `name`, `captype`, `contextlevel`, `component`, `riskbitmask` |
+| `role_assignments` | Kullanıcıya belirli bağlamda rol atanmasını sağlar. | `id`, `roleid`, `contextid`, `userid`, `component`, `itemid` |
+| `role_capabilities` | Rolün belirli bağlamdaki yetenek iznini tanımlar. | `id`, `roleid`, `contextid`, `capability`, `permission` |
+
+**ER diyagramı**
+
+```mermaid
+erDiagram
+    user ||--o{ role_assignments : "userid"
+    role ||--o{ role_assignments : "roleid"
+    context ||--o{ role_assignments : "contextid"
+
+    role ||--o{ role_capabilities : "roleid"
+    context ||--o{ role_capabilities : "contextid"
+    capabilities ||--o{ role_capabilities : "capability-name"
+
+    user {
+        int id PK
+        char auth
+        int confirmed
+        int deleted
+        int suspended
+        char username
+        char password
+        char firstname
+        char lastname
+        char email
+        int lastlogin
+        int currentlogin
+        int timecreated
+        int timemodified
+    }
+
+    role {
+        int id PK
+        char name
+        char shortname UK
+        text description
+        int sortorder UK
+        char archetype
+    }
+
+    context {
+        int id PK
+        int contextlevel
+        int instanceid
+        char path
+        int depth
+        int locked
+    }
+
+    capabilities {
+        int id PK
+        char name UK
+        char captype
+        int contextlevel
+        char component
+        int riskbitmask
+    }
+
+    role_assignments {
+        int id PK
+        int roleid FK
+        int contextid FK
+        int userid FK
+        int timemodified
+        int modifierid
+        char component
+        int itemid
+        int sortorder
+    }
+
+    role_capabilities {
+        int id PK
+        int contextid FK
+        int roleid FK
+        char capability FK
+        int permission
+        int timemodified
+        int modifierid FK
+    }
+```
+
+**Anahtarlar ve veri bütünlüğü kuralları**
+
+| Tablo | Kural |
+| --- | --- |
+| `user` | `id` birincil anahtardır. `(mnethostid, username)` birleşimi benzersizdir. |
+| `role` | `id` birincil anahtardır. `shortname` ve `sortorder` ayrı ayrı benzersiz indekslere sahiptir. |
+| `context` | `id` birincil anahtardır. `(contextlevel, instanceid)` birleşimi benzersizdir. |
+| `capabilities` | `id` birincil anahtardır. `name` benzersiz anahtardır. |
+| `role_assignments` | `roleid`, `contextid`, `userid` alanları sırasıyla `role`, `context` ve `user` tablolarına yabancı anahtardır. |
+| `role_capabilities` | `roleid`, `contextid`, `modifierid` ve `capability` yabancı anahtardır. `(roleid, contextid, capability)` birleşimi benzersizdir. |
+
+**Önemli indeksler**
+
+- `role_assignments`: `(roleid, contextid)`, `(userid, contextid, roleid)`, `(component, itemid, userid)`.
+- `role_capabilities`: benzersiz `(roleid, contextid, capability)` indeksi.
+- `context`: benzersiz `(contextlevel, instanceid)` indeksi; ayrıca `path` indeksi.
+- `user`: benzersiz `(mnethostid, username)` indeksi; ayrıca `email`, `auth`, `deleted` gibi sorgu alanları için indeksler.
+
+**Korunması gereken veri modeli davranışları**
+
+- Kullanıcı adının benzersizliği `mnethostid` ile birlikte değerlendirilir.
+- Kullanıcının rolü bağlamdan bağımsız değildir; rol ataması kullanıcı, rol ve bağlam ilişkisiyle saklanır.
+- Bir rolün aynı bağlamda aynı yetenek için birden fazla izin kaydı bulunamaz.
+- Yetki kontrolü, `context` hiyerarşisini ve `role_capabilities.permission` değerlerini dikkate alır.
+- `context.locked` alanı bağlamın ve alt bağlamlarının kilitlenme durumunu temsil eder.
+
+Kaynak: `public/lib/db/install.xml`, `user` (870), `role` (1184), `context` (1201), `capabilities` (1230 civarı), `role_assignments` (1304), `role_capabilities` (1329). Yetki değerlendirme mantığı: `public/lib/accesslib.php`, `has_capability()` ve `has_capability_in_accessdata()`.
+
+#### 4.1.7 Yetkilendirme
+
+Moodle'da yetkilendirme rol tabanlı olmakla birlikte bağlama duyarlıdır. Aynı kullanıcı bir derste öğretmen, başka bir derste öğrenci olabilir.
+
+| İşlem | Öğrenci | Düzenleyen öğretmen | Site yöneticisi |
+| --- | --- | --- | --- |
+| Kendi hesabıyla giriş yapma | Evet | Evet | Evet |
+| Kayıtlı olduğu dersi görüntüleme | Evet | Evet | Evet |
+| SENG101 ders ayarlarını düzenleme | Hayır | Evet | Evet |
+| Site yapılandırmasını yönetme | Hayır | Hayır | Evet |
+
+Tablo, incelenen rollerin örnek veri üzerindeki temel davranışlarını temsil eder. Ayrıntılı yetki matrisi Moodle rol yapılandırması ve `has_capability()` kontrolleri üzerinden genişletilecektir.
+
+#### 4.1.8 Bağımlılıklar ve entegrasyonlar
+
+- **CRS:** Ders kayıt durumu, kullanıcının ders erişimini etkiler.
+- **ASG ve GRD:** Ödev teslimi ve notlandırma yetkileri AUTH üzerinden değerlendirilir.
+- **FILE:** Dosya erişiminde kullanıcı kimliği, bağlam ve yetenek kontrolü kullanılır.
+- **Oturum yönetimi:** Giriş, çıkış ve oturum geçerliliği.
+- **Kimlik doğrulama eklentileri:** Manual, email, LDAP, OAuth2 ve diğer yöntemler.
+- **Olay ve hook altyapısı:** Giriş ve yetkiyle ilgili olaylar ve genişletme noktaları.
+
+#### 4.1.9 Gereksinimler
+
+Sınıf: **K** korunacak, **D** düzeltilecek, **Y** yeni. Öncelik: **M** mutlaka, **S** olmalı, **C** olabilir.
+
+| Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| AUTH-FR-01 | K | Geçerli kullanıcı bilgileriyle oturum açılabilmelidir. | AUTH-BR-01, 05 | M | Geçerli hesapla oturum oluşturulur. | T-AUTH-01 |
+| AUTH-FR-02 | K | Yetkisiz kullanıcı korunan işlemleri gerçekleştirememelidir. | AUTH-BR-08, 12 | M | Yetkisiz ders ayarı düzenleme denemesi reddedilir. | T-AUTH-02 |
+| AUTH-FR-03 | K | Öğretmen kendi yetkili olduğu dersin ayarlarına erişebilmelidir. | AUTH-BR-08 | M | Öğretmen ders ayarları formunu açabilir. | T-AUTH-03 |
+| AUTH-FR-04 | K | Askıya alınmış veya silinmiş hesapların girişi engellenmelidir. | AUTH-BR-02 | M | Askıya alınmış hesapla giriş reddedilir; silinmiş hesap için doğrulama beklemektedir. | T-AUTH-04 |
+| AUTH-FR-05 | K | Geçersiz parola ile giriş reddedilmeli ve başarısız denemeler kaydedilmelidir. | AUTH-BR-01, 04 | M | Yanlış parolayla oturum oluşturulmaz; başarısız giriş kaydı ayrıca doğrulanacaktır. | T-AUTH-05 |
+| AUTH-FR-06 | K | Etkin hesap kilitleme kuralları uygulanmalıdır. | AUTH-BR-03 | S | Kilitlenmiş hesapla giriş yapılamaz. | T-AUTH-06 |
+| AUTH-FR-07 | K | Kullanıcı yetkileri rol ve bağlam birlikte değerlendirilerek belirlenmelidir. | AUTH-BR-08, 09 | M | Farklı derslerde erişim davranışı değişir; farklı bağlamlarda rol atama testi ayrıca yapılacaktır. | T-AUTH-07 |
+| AUTH-FR-08 | K | Kullanıcı çıkış yaptığında korunan sayfalara yeniden giriş yapmadan erişememelidir. | AUTH-BR-07 | M | Çıkış sonrası ders bağlantısı açıldığında giriş ekranına yönlendirilir; oturum zaman aşımı ayrıca test edilecektir. | T-AUTH-08 |
+| AUTH-FR-09 | K | Zorunlu parola değişikliği uygulanmalıdır. | AUTH-BR-06 | S | Kullanıcı parola değişikliği akışına yönlendirilir. | T-AUTH-09 |
+| AUTH-NFR-01 | Y | Yetkisiz erişim yanıtları hassas sistem ayrıntılarını açıklamamalıdır. | WBS-1 §6, K3-K4 | M | Kullanıcıya çağrı yığını veya hassas yapılandırma bilgisi gösterilmez. | T-AUTH-10 |
+| AUTH-NFR-02 | Y | Yetkilendirme testlerinde yetkisiz işlemlerin tamamı reddedilmelidir. | WBS-1 §6, K4 | M | Yetkisiz erişim engelleme oranı %100 olur. | T-AUTH-02, T-AUTH-07 |
+
+#### 4.1.10 Test senaryoları
+
+Test ortamı: Moodle 5.3.1, PHP 8.3, PostgreSQL 17; ortak örnek veri seti.
+
+| Kimlik | Tür | Adımlar | Beklenen sonuç | Eski sistem sonucu |
+| --- | --- | --- | --- | --- |
+| T-AUTH-01 | Normal | `ogrenci1` hesabıyla giriş yapılır. | Dashboard açılır. | **Başarılı:** Dashboard açıldı. |
+| T-AUTH-02 | Yetkisiz | `ogrenci1`, `/course/edit.php?id=2` adresini açar. | Ders ayarlarına erişim reddedilir. | **Başarılı:** `required_capability_exception` ile erişim reddedildi. Geliştirme ortamında çağrı yığını görüntülendi. |
+| T-AUTH-03 | Normal | `ogretmen1`, SENG101 ders ayarlarını açar. | Düzenleme formu görüntülenir. | **Başarılı:** Ayarlar formu açıldı. Değişiklik kaydedilmedi. |
+| T-AUTH-04 | Yetkisiz | `ogrenci10` hesabı askıya alınır ve doğru parolayla giriş denenir. | Giriş reddedilir. | **Başarılı:** Askıya alınmış `ogrenci10` hesabıyla giriş reddedildi. "Unable to log in — Your login info may be incorrect. Please try again." mesajı görüntülendi. |
+| T-AUTH-05 | Hatalı girdi | `ogrenci10` hesabıyla yanlış parola kullanılarak giriş denenir. | Giriş reddedilir. | **Başarılı:** Giriş reddedildi. "Unable to log in — Your login info may be incorrect. Please try again." mesajı görüntülendi. |
+| T-AUTH-06 | Sınır | Account lockout threshold `3` yapılır. `ogrenci10` hesabıyla üç kez yanlış parola, ardından bir kez doğru parola denenir. | Hesap kilitlenir ve doğru parolayla da giriş engellenir. | **Başarılı:** Üç başarısız deneme sonrası hesap kilitlendi. Doğru parola da reddedildi. "Your account is locked. An unlock link has been sent via email." mesajı görüntülendi. E-posta teslimi doğrulanmadı. |
+| T-AUTH-07 | Yetkilendirme | `ogretmen1` ile SENG101 ve SENG201 derslerinin Settings sekmeleri kontrol edilir; ardından CENG301 (`/course/view.php?id=4`) açılır. | Kullanıcının ders bağlamına göre erişimi değişir. | **Başarılı:** SENG101 ve SENG201'de Settings sekmesi görüntülendi. CENG301 için kayıt seçeneklerine yönlendirildi ve "You cannot enrol yourself in this course." mesajı gösterildi. |
+| T-AUTH-08 | Oturum | `ogrenci1` ile SENG101 açılır, çıkış yapılır ve aynı ders bağlantısı tekrar açılır. | Çıkış sonrası yeniden giriş istenir. | **Başarılı:** Çıkış yapıldıktan sonra SENG101 bağlantısı açıldığında Moodle giriş sayfasına yönlendirdi. |
+| T-AUTH-09 | Parola | `ogrenci10` için Force password change etkinleştirilir ve kullanıcı giriş yapar. | Kullanıcı parola değiştirme ekranına yönlendirilir. | **Başarılı:** `ogrenci10` giriş sonrasında Change password sayfasına yönlendirildi. "You must change your password to proceed." uyarısı görüntülendi. Parola değiştirme işlemi tamamlanmadı. |
+| T-AUTH-10 | Güvenlik | `config.php` içinde `debug=0` ve `debugdisplay=0` ayarlanır. `ogrenci1` ile `/course/edit.php?id=2` adresine erişilir. | Yetkisiz erişim reddedilir; çağrı yığını ve hassas hata ayıklama bilgileri gösterilmez. | **Başarılı:** Ders ayarlarına erişim reddedildi. Kullanıcıya yetki hatası gösterildi; çağrı yığını veya PHP hata ayıklama bilgisi görüntülenmedi. Yerel ortamda üretim benzeri hata ayarlarıyla test edildi. |
+
+**Test kapsamı ve sınırlılıklar:** T-AUTH-01 ile T-AUTH-10 arasındaki 10 test senaryosu yerel Moodle 5.3.1 ortamında uygulanmış ve belirtilen gözlemler elde edilmiştir. Bununla birlikte T-AUTH-03'te ders ayarları kaydedilmemiş, T-AUTH-04'te silinmiş hesap durumu denenmemiş, T-AUTH-05'te başarısız girişin veritabanına kaydı ayrıca doğrulanmamış, T-AUTH-06'da kilit açma e-postasının teslimi kontrol edilmemiştir. T-AUTH-07'de farklı derslerde erişim davranışı gözlemlenmiş ancak farklı rol atamaları oluşturulmamıştır. T-AUTH-08'de çıkış sonrası erişim kontrol edilmiş, zaman aşımı senaryosu uygulanmamıştır. T-AUTH-09'da parola değiştirme sayfasına yönlendirme doğrulanmış ancak parola değiştirme işlemi tamamlanmamıştır. T-AUTH-10, gerçek üretim ortamında değil, yerel ortamda hata ayıklama kapatılarak gerçekleştirilmiştir. Bu sınırlılıklar sonraki doğrulama aşamasında ele alınacaktır.
+
+#### 4.1.11 Öneri: ilk sürüme alınsın mı?
+
+**Evet, zorunlu çekirdek modül olarak alınmalıdır.**
+
+AUTH, diğer modüllerin güvenli çalışması için temel bağımlılıktır. İlk sürümde kullanıcı girişi, oturum yönetimi, kullanıcı-rol-bağlam ilişkileri, yetki kontrolü ve yetkisiz erişimin engellenmesi bulunmalıdır.
+
+Moodle'ın bütün harici kimlik doğrulama eklentilerinin birebir yeniden geliştirilmesi ilk sürüm için gerekli değildir. Öncelik, ortak örnek verideki kullanıcıların güvenli giriş yapması ve AUTH ile CRS arasındaki erişim kurallarının korunmasıdır.
+
+Yeni mimaride roller ve yetenekler merkezi bir yetkilendirme mekanizmasıyla değerlendirilmeli; ders, ödev, not ve dosya modülleri bu mekanizmayı ortak kullanmalıdır.
 
 ### 4.2 Ders ve kayıt (Sinem)
 

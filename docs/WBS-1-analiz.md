@@ -26,6 +26,101 @@ Ekibin hepsi Moodle'ı kendi bilgisayarında aynı sürüm, aynı kaynak kod ve 
 
 ## 2. Kapsam ve SRS girişi (Fatma Zehra)
 
+Bu bölüm, WBS-1 ve WBS-2 dokümanlarının birlikte oluşturduğu Yazılım Gereksinim Belirtiminin (SRS) giriş kısmıdır. Yapısı ISO/IEC/IEEE 29148:2018 gereksinim mühendisliği standardının SRS önerisine göre düzenlenmiştir.
+
+### 2.1 Amaç
+
+Bu SRS, Moodle 5.3.1'in seçilen alt fonksiyonlarının yapay zekâ desteğiyle yeni bir mimaride ve farklı bir programlama dilinde yeniden geliştirilmesi için gereksinimleri tanımlar. Hedef okuyucular proje ekibi, danışman öğretim üyesi ve değerlendiricilerdir. Doküman, geliştirmeye başlamadan önce neyin korunacağını, neyin düzeltileceğini ve neyin yeni ekleneceğini netleştirmek için kullanılır.
+
+### 2.2 Kapsam
+
+**Kapsam dahilinde**
+- Moodle 5.3.1'in (revizyon `cfe123f2`) aşağıdaki alt fonksiyonlarının analizi; ilk sürümde geliştirilecek olanlar §9'da seçilir:
+  - Kimlik ve yetkilendirme
+  - Ders ve kayıt
+  - Danışmanlık (ön şartlar, ders seçim kısıtları)
+  - Ödev ve teslim
+  - Değerlendirme
+  - Dosya yönetimi
+- Yeni modül: Otomatik eğitim planı oluşturma
+- Seçilen fonksiyonların yeni dilde ve mimaride yeniden geliştirilmesi, bunun için gereken veri aktarımı
+- Eski ve yeni sistemin aynı girdilerle karşılaştırmalı doğrulanması ve kalite ölçümleri
+
+**Kapsam dışında**
+- Moodle'ın bütünü ve seçilmeyen etkinlik türleri (sınav, forum, çalıştay, SCORM, H5P vb.)
+- Üçüncü taraf eklentiler ve mobil uygulama
+- Moodle arayüzünün görsel olarak birebir kopyalanması
+- Gerçek kurum verisinin taşınması (yalnızca test verisi kullanılır)
+- Eski sistemde yapılacak değişiklikler; eski sistem karşılaştırma için olduğu gibi korunur
+
+### 2.3 Tanımlar ve kısaltmalar
+
+| Terim | Anlamı |
+| --- | --- |
+| Eski sistem | Moodle 5.3.1, revizyon `cfe123f2` |
+| Yeni sistem | Seçilen fonksiyonların hedef dilde yeniden geliştirilmiş hâli |
+| Modül / alt fonksiyon | Moodle'ın birlikte analiz edilen bir işlev grubu (ör. Ödev ve teslim) |
+| Rol | Kullanıcının bir bağlamda sahip olduğu yetki seti (ör. öğrenci, öğretmen) |
+| Bağlam (context) | Moodle'da yetkinin geçerli olduğu kapsam: site, kategori, ders, etkinlik |
+| Yetenek (capability) | Moodle'da tek bir işleme verilen izin (ör. `mod/assign:grade`) |
+| FR | Fonksiyonel gereksinim |
+| NFR | Fonksiyonel olmayan gereksinim (performans, güvenlik, kullanılabilirlik vb.) |
+| BR | Korunacak iş kuralı |
+| BUG | Eski sistemde düzeltilecek hata veya eksik |
+| KPI | Ana performans göstergesi |
+| YZ | Yapay zekâ |
+| Karakterizasyon testi | Eski sistemin mevcut davranışını kaydeden test |
+| İzlenebilirlik | Gereksinim, eski kod, yeni kod ve test arasındaki eşleme |
+
+### 2.4 Kullanıcı rolleri
+
+| Rol | Moodle karşılığı | Örnek veride | Temel işleri |
+| --- | --- | --- | --- |
+| Site yöneticisi | `admin` | admin | Site ayarları, kullanıcı ve rol yönetimi |
+| Yönetici | `manager` | yonetici1 | Kategori, ders ve kullanıcı yönetimi |
+| Öğretmen | `editingteacher` | ogretmen1, ogretmen2 | Ders içeriği, ödev oluşturma, notlandırma |
+| Düzenleme yetkisiz öğretmen | `teacher` | asistan1 | Notlandırma, içerik değiştiremez |
+| Öğrenci | `student` | ogrenci1–ogrenci10 | Derse katılım, ödev teslimi, not görüntüleme |
+| Danışman | Standart rolü yok | danisman1 | Ders seçim onayı, eğitim planı takibi (bkz. §4.3, §5) |
+
+### 2.5 Gereksinimlerin yazımı
+
+Her gereksinim aşağıdaki alanlarla yazılır:
+
+| Alan | Açıklama |
+| --- | --- |
+| Kimlik | `<MODÜL>-<TÜR>-<NO>`, ör. `ASG-FR-03` |
+| Sınıf | **K** korunacak · **D** düzeltilecek · **Y** yeni |
+| Açıklama | Tek ve test edilebilir bir ifade |
+| Kaynak | Eski kodun yeri, kullanıcı ihtiyacı (§3) veya hata kaydı |
+| Öncelik | **M** mutlaka · **S** olmalı · **C** olabilir (MoSCoW) |
+| Kabul kriteri | Gereksinimin karşılandığı nasıl anlaşılır |
+| Test | İlgili test senaryosunun kimliği |
+
+**Modül önekleri:** `AUTH` kimlik ve yetkilendirme · `CRS` ders ve kayıt · `ADV` danışmanlık · `ASG` ödev ve teslim · `GRD` değerlendirme · `FILE` dosya yönetimi · `PLAN` otomatik eğitim planı.
+**Tür ekleri:** `FR` fonksiyonel · `NFR` fonksiyonel olmayan · `BR` iş kuralı · `BUG` hata/eksik.
+
+### 2.6 Varsayımlar ve kısıtlar
+
+- Eski sistem sürümü ve revizyonu proje boyunca sabittir; yeni Moodle sürümleri dikkate alınmaz.
+- Hedef dil ve mimari WBS-2'de seçilir. Bu bölümdeki gereksinimler dilden bağımsız yazılır.
+- Bütün geliştirme ve testler `ortam/ornek-veri.feature` ile üretilen ortak veriyle yapılır.
+- YZ ile üretilen her çıktı insan incelemesinden ve testten geçmeden kabul edilmez; kullanımı WBS-2 §4'e göre kaydedilir.
+- Ekip 5 kişidir; harcanan efor, YZ destekli ve manuel geliştirmenin karşılaştırılması için kayıt altına alınır.
+
+### 2.7 SRS'in bölümleri
+
+| SRS bileşeni | Yeri |
+| --- | --- |
+| Giriş, kapsam, roller, gereksinim yazımı | WBS-1 §2 (bu bölüm) |
+| Kullanıcı ihtiyaçları | WBS-1 §3 |
+| Mevcut fonksiyonların gereksinimleri (K/D) | WBS-1 §4 |
+| Yeni fonksiyon gereksinimleri (Y) | WBS-1 §5 |
+| Fonksiyonel olmayan gereksinimler ve KPI'lar | WBS-1 §6 |
+| Seçilen modüller ve bağımlılıklar | WBS-1 §9 |
+| Veri ve arayüz tasarımı | WBS-2 §3 |
+| İzlenebilirlik | WBS-2 §5 |
+
 ## 3. Kullanıcı ihtiyaçları anketi (İrem)
 
 ## 4. Modül analizleri

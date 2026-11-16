@@ -1,0 +1,8 @@
+debug=0 debugdisplay=0; isolated database
+T-GRD-02: PASS (HTTP 200; own assignment grade 85)
+T-GRD-03: PASS (HTTP 200; grade item and enrolled learner)
+GRD visible stack trace: False
+T-GRD-05: PASS (HTTP 404; Moodle permission error and no grade table)
+T-ASG-03: PASS (HTTP 200; submitted and missing submissions in teacher list)
+ASG visible stack trace: False
+T-ASG-05: PASS (HTTP 200/404; teacher sees submission and student receives permission error)

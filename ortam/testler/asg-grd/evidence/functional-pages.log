@@ -1,0 +1,5 @@
+T-GRD-02: PASS (HTTP 200; own assignment grade 85)
+T-GRD-03: PASS (HTTP 200; grade item and enrolled learner)
+T-GRD-05: PASS (HTTP 500; Moodle permission error and no grade table)
+T-ASG-03: PASS (HTTP 200; submitted and missing submissions in teacher list)
+T-ASG-05: PASS (HTTP 200/500; teacher sees submission and student receives permission error)

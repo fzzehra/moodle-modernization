@@ -2,7 +2,201 @@
 
 ## 1. Hedef dil ve teknoloji seçimi (Seray)
 
+Seçim, SRS'teki "farklı bir programlama dili" şartına (WBS-1 §1) ve sürüm planına göre yapılmıştır: 1. sürümde AUTH, CRS, ASG, GRD; 2. sürümde FILE, ADV; 3. sürümde PLAN yazılacaktır. Puanlar 1 (zayıf) – 5 (çok iyi) arasındadır ve ekibin ilk değerlendirmesidir; grup toplantısında onaylanır.
+
+### 1.1 Adaylar
+
+| Aday | Arka uç | Ön yüz |
+| --- | --- | --- |
+| **A** | C# · .NET 10 · ASP.NET Core | Blazor Web App |
+| **B** | Python 3.13 · FastAPI | React (TypeScript) |
+| **C** | TypeScript · Node.js 22 · NestJS | React (TypeScript) |
+
+PHP (Laravel, Symfony) aday alınmamıştır: Moodle zaten PHP'dir ve proje "farklı dilde yeniden yazım"ı sınar.
+
+### 1.2 Karşılaştırma
+
+| Ölçüt | A: C# / .NET | B: Python / FastAPI | C: TypeScript / NestJS |
+| --- | --- | --- | --- |
+| Performans (K8, K10) | 5 – derlenmiş, düşük bellek; 50 eş zamanlı kullanıcıda p95 ≤ 1.000 ms hedefi rahat | 3 – eşzamansız çalışır ama CPU işinde yavaştır | 4 – tek iş parçacıklı, G/Ç ağırlıklı işte iyi |
+| Ekosistem | 4 – kimlik (ASP.NET Core Identity), ORM (EF Core), dosya akışı, arka plan görevleri çerçevenin içinde | 5 – çok geniş kütüphane; kimlik ve yetkilendirme çoğunlukla ek paket ister | 5 – geniş npm ekosistemi; paket sayısı ve sürüm kayması bakım yükü getirir |
+| Ekip bilgisi | 5 – eShop pilotu aynı yığınla (.NET 10, Blazor, EF Core) yapıldı; ekip bu yığında çalıştı | 2 – pilotta kullanılmadı | 2 – pilotta kullanılmadı |
+| YZ araçlarının kod üretimi | 4 – iyi; Blazor için örnek sayısı React'ten azdır | 5 – en yaygın; en çok eğitim verisi | 5 – çok iyi; React için çok örnek vardır |
+| Tür güvenliği (K3, K13) | 5 – derleyici hataları erkenden yakalar | 3 – tür ipuçları isteğe bağlıdır | 4 – TypeScript denetimi, çalışma anında yine de gevşektir |
+| Test ve kalite araçları (K5–K7, K13, K14) | 5 – xUnit, coverlet, CodeQL, SonarCloud, analizörler hazır | 4 – pytest, coverage.py, CodeQL | 4 – Jest, c8, CodeQL |
+| Docker ve barındırma | 5 – resmî küçük imajlar, pilotta kullanıldı | 5 | 5 |
+
+**Değerlendirme.** Üç aday da Docker'da sorunsuz çalışır; ayrım **ekip bilgisi**, **performans** ve **tür güvenliği**nde ortaya çıkar. B ve C'nin tek üstünlüğü YZ araçlarının biraz daha iyi kod üretmesidir; ama ekip bu yığınları pilotta kullanmadığı için YZ'nin hatalarını fark etme ve düzeltme gücü düşer. Bu proje YZ'nin ürettiği kodun düzeltme eforunu da ölçtüğü için (K17), ekibin tanıdığı dilde ölçmek daha güvenilirdir.
+
+### 1.3 Öneri
+
+**A: C# / .NET 10 + ASP.NET Core + Blazor Web App.**
+
+Gerekçe:
+1. **Ekip bilgisi:** Pilotta aynı yığın kullanıldı; WBS-1 §6'daki kalite ölçüm hattı (CI, CodeQL, SonarCloud, Playwright, k6) hazır ve yeniden kullanılabilir.
+2. **Kapsam:** 1. sürümün AUTH ve GRD modülleri kimlik, rol ve hesaplama ağırlıklıdır; ASP.NET Core Identity ve ilke tabanlı yetkilendirme (policy-based authorization) bunları çerçeve içinden verir.
+3. **Hedefler:** K5 (kapsam ≥ %80), K8 (p95) ve K10 (kaynak) hedefleri bu yığında en rahat yakalanır.
+4. **Tür güvenliği:** Gereksinim kimliğine bağlı test yazarken derleyici, YZ'nin ürettiği hataların bir kısmını erkenden yakalar.
+5. **Tek dil:** Arka uç ve ön yüz C# olduğundan 5 kişilik ekip tek dilde çalışır; modüller arası geçiş kolay olur.
+
+Risk ve önlem: YZ araçlarının Blazor'daki başarısı React'ten düşük olabilir. Önlem olarak ön yüz bileşenleri küçük tutulur; her bileşen bir API ucuna bağlanır ve YZ çıktısı pilottaki gibi insan incelemesinden geçer. Üretim sütunu (YZ / Manuel / YZ + düzeltme) bu riski ölçer.
+
+### 1.4 Seçilen teknoloji yığını
+
+| Katman | Seçim | Gerekçe |
+| --- | --- | --- |
+| Dil / çalışma zamanı | C# 14, .NET 10 | Yukarıdaki öneri |
+| Web ve API | ASP.NET Core (Minimal API), REST + JSON | WBS-2 §3'teki API tablolarıyla birebir; OpenAPI belgesi otomatik üretilir |
+| Ön yüz | Blazor Web App; veriyi REST API'den alır | API tek sözleşme olur; k6 ve API testleri aynı uçları kullanır |
+| Kimlik | ASP.NET Core Identity + çerez oturumu | Ayrıntı §3.1'de (Sinem) |
+| Veri erişimi | Entity Framework Core + Npgsql | Şema geçişleri (migration) kodla sürümlenir |
+| Veritabanı | PostgreSQL 17 | Moodle ortamıyla aynı sürüm; veri taşıma ve karşılaştırma kolaylaşır; lisans ücretsizdir |
+| Dosya deposu | Yerel disk (Docker birimi); `IFileStore` arayüzü arkasında | §3.6'daki `storage_key` yapısı; sonradan nesne deposuna (S3 uyumlu) geçiş kolay |
+| Birim ve entegrasyon testi | xUnit, Testcontainers (gerçek PostgreSQL) | İş mantığı ve veri katmanı gerçek veritabanıyla sınanır |
+| Uçtan uca test | Playwright (TypeScript) | Moodle'a da aynı senaryo uygulanır (K1, K2) |
+| Yük testi | k6 | K8, K9 |
+| Kapsam | coverlet | K5 |
+| Statik / dinamik güvenlik | CodeQL, SonarCloud, OWASP ZAP | K6, K7, K13, K14 |
+| Konteyner | Docker, Docker Compose | Moodle ortamıyla aynı yaklaşım |
+| CI/CD | GitHub Actions | Pilotla aynı; her PR'de derleme, test ve tarama |
+
 ## 2. Hedef mimari ve deployment diyagramı (Seray)
+
+### 2.1 Genel yaklaşım
+
+Sistem **modüler monolit**tir: tek dağıtım birimi, içinde modül sınırları açık. Gerekçe: 5 kişilik ekip ve 3 sürümlük plan için mikro hizmet işletmesi gereksiz maliyettir; ancak modüller (AUTH, CRS, ASG, GRD, FILE, ADV, PLAN) birbirine yalnızca arayüzlerle bağlandığı için sürüm sürüm eklenebilir ve gerekirse sonradan ayrılabilir.
+
+### 2.2 Katmanlar
+
+```mermaid
+flowchart TB
+    UI["Sunum: Blazor Web App<br/>sayfalar ve bileşenler"] -->|REST + JSON| API
+    EXT["Dış istemciler<br/>k6, Playwright, API testleri"] -->|REST + JSON| API
+    subgraph APP["Uygulama (tek dağıtım birimi)"]
+        API["API katmanı<br/>Minimal API uçları, kimlik doğrulama, hata gövdesi"] --> BL["İş mantığı katmanı<br/>kullanım senaryoları, iş kuralları, yetki politikaları"]
+        BL --> DOM["Alan katmanı<br/>varlıklar, değer nesneleri, kurallar"]
+        BL --> DA["Veri erişim katmanı<br/>EF Core, depolar (repository), IFileStore"]
+    end
+    DA --> DB[("PostgreSQL 17")]
+    DA --> FS[("Dosya deposu<br/>Docker birimi")]
+```
+
+| Katman | Sorumluluk | Bağımlılık kuralı |
+| --- | --- | --- |
+| Sunum (Blazor) | Ekranlar, form doğrulama, API çağrısı | Yalnızca API'yi bilir |
+| API | Yol, istek/yanıt şeması, oturum ve yetki denetiminin girişi, tek tip hata gövdesi (K3: yığın izi dönmez) | İş mantığını çağırır, veri erişimini bilmez |
+| İş mantığı | Kullanım senaryoları; WBS-1'deki iş kuralları (`*-BR-*`) burada tek yerde yazılır; yetki politikaları | Alan ve veri erişim **arayüzlerine** bağlıdır |
+| Alan | Varlıklar ve değişmez kurallar | Hiçbir şeye bağlı değildir |
+| Veri erişim | EF Core, depolar, dosya deposu, geçişler | İş mantığının tanımladığı arayüzleri uygular |
+
+Bağımlılık yönü içeriye doğrudur: sunum → API → iş mantığı → alan; veri erişim, iş mantığındaki arayüzleri uygular. Bu kural K13 (bakım) için derleme sırasında mimari testiyle denetlenir.
+
+### 2.3 Klasör yapısı
+
+```text
+moodle-modern/
+├── src/
+│   ├── Moodle.Domain/             # alan katmanı, modül başına klasör
+│   │   ├── Auth/  Courses/  Assignments/  Grading/  Files/  Advising/  Planning/
+│   ├── Moodle.Application/        # iş mantığı: kullanım senaryoları, arayüzler, yetki politikaları
+│   │   ├── Auth/  Courses/  Assignments/  Grading/  Files/  Advising/  Planning/
+│   ├── Moodle.Infrastructure/     # veri erişimi
+│   │   ├── Persistence/           # DbContext, yapılandırmalar, Migrations/
+│   │   ├── Storage/               # IFileStore: yerel disk gerçeklemesi
+│   │   └── Jobs/                  # arka plan görevleri (dosya temizliği vb.)
+│   ├── Moodle.Api/                # uç noktalar, modül başına bir dosya; Program.cs
+│   └── Moodle.Web/                # Blazor Web App (sayfalar, bileşenler)
+├── tests/
+│   ├── Moodle.UnitTests/          # iş mantığı (K5)
+│   ├── Moodle.IntegrationTests/   # API + Testcontainers PostgreSQL
+│   ├── e2e/                       # Playwright; aynı senaryo Moodle'a da uygulanır
+│   └── performance/               # k6
+├── docker/                        # Dockerfile, compose, proxy ayarı
+├── .github/workflows/             # CI
+└── docs/
+```
+
+Her modül, kendi klasörü dışındaki modülün **arayüzünü** çağırır, gerçeklemesini çağırmaz (ör. `ASG`, dosya için `IFileService` kullanır). Yeni kod gereksinim kimliğiyle işaretlenir (WBS-2 §5.2, kural 4).
+
+### 2.4 Kimlik doğrulama ve yetkilendirme yaklaşımı
+
+- Oturum: ASP.NET Core Identity, güvenli ve `HttpOnly` çerez. Ayrıntı §3.1'dedir (Sinem).
+- Yetki: Moodle'ın bağlam + rol + yetenek modeli (WBS-1 §4.1) **ilke tabanlı yetkilendirme** olarak karşılanır: her uç bir ilkeye bağlanır, ilke "kullanıcı, bağlam ve yetenek"e bakar.
+- Bileşen yetkisi: Dosya gibi paylaşılan servisler, sahip modülün `canRead`/`canWrite` işlevini çağırır (§3.6.3).
+- Yetkisiz isteğe `404` döner (varlık sızdırılmaz); ayrım WBS-1'deki rol–yetki matrisine uyar (K4).
+
+### 2.5 Veritabanı ve dosya deposu
+
+- **Veritabanı:** tek PostgreSQL 17 örneği, tek şema; tablo adları modül önekli değildir ama her modülün tabloları kendi `Infrastructure/Persistence` yapılandırmasında tanımlıdır. Şema değişikliği yalnızca EF Core geçişiyle yapılır.
+- **Dosya deposu:** içerik adresli, `ab/cd/<sha256>` yolu (§3.6.1). Veritabanında yalnızca üst veri tutulur. Depo `IFileStore` arkasındadır; geliştirmede yerel disk, ileride nesne deposu.
+- **Yedekleme:** veritabanı ve dosya deposu birlikte yedeklenmelidir; yalnız biri geri yüklenirse "dosya var, içerik yok" tutarsızlığı oluşur. Bu nokta işletme notudur.
+
+### 2.6 Dağıtım diyagramı
+
+```mermaid
+flowchart LR
+    U["Kullanıcı<br/>tarayıcı"] -->|HTTPS| PX
+    subgraph HOST["Docker Compose (geliştirici bilgisayarı veya sunucu)"]
+        PX["Ters vekil (reverse proxy)<br/>yol bazlı yönlendirme"]
+        subgraph NEW["Yeni sistem"]
+            APP2["moodle-modern<br/>ASP.NET Core + Blazor<br/>:8080"]
+            PG2[("PostgreSQL 17<br/>modern-db")]
+            VOL[("Docker birimi<br/>dosya deposu")]
+            JOB["Arka plan görevi<br/>dosya temizliği"]
+        end
+        subgraph OLD["Eski sistem"]
+            MD["Moodle 5.3.1<br/>PHP 8.3 + Apache<br/>:8000"]
+            PG1[("PostgreSQL 17<br/>moodle-db")]
+        end
+        PX -->|"/api/v1, /app"| APP2
+        PX -->|"diğer tüm yollar"| MD
+        APP2 --> PG2
+        APP2 --> VOL
+        JOB --> PG2
+        JOB --> VOL
+        MD --> PG1
+    end
+    subgraph CI["GitHub Actions"]
+        BUILD["Derleme ve birim testi"] --> INT["Entegrasyon testi<br/>Testcontainers"]
+        INT --> E2E["Playwright e2e<br/>compose ile ayağa kalkar"]
+        E2E --> SEC["CodeQL, SonarCloud, ZAP"]
+        SEC --> IMG["Docker imajı üretimi"]
+    end
+```
+
+| Bileşen | Teknoloji | Port | Veri |
+| --- | --- | --- | --- |
+| Yeni uygulama | .NET 10, tek konteyner | 8080 | `modern-db`, dosya birimi |
+| Yeni veritabanı | PostgreSQL 17 | 5432 (yalnız ağ içi) | `modern-db` birimi |
+| Eski sistem | Moodle 5.3.1, PHP 8.3, Apache | 8000 | `moodle-db`, Moodle veri dizini |
+| Ters vekil | nginx veya Caddy | 80/443 | Yok |
+| CI | GitHub Actions | — | İmaj kayıt defteri |
+
+Hem eski hem yeni sistem aynı bilgisayarda çalıştığı için K1, K2, K8 ve K10 aynı koşulda ölçülür.
+
+### 2.7 Eski ve yeni sistemin geçiş sürecinde birlikte çalışması
+
+Yaklaşım **modül modül geçiş**tir (strangler fig): ters vekil, hangi yolun hangi sisteme gideceğini söyler; modül hazır oldukça yönlendirme yeni sisteme çevrilir.
+
+1. **Veritabanları ayrıdır.** Yeni sistem, Moodle'ın veritabanına yazmaz; Moodle şeması yeni sistemin sözleşmesi olmaz. Veri, modül geçişinde tek yönlü bir aktarım betiğiyle taşınır (kullanıcılar, dersler, kayıtlar, ödevler, notlar, dosya üst verisi).
+2. **Bir modül aynı anda yalnızca bir sistemde yazılır.** Hem eski hem yeni sistemde yazılan modül çakışma doğurur; bu yüzden geçiş anında ilgili yol yeni sisteme çevrilir ve Moodle'da o işlev kapatılır.
+3. **Sıra sürüm planına uyar:**
+
+| Sürüm | Modüller | Geçişte bilinmesi gereken |
+| --- | --- | --- |
+| 1 | AUTH, CRS, ASG, GRD | Kimlik ilk taşınan modüldür; kullanıcı ve rol aktarımı tamamlanmadan diğerleri açılamaz. **Ödev teslimi dosya gerektirir** (aşağıya bakın). |
+| 2 | FILE (tam), ADV | FILE'ın 1. sürümde başlayan çekirdeği burada tamamlanır; ADV, AUTH ve CRS'ye bağlıdır. |
+| 3 | PLAN | Önceki modüllerin verisini okur. |
+
+4. **Dosya bağımlılığı.** ASG 1. sürümde, FILE ise 2. sürümde planlıdır; oysa ödev teslimi dosya yükleme, taslaktan kalıcıya geçiş ve yetkili indirme gerektirir. Bu yüzden `IFileService` 1. sürümde, **yalnızca ASG'nin ihtiyaç duyduğu çekirdek** (taslak, kaydet, indir, sil, boyut sınırı; WBS-1 §4.6.11) ile gerçeklenir; kota, çöp kutusu geri alma, yönetici ayarları ve temizlik görevi (FILE'ın kalanı) 2. sürümde eklenir. Aksi hâlde ASG metin teslimiyle sınırlı kalır.
+5. **Kimlik paylaşımı.** Geçiş döneminde kullanıcı iki sistemde de oturum açar. Tek oturum açma (SSO) bu proje kapsamında **yoktur**; sınav ve karşılaştırma ortamında test kullanıcıları iki sistemde aynı kimlikle tanımlanır (`ornek-veri.feature`).
+6. **Geri dönüş.** Modül yönlendirmesi vekil ayarıyla geri alınabilir; aktarım betiği yeniden çalıştırılabilir (aynı veriyle kurulum 5 dakika, `ortam/README.md`).
+
+### 2.8 Açık noktalar
+
+- Ters vekil için nginx ve Caddy arasında seçim, kurulum denemesinden sonra yapılacaktır.
+- Ödev teslim dosyalarının yetkisi §3.4 ile birlikte kesinleşecektir.
+- Dil seçimi grup toplantısında onaylanmadıkça §1.3 "öneri"dir.
 
 ## 3. Veri ve arayüz tasarımı
 

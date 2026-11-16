@@ -203,243 +203,357 @@ Yaklaşım **modül modül geçiş**tir (strangler fig): ters vekil, hangi yolun
 API tabloları: Metot · Yol · İstek · Yanıt · Hangi rol çağırabilir
 
 ### 3.1 Kimlik ve yetkilendirme (Sinem)
+
 #### 3.1.1 Tasarım yaklaşımı
 
-Kimlik ve yetkilendirme (AUTH) modülünün modernizasyonunda Moodle 5.3.1'in mevcut kimlik doğrulama, oturum yönetimi ve rol-bağlam tabanlı yetkilendirme mekanizmalarının korunması esas alınacaktır. Amaç, mevcut güvenlik kurallarını ve diğer modüllerle entegrasyonu koruyarak daha sürdürülebilir, güvenli ve yönetilebilir bir hedef tasarım oluşturmaktır.
+Kimlik doğrulama ve yetkilendirme (AUTH) modülü, Moodle 5.3.1'in mevcut PHP tabanlı altyapısından bağımsız olarak C# ve .NET 10 teknolojileri kullanılarak yeniden geliştirilecektir. Hedef, WBS-1 kapsamında belirlenen mevcut sistem davranışlarını ve işlevsel gereksinimleri korurken daha modüler, güvenli, test edilebilir ve sürdürülebilir bir sistem oluşturmaktır.
 
-Hedef tasarımda kimlik doğrulama, oturum yönetimi ve yetkilendirme sorumlulukları mantıksal olarak ayrılacaktır. Bu sorumluluklar, mevcut Moodle altyapısıyla uyumlu servis arayüzleri üzerinden yönetilecektir.
+Yeni sistemde ASP.NET Core, ASP.NET Core Identity, Entity Framework Core (EF Core), PostgreSQL ve Blazor kullanılacaktır. Moodle'ın mevcut veritabanı yeni uygulamanın çalışma veritabanı olmayacak ve yeni uygulama tarafından doğrudan güncellenmeyecektir.
 
 **Temel tasarım ilkeleri**
 
 1. Kullanıcıların geçerli kimlik bilgileriyle sisteme giriş yapması sağlanacaktır.
-2. Askıya alınmış, silinmiş veya geçerli hesap kilitleme kuralları nedeniyle erişimi engellenmiş kullanıcıların oturum açması önlenecektir.
-3. Geçersiz parola girişleri reddedilecek ve başarısız giriş olayları izlenebilir olacaktır.
-4. Kullanıcı yetkileri yalnızca rol adına göre değil, ilgili bağlam ve capability tanımları üzerinden değerlendirilecektir.
-5. Oturum sonlandırma ve zaman aşımı kontrolleri korunacaktır.
-6. Zorunlu parola değiştirme akışı desteklenecektir.
-7. Mevcut Moodle kimlik doğrulama eklentileriyle uyumluluk gözetilecektir.
-8. AUTH modülünün CRS, ASG, GRD ve FILE modülleriyle olan yetkilendirme bağımlılıkları korunacaktır.
+2. Askıya alınmış, devre dışı bırakılmış veya kilitlenmiş hesapların giriş yapması engellenecektir.
+3. Başarısız giriş denemeleri güvenli biçimde izlenecektir.
+4. Yetkilendirme yalnızca kullanıcı rolüne göre değil, ilgili ders veya kaynak kapsamına göre değerlendirilecektir.
+5. Oturum oluşturma, sonlandırma ve geçerlilik kontrolleri güvenli biçimde yürütülecektir.
+6. Zorunlu parola değiştirme işlemi desteklenecektir.
+7. Parolalar açık metin olarak saklanmayacaktır.
+8. AUTH modülü, ilk sürümde CRS, ASG ve GRD modüllerinin kimlik doğrulama ve yetkilendirme ihtiyaçlarını karşılayacaktır.
+9. İkinci sürümde geliştirilecek FILE modülü de aynı yetkilendirme altyapısını kullanacaktır.
+10. Moodle'daki mevcut veriler, gerektiğinde kontrollü veri aktarımıyla yeni veritabanına taşınacaktır.
 
-**Hedef mimari yaklaşımı**
+**Hedef mimari**
 
-Kimlik doğrulama, oturum yönetimi ve yetkilendirme işlemleri aşağıdaki mantıksal bileşenlerle temsil edilecektir:
+| Bileşen | Teknoloji | Sorumluluk |
+|---|---|---|
+| Authentication | ASP.NET Core Identity | Kullanıcı girişi, parola doğrulama ve hesap durumunun kontrolü |
+| Session Management | ASP.NET Core Authentication | Oturum oluşturma, sonlandırma ve geçerlilik kontrolü |
+| Authorization | ASP.NET Core Policy-Based Authorization | Rol ve kaynak kapsamlı erişim kararları |
+| User Management | ASP.NET Core Identity | Kullanıcı hesaplarının yönetimi |
+| Role Management | ASP.NET Core Identity | Sistem rollerinin yönetimi |
+| Course Permission Management | Uygulamaya özgü yetkilendirme katmanı | Ders bazlı rol ve izinlerin değerlendirilmesi |
+| Data Access | Entity Framework Core | Yeni PostgreSQL veritabanına erişim |
+| User Interface | Blazor | Giriş, hesap ve kullanıcı yönetimi ekranları |
 
-| Bileşen | Sorumluluk |
-|---|---|
-| Authentication Service | Kullanıcı kimlik bilgilerinin doğrulanması ve hesap durumunun kontrol edilmesi |
-| Session Management | Oturum oluşturma, sonlandırma ve geçerlilik kontrolü |
-| Authorization Service | Rol, bağlam ve capability üzerinden erişim kararlarının verilmesi |
-| User Repository | Kullanıcı hesap bilgilerinin mevcut veri modeli üzerinden yönetilmesi |
-| Role and Context Repository | Rol atamaları, bağlam hiyerarşisi ve yetki tanımlarının yönetilmesi |
+Bu bileşenler mantıksal sorumlulukları temsil eder. Ayrı mikroservisler olarak uygulanmaları zorunlu değildir. İlk sürümde modüler monolit yaklaşımı benimsenebilir.
 
-Bu bileşenler hedef tasarım için önerilen mantıksal sorumluluk ayrımlarıdır. Ayrı mikroservisler olarak uygulanmaları zorunlu değildir.
+**Moodle ile ilişki**
 
-Mevcut Moodle 5.3.1 veri modeli ve eklenti mekanizmalarıyla uyumluluk korunacak; modernizasyon kapsamında önerilen API ve servis arayüzleri mevcut Moodle bileşenlerinden açıkça ayrıştırılacaktır.
+Moodle 5.3.1, mevcut sistemin davranışlarının analiz edilmesi ve yeni sistemin gereksinimlerinin belirlenmesi amacıyla referans alınacaktır.
+
+Yeni sistem Moodle'ın PHP fonksiyonlarını, `has_capability()` mekanizmasını veya kimlik doğrulama eklentilerini çalışma zamanında kullanmayacaktır.
+
+Bunun yerine mevcut sistemde tespit edilen iş kuralları, ASP.NET Core Identity ve uygulamaya özgü yetkilendirme politikalarıyla yeniden uygulanacaktır.
 
 **Gereksinim ilişkisi:** AUTH-FR-01–AUTH-FR-09.
 
 #### 3.1.2 Veri modeli ve bütünlük kuralları
 
-AUTH modülünün hedef veri modeli, Moodle 5.3.1'in mevcut kullanıcı, rol, bağlam ve yetenek (capability) tablolarını temel alacaktır. Modernizasyon kapsamında mevcut veri ilişkilerinin korunması, yetkilendirme davranışlarının değişmemesi ve diğer Moodle modülleriyle uyumluluğun sürdürülmesi amaçlanmaktadır.
+AUTH modülünün hedef veri modeli, ASP.NET Core Identity ve Entity Framework Core kullanılarak yeni PostgreSQL veritabanında oluşturulacaktır.
 
-**Temel veri yapıları**
+Moodle'ın `user`, `role`, `context`, `role_assignments` ve `role_capabilities` tabloları doğrudan kullanılmayacaktır. Bunların karşıladığı işlevler, yeni sistemin veri modeline uygun şekilde yeniden tasarlanacaktır.
 
-| Tablo | Tasarımdaki sorumluluğu |
+**Önerilen veri yapıları**
+
+| Tablo / Varlık | Sorumluluk |
 |---|---|
-| `user` | Kullanıcı kimlik bilgileri, hesap durumu ve kimlik doğrulama yöntemi |
-| `role` | Sistemde tanımlanan roller |
-| `context` | Yetkilendirme işlemlerinde kullanılan bağlam hiyerarşisi |
-| `role_assignments` | Kullanıcı, rol ve bağlam arasındaki atama ilişkileri |
-| `role_capabilities` | Roller için bağlama bağlı yetenek ve izin tanımları |
-| `capabilities` | Sistemde kullanılabilen yeteneklerin tanımları |
+| `AspNetUsers` | Kullanıcı hesapları, kimlik bilgileri ve hesap durumları |
+| `AspNetRoles` | Sistem genelindeki roller |
+| `AspNetUserRoles` | Kullanıcıların sistem rollerine atanması |
+| `AspNetUserClaims` | Kullanıcıya ait ek kimlik ve yetki bilgileri |
+| `AspNetRoleClaims` | Rollere tanımlanan ek yetki bilgileri |
+| `AspNetUserTokens` | Identity tarafından yönetilen kullanıcı token bilgileri |
+| `AspNetUserLogins` | Desteklenmesi durumunda harici giriş sağlayıcıları |
+| `CourseRoleAssignments` | Kullanıcıların belirli derslerde sahip oldukları roller |
+| `SecurityAuditLogs` | Güvenlikle ilgili olayların izlenmesi |
+| `UserSecurityStates` | Uygulamaya özgü hesap durumu ve zorunlu parola değiştirme bilgileri |
 
-**Korunacak veri bütünlüğü kuralları**
+Identity tablolarının adları varsayılan şemayı temsil etmektedir. Gerçek tablo adları ve alanlar EF Core yapılandırması sırasında kesinleştirilecektir.
 
-1. Kullanıcı adı benzersizliği `user` tablosunda `mnethostid` ve `username` alanları birlikte değerlendirilerek korunacaktır.
-2. Rol atamaları `role_assignments` tablosunda kullanıcı, rol ve bağlam ilişkisi üzerinden saklanacaktır.
-3. `role_capabilities` tablosunda `(roleid, contextid, capability)` alanları için mevcut benzersizlik kısıtı korunacaktır.
-4. `context` tablosunda `(contextlevel, instanceid)` alanlarının benzersizliği korunacaktır.
-5. Bağlam hiyerarşisi ve `context.path` üzerinden gerçekleştirilen yetki değerlendirmeleri desteklenecektir.
-6. `role_capabilities.permission` değerleri mevcut Moodle yetkilendirme mantığına uygun biçimde değerlendirilecektir.
-7. `context.locked` alanının bağlam ve alt bağlamlar üzerindeki etkisi korunacaktır.
-8. Kullanıcıların askıya alınma ve silinme durumları kimlik doğrulama sırasında dikkate alınacaktır.
+`CourseRoleAssignments`, `SecurityAuditLogs` ve `UserSecurityStates` uygulama için önerilen yeni varlıklardır; ASP.NET Core Identity tarafından otomatik oluşturuldukları varsayılmamaktadır.
+
+**Önerilen veri ilişkileri**
+
+- Bir kullanıcı birden fazla sistem rolüne sahip olabilir.
+- Bir kullanıcı birden fazla derse kayıtlı olabilir.
+- Bir kullanıcının ders bazlı rolü, başka bir dersteki rolünden farklı olabilir.
+- Ders bazlı rol atamaları kullanıcı ve ders kayıtlarıyla ilişkilendirilir.
+- Yetki kararları ilgili kullanıcı, işlem ve kaynak kapsamı birlikte değerlendirilerek verilir.
+- Kullanıcı hesabının devre dışı bırakılması, mevcut rol atamalarını otomatik olarak silmek zorunda değildir.
+
+**Veri bütünlüğü kuralları**
+
+1. Kullanıcı adları için benzersizlik kontrolü uygulanacaktır. E-posta adreslerinin de benzersiz olması hedeflenmektedir. ASP.NET Core Identity'de e-posta benzersizliği varsayılan olarak zorunlu olmadığından `IdentityOptions.User.RequireUniqueEmail` ayarı etkinleştirilecek ve veri bütünlüğü uygun veritabanı kısıtlarıyla desteklenecektir.
+2. Kullanıcı ve rol ilişkileri yabancı anahtarlarla korunacaktır.
+3. Ders bazlı rol atamalarında kullanıcı ve ders kayıtlarının mevcut olması zorunlu olacaktır.
+4. Aynı kullanıcı, ders ve rol için yinelenen atamalar uygun benzersizlik kısıtlarıyla önlenecektir.
+5. Kullanıcı parolaları ASP.NET Core Identity'nin parola karma mekanizmasıyla saklanacaktır.
+6. Başarısız giriş sayısı ve hesap kilitlenme durumu Identity'nin desteklediği mekanizmalarla yönetilecektir.
+7. Hesap durumu ve zorunlu parola değiştirme gibi uygulamaya özgü bilgiler açıkça tanımlanmış alanlarda tutulacaktır.
+8. Güvenlik kayıtlarında açık metin parola, kimlik doğrulama çerezi veya hassas token saklanmayacaktır.
+9. Veri değişikliklerinde EF Core üzerinden uygun işlem bütünlüğü ve eşzamanlılık kontrolleri uygulanacaktır.
 
 **Veri erişim yaklaşımı**
 
-Hedef tasarımda kullanıcı ve yetkilendirme verilerine erişim, Moodle'ın mevcut veri erişim altyapısıyla uyumlu biçimde gerçekleştirilecektir.
+Kullanıcı ve rol yönetiminde ASP.NET Core Identity'nin `UserManager` ve `RoleManager` bileşenleri kullanılacaktır.
 
-Yetkilendirme kararlarında doğrudan rol adı karşılaştırması yapmak yerine Moodle'ın `has_capability()` mekanizmasının kullanılması esas alınacaktır. Böylece rol atamaları, bağlam hiyerarşisi ve capability izinleri birlikte değerlendirilecektir.
+Kimlik doğrulama işlemleri Identity'nin `SignInManager` bileşeni üzerinden yürütülebilecektir.
 
-Modernizasyon kapsamında yeni servis arayüzleri geliştirilmesi durumunda bu arayüzler mevcut veri bütünlüğü kurallarını ihlal etmeyecek ve yetkilendirme kontrollerini atlamayacaktır.
+Ders bazlı yetki ilişkileri ve uygulamaya özgü veriler EF Core aracılığıyla yönetilecektir.
 
-**Kaynak:** `public/lib/db/install.xml`, `public/lib/accesslib.php`.
+Yetkilendirme kararları yalnızca veritabanında rol adı sorgulanarak verilmek yerine merkezi bir authorization katmanında değerlendirilecektir.
 
-**Gereksinim ilişkisi:** AUTH-FR-02, AUTH-FR-03, AUTH-FR-04, AUTH-FR-07.
+**Moodle veri aktarımı**
+
+Eski Moodle veritabanı, veri aktarımı sırasında kaynak sistem olarak değerlendirilecektir. Aktarım işlemi yeni uygulamanın çalışma zamanındaki veri erişiminden ayrılacaktır.
+
+Kullanıcı kimlikleri, hesap durumları ve rol ilişkileri hedef şemaya dönüştürülerek aktarılacaktır. Moodle parola karmalarının ASP.NET Core Identity ile doğrudan uyumlu olduğu varsayılmayacak; güvenli parola sıfırlama veya ayrıca doğrulanmış bir geçiş yöntemi kullanılacaktır.
+
+**Gereksinim ilişkisi:** AUTH-FR-02, AUTH-FR-03, AUTH-FR-04, AUTH-FR-06, AUTH-FR-07.
 
 #### 3.1.3 Önerilen REST API tasarımı
 
-AUTH modülünün modernizasyonunda kimlik doğrulama, oturum yönetimi ve yetkilendirme işlemlerinin standart ve yönetilebilir servis arayüzleri üzerinden sunulması hedeflenmektedir.
+AUTH modülünde kullanıcı girişi, oturum yönetimi, parola değiştirme ve yetki sorgulama işlemleri için ASP.NET Core tabanlı servis arayüzleri tasarlanacaktır.
 
-Moodle 5.3.1'in mevcut kimlik doğrulama eklentileri, oturum mekanizmaları ve `has_capability()` tabanlı yetkilendirme altyapısı korunacaktır.
+Blazor arayüzü bu servisleri veya aynı uygulama içindeki ilgili servis katmanını kullanacaktır.
 
-Aşağıdaki REST uç noktaları **modernizasyon kapsamında önerilen hedef tasarımı** temsil etmektedir. Bunların Moodle 5.3.1'de aynı URL ve HTTP yöntemleriyle hazır olarak bulunduğu iddia edilmemektedir.
+Aşağıdaki uç noktalar hedef tasarım önerisidir. Bunların mevcut Moodle'da veya yeni sistemde hâlihazırda geliştirildiği iddia edilmemektedir.
 
 **Önerilen API uç noktaları**
 
 | HTTP | Uç nokta | İşlem | İlgili gereksinim |
 |---|---|---|---|
-| POST | `/api/auth/login` | Kullanıcı kimlik bilgilerinin doğrulanması ve oturum açılması | AUTH-FR-01, 04, 05, 06 |
-| POST | `/api/auth/logout` | Mevcut oturumun sonlandırılması | AUTH-FR-08 |
-| GET | `/api/auth/session` | Mevcut oturumun geçerliliğinin sorgulanması | AUTH-FR-08 |
-| POST | `/api/auth/change-password` | Kullanıcının parola değiştirme işleminin gerçekleştirilmesi | AUTH-FR-09 |
-| GET | `/api/auth/permissions` | Kullanıcının belirli bir bağlamdaki yetkisinin sorgulanması | AUTH-FR-02, 03, 07 |
+| POST | `/api/v1/auth/login` | Kullanıcı girişinin doğrulanması ve oturum oluşturulması | AUTH-FR-01, 04, 05, 06 |
+| POST | `/api/v1/auth/logout` | Kullanıcı oturumunun sonlandırılması | AUTH-FR-08 |
+| GET | `/api/v1/auth/session` | Mevcut kullanıcının oturum durumunun sorgulanması | AUTH-FR-08 |
+| POST | `/api/v1/auth/change-password` | Kullanıcı parolasının değiştirilmesi | AUTH-FR-09 |
+| GET | `/api/v1/auth/permissions` | Kullanıcının belirli kaynak kapsamındaki yetkilerinin sorgulanması | AUTH-FR-02, 03, 07 |
 
-**API güvenlik ve doğrulama kuralları**
+**Örnek istek ve yanıt sözleşmeleri**
 
-1. Kimlik doğrulama işlemleri mevcut Moodle kimlik doğrulama altyapısı üzerinden yürütülecektir.
-2. Giriş sırasında kullanıcı hesabının askıya alınma, silinme ve geçerli kilitlenme durumları kontrol edilecektir.
+`POST /api/v1/auth/login`
+
+İstek:
+
+```json
+{
+  "username": "student01",
+  "password": "example-password"
+}
+```
+
+Başarılı yanıt:
+
+```json
+{
+  "authenticated": true,
+  "requiresPasswordChange": false
+}
+```
+
+Bu örnek, parola veya oturum token bilgisinin yanıt gövdesinde paylaşılmasını gerektirmez. İlk sürüm için güvenli HTTP-only kimlik doğrulama çerezleri tercih edilebilir.
+
+`GET /api/v1/auth/permissions?courseId=101`
+
+Örnek yanıt:
+
+```json
+{
+  "courseId": 101,
+  "permissions": [
+    "course.view",
+    "assignment.submit"
+  ]
+}
+```
+
+Bu yanıt yalnızca çağrıyı yapan kullanıcının görüntülemeye yetkili olduğu bilgileri içerecektir.
+
+**API güvenlik kuralları**
+
+1. Kimlik doğrulama ASP.NET Core Identity üzerinden yürütülecektir.
+2. Hesabın devre dışı bırakılma ve kilitlenme durumu giriş sırasında kontrol edilecektir.
 3. Geçersiz kimlik bilgileriyle oturum oluşturulmayacaktır.
-4. Başarısız giriş denemeleri, mevcut olay ve kayıt mekanizmalarıyla uyumlu biçimde izlenecektir.
-5. Oturum gerektiren API işlemlerinde geçerli oturum kontrolü yapılacaktır.
-6. Yetkilendirme kararlarında rol adı yerine ilgili bağlam ve capability bilgileri esas alınacaktır.
-7. Yetki sorgulama uç noktası, çağrıyı yapan kullanıcının yetkilerini aşacak biçimde başka kullanıcıların izin bilgilerini açığa çıkarmayacaktır.
-8. Parola ve oturum kimlikleri uygulama kayıtlarında veya API yanıtlarında açık biçimde paylaşılmayacaktır.
-9. Durum değiştiren işlemlerde uygun CSRF koruması veya kullanılan kimlik doğrulama yöntemine karşılık gelen güvenlik kontrolleri uygulanacaktır.
+4. Başarısız giriş denemeleri güvenli biçimde izlenecektir.
+5. Kimlik doğrulaması gerektiren uç noktalarda `[Authorize]` veya eşdeğer endpoint authorization kuralları kullanılacaktır.
+6. Ders kapsamlı yetkiler sunucu tarafında doğrulanacaktır.
+7. İstemciden gelen rol ve kullanıcı kimliği bilgileri tek başına güvenilir kabul edilmeyecektir.
+8. Çerez tabanlı kimlik doğrulamada CSRF koruması uygulanacaktır.
+9. Parola ve hassas oturum bilgileri log kayıtlarına yazılmayacaktır.
+10. Giriş uç noktalarında uygun istek sınırlama politikaları uygulanacaktır.
 
 **Önerilen hata durumları**
 
 | HTTP durum kodu | Açıklama |
 |---|---|
-| 400 Bad Request | Eksik veya geçersiz istek parametreleri |
+| 400 Bad Request | Eksik veya geçersiz istek |
 | 401 Unauthorized | Kimlik doğrulaması başarısız veya geçerli oturum bulunmuyor |
-| 403 Forbidden | Kullanıcının ilgili işlem için yetkisi bulunmuyor |
-| 429 Too Many Requests | Yapılandırılmış istek sınırlama kuralının aşılması |
+| 403 Forbidden | Kullanıcının işlem yetkisi bulunmuyor |
+| 404 Not Found | İstenen kaynak bulunamadı veya güvenlik politikası gereği gizlendi |
+| 409 Conflict | İşlem sırasında veri veya durum çakışması |
+| 429 Too Many Requests | İstek sınırlama kuralı aşıldı |
 | 500 Internal Server Error | Beklenmeyen sunucu hatası |
 
-HTTP durum kodları ve uç nokta sözleşmeleri hedef tasarım önerisidir. Özellikle `429` yanıtı, modernizasyon sırasında istek sınırlama mekanizmasının uygulanmasına bağlıdır.
+**Modüller arası entegrasyon**
 
-**Mevcut Moodle altyapısıyla entegrasyon**
+CRS, ASG ve GRD modülleri kullanıcı kimliği ve yetki kararları için AUTH altyapısını kullanacaktır.
 
-Önerilen API katmanı, mevcut Moodle oturum ve kimlik doğrulama mekanizmalarını devre dışı bırakmayacaktır. Yetkilendirme kontrolleri Moodle'ın rol, bağlam ve capability altyapısıyla uyumlu yürütülecektir.
+Örneğin CRS modülünde ders düzenleme işlemi gerçekleştirilmeden önce kullanıcının ilgili derste düzenleme yetkisine sahip olduğu doğrulanacaktır.
 
-Bu yaklaşım, mevcut AUTH davranışlarının korunmasını ve gelecekte farklı istemcilerin kontrollü servis arayüzleri üzerinden sisteme erişebilmesini hedeflemektedir.
+İkinci sürümde FILE modülü de aynı güvenlik ilkelerine uygun şekilde sisteme entegre edilecektir.
 
 **Gereksinim ilişkisi:** AUTH-FR-01–AUTH-FR-09.
+
 #### 3.1.4 Rol ve bağlam tabanlı yetkilendirme tasarımı
 
-AUTH modülünün hedef yetkilendirme tasarımı, Moodle 5.3.1'in mevcut rol, bağlam (context) ve yetenek (capability) mekanizmalarını temel alacaktır.
+Moodle 5.3.1'de yetkilendirme rol, bağlam ve capability mekanizmaları üzerinden gerçekleştirilmektedir.
 
-Yetkilendirme kararları yalnızca kullanıcının sahip olduğu rol adına göre değil, işlemin gerçekleştirileceği bağlam ve ilgili capability üzerinden verilecektir.
+Yeni sistemde bu işlevsel yaklaşım korunacak, ancak Moodle'ın `has_capability()` fonksiyonu ve mevcut yetkilendirme tabloları kullanılmayacaktır.
 
-**Yetkilendirme iş akışı**
+Bunun yerine ASP.NET Core Policy-Based Authorization ve uygulamaya özgü ders kapsamlı yetkilendirme mekanizması kullanılacaktır.
 
-1. Kullanıcının geçerli bir oturuma sahip olduğu doğrulanır.
-2. Gerçekleştirilmek istenen işlem ve ilgili Moodle capability belirlenir.
-3. İşlemin gerçekleştirileceği bağlam tespit edilir.
-4. Moodle'ın `has_capability()` mekanizması üzerinden kullanıcının ilgili bağlamdaki yetkisi değerlendirilir.
-5. Yetki bulunuyorsa işleme izin verilir.
-6. Yetki bulunmuyorsa işlem reddedilir ve korunan kaynak üzerinde değişiklik yapılmaz.
+**Yetkilendirme modeli**
+
+Yetkilendirme kararında aşağıdaki bilgiler birlikte değerlendirilecektir:
+
+- Kullanıcının kimliği.
+- Kullanıcının sistem genelindeki rolü.
+- İşlemin gerçekleştirileceği kaynak.
+- Kullanıcının ilgili kaynak kapsamındaki rolü.
+- Gerçekleştirilmek istenen işlem.
+- Kaynağın ve kullanıcının geçerli durumu.
+
+Örneğin bir öğretmenin yalnızca yetkili olduğu derslerin ayarlarını düzenleyebilmesi hedeflenecektir.
+
+**Önerilen yetkilendirme iş akışı**
+
+1. Kullanıcının kimlik doğrulama durumu kontrol edilir.
+2. Gerçekleştirilmek istenen işlem belirlenir.
+3. İşlemin ilgili olduğu ders veya kaynak tespit edilir.
+4. Kullanıcının sistem rolü ve ilgili kaynaktaki rol atamaları sorgulanır.
+5. ASP.NET Core authorization policy veya özel authorization handler üzerinden erişim kararı verilir.
+6. Yetki varsa işlem gerçekleştirilir.
+7. Yetki yoksa işlem reddedilir ve korunan veri değiştirilmez.
 
 **Örnek yetkilendirme matrisi**
 
-| İşlem | Öğrenci | Düzenleyen öğretmen | Site yöneticisi |
+| İşlem | Öğrenci | İlgili dersin öğretmeni | Sistem yöneticisi |
 |---|---|---|---|
 | Kendi hesabıyla giriş yapma | İzinli | İzinli | İzinli |
 | Kayıtlı olduğu dersi görüntüleme | İzinli | İzinli | İzinli |
+| Kendi ödevini teslim etme | İzinli | Reddedilir | Reddedilir |
 | Yetkili olduğu dersin ayarlarını düzenleme | Reddedilir | İzinli | İzinli |
-| Site yapılandırmasını yönetme | Reddedilir | Reddedilir | İzinli |
+| Notlandırma işlemi gerçekleştirme | Reddedilir | İzinli | İzinli |
+| Sistem kullanıcılarını yönetme | Reddedilir | Reddedilir | İzinli |
 
-Bu tablo WBS-1 analizinde incelenen örnek rol davranışlarını temsil etmektedir. Gerçek yetkilendirme kararları Moodle'ın rol yapılandırması, bağlam hiyerarşisi ve capability izinleri üzerinden belirlenecektir.
+Bu tablo hedef sistemin örnek yetkilendirme politikasını göstermektedir. Özellikle yönetici ve öğretmenlerin ödev teslimine ilişkin yetkileri, ASG modülünün kesin iş kurallarına göre ayrıca değerlendirilecektir.
 
-**Bağlam duyarlılığı**
+**Ders kapsamlı yetkilendirme**
 
-Aynı kullanıcı farklı derslerde farklı rollere sahip olabilir. Bu nedenle bir derste verilen yetki, başka bir ders için otomatik olarak geçerli kabul edilmeyecektir.
+Bir kullanıcı farklı derslerde farklı rollere sahip olabilir.
 
-Rol atamaları `role_assignments`, capability izinleri `role_capabilities` ve bağlam bilgileri `context` tablolarıyla ilişkili biçimde değerlendirilecektir.
+Örneğin aynı kullanıcı bir derste öğretmen, başka bir derste öğrenci olabilir. Bu nedenle sistem genelindeki rol bilgisi tek başına yeterli değildir.
 
-Mevcut Moodle yetkilendirme altyapısındaki bağlam hiyerarşisi, izin değerlendirme kuralları ve kilitli bağlam davranışları korunacaktır.
+Ders bazlı rol atamaları yeni sistemde `CourseRoleAssignments` gibi uygulamaya özgü bir veri yapısı üzerinden temsil edilecektir.
+
+**ASP.NET Core yetkilendirme yaklaşımı**
+
+Sistem genelindeki erişim kuralları ASP.NET Core authorization policy mekanizmasıyla tanımlanacaktır.
+
+Kaynak bazlı işlemlerde ise ilgili dersin kimliği ve kullanıcının ders kapsamındaki rolü değerlendirilerek özel authorization handler kullanılabilecektir.
+
+Bu yaklaşım, Moodle'daki bağlam duyarlılığının yeni teknolojilerle yeniden gerçekleştirilmesini hedeflemektedir.
 
 **Güvenlik ilkeleri**
 
-- Yetkilendirme kontrolleri yalnızca kullanıcı arayüzünde değil, korunan işlemin gerçekleştirildiği sunucu tarafında da uygulanacaktır.
-- İstemciden gönderilen rol veya yetki bilgileri tek başına güvenilir kabul edilmeyecektir.
-- Kullanıcının yetkili olmadığı bağlamlarda işlem gerçekleştirmesi engellenecektir.
-- CRS, ASG, GRD ve FILE modülleri AUTH yetkilendirme mekanizmasıyla uyumlu çalışacaktır.
-- Yetki bulunmadığında işlem reddedilecek ve ilgili veriler değiştirilmeden bırakılacaktır.
+- Yetkilendirme kontrolleri sunucu tarafında uygulanacaktır.
+- Blazor arayüzünde bir işlemin gizlenmesi tek başına güvenlik kontrolü kabul edilmeyecektir.
+- Kullanıcının istemciden gönderdiği rol bilgileri doğrudan kabul edilmeyecektir.
+- Her ders için yetki değerlendirmesi ilgili kaynak üzerinden yapılacaktır.
+- Yetkisiz işlemler veri değişikliğine neden olmayacaktır.
+- AUTH modülündeki yetki kuralları CRS, ASG ve GRD modüllerinde ortak şekilde uygulanacaktır.
 
 **Gereksinim ilişkisi:** AUTH-FR-02, AUTH-FR-03, AUTH-FR-07.
 
-**Kaynak:** WBS-1 §4.1.7 Yetkilendirme; `public/lib/accesslib.php`.
+**Mevcut sistem referansı:** WBS-1 §4.1.7; Moodle `public/lib/accesslib.php`.
 
 #### 3.1.5 İş akışları ve hata yönetimi
 
-AUTH modülünün hedef tasarımında kimlik doğrulama, oturum yönetimi, parola değiştirme ve yetkilendirme işlemleri mevcut Moodle mekanizmalarıyla uyumlu biçimde yürütülecektir.
+AUTH modülünün hedef tasarımında kimlik doğrulama, oturum yönetimi, parola değiştirme ve yetkilendirme işlemleri ASP.NET Core Identity ve uygulamaya özgü servis katmanlarıyla gerçekleştirilecektir.
 
-Aşağıdaki akışlar modernizasyon kapsamında hedeflenen davranışları tanımlamaktadır.
+Aşağıdaki iş akışları yeni sistem için önerilen davranışları tanımlamaktadır.
 
 **1. Kullanıcı girişi**
 
-1. Kullanıcı giriş ekranından kimlik bilgilerini gönderir.
-2. Sistem ilgili kimlik doğrulama yöntemini belirler.
-3. Kullanıcının hesap durumu ve geçerli erişim kısıtları kontrol edilir.
-4. Kimlik bilgileri Moodle'ın kimlik doğrulama mekanizması üzerinden doğrulanır.
-5. Doğrulama başarılıysa geçerli oturum oluşturulur.
-6. Zorunlu parola değişikliği gerekiyorsa kullanıcı ilgili akışa yönlendirilir.
+1. Kullanıcı Blazor giriş ekranından kimlik bilgilerini gönderir.
+2. Sistem ilgili kullanıcı hesabını ASP.NET Core Identity üzerinden sorgular.
+3. Hesabın aktiflik ve kilitlenme durumu kontrol edilir.
+4. Kullanıcının parolası Identity mekanizmasıyla doğrulanır.
+5. Doğrulama başarılıysa güvenli kimlik doğrulama oturumu oluşturulur.
+6. Zorunlu parola değiştirme koşulu varsa kullanıcı ilgili ekrana yönlendirilir.
 7. Doğrulama başarısızsa oturum oluşturulmaz.
 
-**Hata durumları:** Geçersiz kullanıcı bilgileri, yanlış parola, askıya alınmış veya silinmiş hesap, etkin hesap kilitleme kuralı.
+**Hata durumları:** Geçersiz kullanıcı bilgileri, yanlış parola, devre dışı bırakılmış hesap, kilitlenmiş hesap ve beklenmeyen sistem hataları.
 
 **2. Kullanıcı çıkışı ve oturum geçerliliği**
 
 1. Kullanıcı çıkış işlemini başlatır.
-2. Sistem mevcut oturumu sonlandırır.
-3. Kullanıcı korunan bir sayfaya yeniden erişmeye çalışır.
-4. Geçerli oturum bulunmadığında yeniden kimlik doğrulaması istenir.
+2. Sistem ilgili kimlik doğrulama oturumunu sonlandırır.
+3. Kimlik doğrulama çerezi geçersiz hâle getirilir.
+4. Kullanıcı korunan bir kaynağa yeniden erişmeye çalışırsa geçerli kimlik doğrulaması aranır.
+5. Geçerli oturum yoksa yeniden giriş yapılması istenir.
 
-Oturum zaman aşımı durumunda da geçerli oturum kontrolü uygulanacaktır.
+Oturum zaman aşımı ve güvenlik damgası doğrulama davranışları ASP.NET Core Identity yapılandırması kapsamında belirlenecektir.
 
-**Hata durumları:** Geçersiz veya süresi dolmuş oturum, kimlik doğrulaması gerektiren kaynağa oturumsuz erişim.
+**Hata durumları:** Geçersiz oturum, süresi dolmuş oturum ve oturumsuz korunan kaynağa erişim.
 
 **3. Zorunlu parola değiştirme**
 
 1. Kullanıcı geçerli kimlik bilgileriyle giriş yapar.
-2. Sistem hesap için zorunlu parola değiştirme koşulunu değerlendirir.
-3. Koşul etkinse kullanıcı parola değiştirme akışına yönlendirilir.
-4. Yeni parola, geçerli parola politikalarına göre doğrulanır.
-5. İşlem başarılı olduğunda kullanıcı hesabının ilgili durumu güncellenir.
-6. Kullanıcı normal erişim akışına devam eder.
+2. Sistem kullanıcı hesabının parola değiştirme durumunu kontrol eder.
+3. Zorunlu parola değiştirme koşulu varsa kullanıcı parola değiştirme ekranına yönlendirilir.
+4. Yeni parola belirlenen güvenlik politikasına göre doğrulanır.
+5. Parola ASP.NET Core Identity üzerinden güncellenir.
+6. Kullanıcının zorunlu parola değiştirme durumu kaldırılır.
+7. Kullanıcı normal erişim akışına devam eder.
 
-**Hata durumları:** Parola politikası ihlali, geçersiz parola değiştirme isteği, işlem sırasında oluşan sistem hatası.
+**Hata durumları:** Parola politikası ihlali, geçersiz parola değiştirme isteği ve güncelleme hatası.
+
+Zorunlu parola değiştirme durumu, Identity'nin varsayılan özelliklerinden bağımsız olarak uygulamaya özgü bir alan veya güvenlik durumu modeliyle yönetilecektir.
 
 **4. Yetkilendirme kontrolü**
 
 1. Kullanıcı korunan bir işlem başlatır.
-2. Sistem kullanıcının oturum geçerliliğini kontrol eder.
-3. İlgili işlem için gerekli capability ve bağlam belirlenir.
-4. `has_capability()` mekanizması üzerinden erişim yetkisi değerlendirilir.
-5. Yetki varsa işlem gerçekleştirilir.
-6. Yetki yoksa işlem reddedilir ve korunan veri değiştirilmez.
+2. Sistem kimlik doğrulama durumunu kontrol eder.
+3. İşlem için gerekli yetki politikası belirlenir.
+4. İşlemin ilgili olduğu ders veya kaynak tespit edilir.
+5. Kullanıcının sistem rolü ve kaynak kapsamındaki yetkileri değerlendirilir.
+6. Yetki varsa işlem gerçekleştirilir.
+7. Yetki yoksa işlem reddedilir.
 
-**Hata durumları:** Geçersiz oturum, yetersiz yetki, uygun olmayan bağlam veya geçersiz kaynak.
+**Hata durumları:** Geçersiz oturum, yetersiz yetki, geçersiz kaynak veya uygun olmayan rol ataması.
 
 **5. Başarısız giriş ve hesap kilitleme**
 
 1. Kullanıcı geçersiz kimlik bilgileriyle giriş yapmayı dener.
 2. Sistem kimlik doğrulama işlemini reddeder.
-3. Başarısız giriş olayı, yapılandırılmış kayıt mekanizması üzerinden izlenir.
-4. Etkin hesap kilitleme politikası bulunuyorsa ilgili kurallar değerlendirilir.
-5. Kilitleme koşulları oluştuğunda hesabın giriş yapması engellenir.
+3. Başarısız giriş denemesi güvenli biçimde izlenir.
+4. ASP.NET Core Identity hesap kilitleme politikası değerlendirilir.
+5. Yapılandırılmış eşik aşılırsa hesap geçici olarak kilitlenir.
+6. Kilit süresi veya tanımlanan güvenli kurtarma süreci tamamlandığında yeniden giriş yapılabilir.
 
-Hesap kilitleme davranışı, kullanılan kimlik doğrulama eklentisinin ve sistem yapılandırmasının desteklediği kurallara bağlıdır. Modernizasyon kapsamında sabit bir deneme sayısı veya kilitleme süresi varsayılmamaktadır.
+Kilitlenme eşiği ve süresi geliştirme aşamasında belirlenecektir. Mevcut Moodle ortamında gözlemlenen üç başarısız giriş davranışı, yeni sistem için otomatik olarak kabul edilmiş bir politika değildir.
 
 **Hata yönetimi ilkeleri**
 
-- Başarısız kimlik doğrulama işlemleri oturum oluşturmamalıdır.
+- Başarısız giriş işlemleri oturum oluşturmamalıdır.
 - Yetkisiz işlemler sunucu tarafında engellenmelidir.
-- Kullanıcıya gösterilen hata mesajları parola veya hassas hesap bilgilerini açığa çıkarmamalıdır.
-- Güvenlikle ilgili olaylar, mevcut Moodle kayıt ve olay altyapısıyla uyumlu biçimde izlenmelidir.
-- Beklenmeyen sistem hatalarında korunan işlemler güvenli biçimde sonlandırılmalıdır.
-- Hatalı istekler mevcut veri bütünlüğünü bozmamalıdır.
+- Kullanıcıya gösterilen hata mesajları hassas hesap bilgilerini açığa çıkarmamalıdır.
+- Parola, oturum çerezi ve hassas token bilgileri loglara yazılmamalıdır.
+- Güvenlikle ilgili olaylar merkezi ve erişim kontrollü kayıt mekanizmasıyla izlenmelidir.
+- Beklenmeyen hatalarda korunan işlemler güvenli biçimde sonlandırılmalıdır.
+- Veri bütünlüğünü etkileyen işlemlerde uygun transaction yönetimi kullanılmalıdır.
 
 **Gereksinim ilişkisi**
 
@@ -451,64 +565,67 @@ Hesap kilitleme davranışı, kullanılan kimlik doğrulama eklentisinin ve sist
 | Yetkilendirme kontrolü | AUTH-FR-02, AUTH-FR-03, AUTH-FR-07 |
 | Başarısız giriş ve hesap kilitleme | AUTH-FR-05, AUTH-FR-06 |
 
-Bu iş akışları hedef tasarım davranışlarını göstermektedir. WBS-1'de ayrıca doğrulanması gerektiği belirtilen başarısız giriş kayıtları, hesap kilitleme, silinmiş hesap davranışı ve oturum zaman aşımı, tamamlanmış testler olarak değerlendirilmemelidir.
-
 #### 3.1.6 Gereksinim izlenebilirliği
 
-AUTH modülünün hedef tasarımında WBS-1 kapsamında tanımlanan fonksiyonel gereksinimler, ilgili tasarım bileşenleri ve test senaryolarıyla eşleştirilmiştir.
+AUTH modülünün hedef tasarımında WBS-1 kapsamında belirlenen gereksinimler, yeni sistemin tasarım bileşenleri ve doğrulama senaryolarıyla eşleştirilmiştir.
 
-Bu eşleştirme, modernizasyon sürecinde gereksinimlerin tasarım tarafından karşılanmasını ve doğrulama faaliyetlerinin izlenebilir olmasını amaçlamaktadır.
+Bu eşleştirme, Moodle'da incelenen davranışların yeni sistemde yeniden uygulanmasını ve WBS-3 geliştirme sürecinde test edilmesini amaçlamaktadır.
 
 **Gereksinim–tasarım–test eşleştirmesi**
 
-| Gereksinim | Tasarım karşılığı | Test senaryosu |
+| Gereksinim | Yeni sistemde tasarım karşılığı | Test senaryosu |
 |---|---|---|
-| AUTH-FR-01 | Authentication Service; kullanıcı girişi | T-AUTH-01 |
-| AUTH-FR-02 | Authorization Service; sunucu tarafı yetki kontrolü | T-AUTH-02 |
-| AUTH-FR-03 | Rol ve bağlam tabanlı yetkilendirme; ders ayarlarına erişim | T-AUTH-03 |
-| AUTH-FR-04 | Authentication Service; hesap durumu kontrolü | T-AUTH-04 |
-| AUTH-FR-05 | Kimlik doğrulama; başarısız giriş olaylarının izlenmesi | T-AUTH-05 |
-| AUTH-FR-06 | Authentication Service; etkin hesap kilitleme kuralları | T-AUTH-06 |
-| AUTH-FR-07 | Authorization Service; rol, bağlam ve capability değerlendirmesi | T-AUTH-07 |
-| AUTH-FR-08 | Session Management; oturum sonlandırma ve geçerlilik kontrolü | T-AUTH-08 |
-| AUTH-FR-09 | Authentication Service; zorunlu parola değiştirme akışı | T-AUTH-09 |
+| AUTH-FR-01 | ASP.NET Core Identity; kullanıcı girişi | T-AUTH-01 |
+| AUTH-FR-02 | Authorization Policies; sunucu tarafı erişim kontrolü | T-AUTH-02 |
+| AUTH-FR-03 | Ders kapsamlı rol atamaları ve yetkilendirme | T-AUTH-03 |
+| AUTH-FR-04 | Kullanıcı hesap durumu kontrolü | T-AUTH-04 |
+| AUTH-FR-05 | Başarısız giriş doğrulaması ve güvenlik kaydı | T-AUTH-05 |
+| AUTH-FR-06 | Identity hesap kilitleme politikası | T-AUTH-06 |
+| AUTH-FR-07 | Kaynak kapsamlı authorization handler | T-AUTH-07 |
+| AUTH-FR-08 | ASP.NET Core Authentication; oturum yönetimi | T-AUTH-08 |
+| AUTH-FR-09 | Identity parola değiştirme ve uygulamaya özgü zorunlu değiştirme akışı | T-AUTH-09 |
+| AUTH-NFR-01 | Üretim ortamında hassas hata bilgilerinin gizlenmesi ve güvenli hata yönetimi | T-AUTH-10 |
 
 **Tasarım bölümleriyle ilişki**
 
-- **§3.1.1:** Genel mimari yaklaşım ve bileşen sorumlulukları.
-- **§3.1.2:** Veri modeli ve bütünlük kuralları.
+- **§3.1.1:** Hedef mimari ve bileşen sorumlulukları.
+- **§3.1.2:** Yeni veri modeli ve veri bütünlüğü.
 - **§3.1.3:** Önerilen REST API arayüzleri.
-- **§3.1.4:** Rol ve bağlam tabanlı yetkilendirme.
-- **§3.1.5:** Kimlik doğrulama, oturum yönetimi ve hata işleme akışları.
+- **§3.1.4:** Rol ve ders kapsamlı yetkilendirme.
+- **§3.1.5:** Kimlik doğrulama, oturum ve hata yönetimi.
 
 **Doğrulama yaklaşımı**
 
-Gereksinimlerin doğrulanmasında Moodle 5.3.1 üzerinde gerçekleştirilen kullanıcı arayüzü testleri ve gerektiğinde veritabanı kontrolleri temel alınacaktır.
+WBS-1 kapsamında gerçekleştirilen testler mevcut Moodle 5.3.1 sisteminin davranışlarını göstermektedir.
 
-WBS-1'de tamamlanmış olarak raporlanan testlerle henüz doğrulanmamış davranışlar birbirinden ayrılacaktır.
+Yeni sistemde aynı işlevsel gereksinimler için testler yeniden çalıştırılacaktır. Mevcut Moodle testlerinin başarılı olması, yeni C# uygulamasının doğrulandığı anlamına gelmemektedir.
 
-Özellikle aşağıdaki kontrollerin doğrulama durumu ayrıca takip edilecektir:
+Yeni sistemde özellikle aşağıdaki kontroller gerçekleştirilecektir:
 
-- Silinmiş hesapla giriş davranışı.
-- Başarısız giriş olaylarının kaydedilmesi.
-- Etkin hesap kilitleme kurallarının uygulanması.
-- Farklı bağlamlarda rol atama davranışı.
-- Oturum zaman aşımı.
-- Zorunlu parola değiştirme akışı.
-
-Bu kontrollerin test senaryolarında tanımlanmış olması, başarıyla tamamlandıkları anlamına gelmemektedir.
+1. Geçerli kullanıcı bilgileriyle giriş.
+2. Geçersiz parola ile girişin reddedilmesi.
+3. Askıya alınmış veya devre dışı bırakılmış hesabın girişinin engellenmesi.
+4. Hesap kilitleme politikasının uygulanması.
+5. Ders kapsamlı yetkilendirme.
+6. Yetkisiz kullanıcının korunan işlemleri gerçekleştirememesi.
+7. Oturum kapatma ve zaman aşımı.
+8. Zorunlu parola değiştirme işleminin tamamlanması.
+9. Güvenlik olaylarının kaydedilmesi.
+10. Hassas hata bilgilerinin kullanıcıya gösterilmemesi.
 
 **Kaynak:** WBS-1 §4.1.9 Gereksinimler ve §4.1.10 Test senaryoları.
 
-**Kapsam:** AUTH-FR-01–AUTH-FR-09, T-AUTH-01–T-AUTH-09.
+**Kapsam:** AUTH-FR-01–AUTH-FR-09, T-AUTH-01–T-AUTH-10.
 
 #### 3.1.7 Test sonuçları ve doğrulama durumu
 
-AUTH modülünün mevcut davranışları, WBS-1 kapsamında yerel Moodle 5.3.1 ortamında gerçekleştirilen kullanıcı arayüzü ve güvenlik testleriyle incelenmiştir.
+AUTH modülünün mevcut davranışları WBS-1 kapsamında yerel Moodle 5.3.1 ortamında gerçekleştirilen kullanıcı arayüzü ve güvenlik testleriyle incelenmiştir.
 
-T-AUTH-01–T-AUTH-10 arasındaki 10 test senaryosu uygulanmış ve her senaryoda beklenen temel davranış gözlemlenmiştir. Bununla birlikte bazı senaryolarda ek doğrulama gerektiren kapsam sınırlılıkları bulunmaktadır.
+T-AUTH-01–T-AUTH-10 arasındaki 10 test senaryosunda beklenen temel davranışlar gözlemlenmiştir. Ancak bazı senaryolarda ek doğrulama gerektiren kapsam sınırlılıkları bulunmaktadır.
 
-**Mevcut test sonuçları**
+Bu sonuçlar **mevcut Moodle sistemine aittir**. Yeni C# / .NET uygulamasının test sonuçları değildir.
+
+**WBS-1 mevcut sistem test sonuçları**
 
 | Test | Doğrulanan davranış | Sonuç |
 |---|---|---|
@@ -523,208 +640,310 @@ T-AUTH-01–T-AUTH-10 arasındaki 10 test senaryosu uygulanmış ve her senaryod
 | T-AUTH-09 | Zorunlu parola değiştirme ekranına yönlendirme | Başarılı; parola değişikliği tamamlanmadı |
 | T-AUTH-10 | Hata ayıklama kapalıyken hassas hata bilgilerinin gizlenmesi | Başarılı; yerel ortamda doğrulandı |
 
-**Güvenlik bulguları**
+**Mevcut sistem güvenlik bulguları**
 
-WBS-1 analizinde iki güvenlik değerlendirme kaydı bulunmaktadır:
+**AUTH-BUG-01:** Geliştirme ortamında yetkisiz erişim hatasıyla birlikte çağrı yığını görüntülenmiştir. `debug=0` ve `debugdisplay=0` ayarlarıyla yapılan tekrarda çağrı yığını görüntülenmemiştir.
 
-- **AUTH-BUG-01:** Geliştirme ortamında yetkisiz erişim hatasıyla birlikte çağrı yığını görüntülenmiştir. `debug=0` ve `debugdisplay=0` ayarlarıyla yapılan tekrarda çağrı yığını görüntülenmemiştir. Bu durum doğrulanmış bir Moodle yazılım hatası değil, yapılandırmaya bağlı bir gözlem olarak değerlendirilmiştir.
-- **AUTH-BUG-02:** Yanlış parola ve hesap kilitleme durumlarındaki hata mesajlarının kullanıcı deneyimi ve bilgi ifşası açısından incelenmesi önerilmiştir. Doğrulanmış bir yazılım hatası bulunmamaktadır.
+Bu durum doğrulanmış bir Moodle yazılım hatası değil, yapılandırmaya bağlı bir gözlem olarak değerlendirilmiştir.
 
-**Sonraki doğrulama aşamasında tamamlanacak kontroller**
+**AUTH-BUG-02:** Yanlış parola ve hesap kilitleme durumlarında kullanılan hata mesajlarının kullanıcı deneyimi ve bilgi ifşası açısından incelenmesi önerilmiştir. Doğrulanmış bir yazılım hatası bulunmamaktadır.
 
-1. Silinmiş kullanıcı hesabıyla giriş denemesinin reddedilmesi.
-2. Başarısız giriş olaylarının kayıt mekanizmasında doğrulanması.
-3. Hesap kilidi açma e-postasının tesliminin kontrol edilmesi.
-4. Farklı ders bağlamlarında farklı rol atamaları oluşturularak yetkilendirme davranışının test edilmesi.
-5. Oturum zaman aşımı sonrasında korunan kaynaklara erişimin kontrol edilmesi.
-6. Zorunlu parola değiştirme işleminin uçtan uca tamamlanması.
-7. Öğretmenin yetkili olduğu dersin ayarlarını kaydetme işleminin doğrulanması.
-8. Güvenlik hata mesajlarının üretim benzeri yapılandırmalarda yeniden değerlendirilmesi.
+**Yeni sistemde doğrulanacak davranışlar**
+
+1. ASP.NET Core Identity ile kullanıcı girişinin doğrulanması.
+2. Kullanıcı hesabının aktiflik ve kilitlenme durumunun kontrol edilmesi.
+3. Ders bazlı rol atamalarının uygulanması.
+4. Yetkisiz işlemlerin sunucu tarafında engellenmesi.
+5. Başarısız giriş kayıtlarının doğrulanması.
+6. Hesap kilitleme ve kilit açma süreçlerinin test edilmesi.
+7. Oturum sonlandırma ve zaman aşımının doğrulanması.
+8. Zorunlu parola değiştirme işleminin uçtan uca tamamlanması.
+9. Hata mesajlarının hassas bilgi içermediğinin doğrulanması.
+10. AUTH modülünün CRS, ASG ve GRD ile entegrasyon testlerinin yapılması.
 
 **Tasarım değerlendirmesi**
 
-Gerçekleştirilen testler, mevcut Moodle 5.3.1 altyapısının temel kimlik doğrulama, oturum yönetimi ve bağlama duyarlı yetkilendirme davranışlarını desteklediğini göstermektedir.
+WBS-1 kapsamında gerçekleştirilen testler, mevcut Moodle 5.3.1 sisteminin temel kimlik doğrulama, oturum yönetimi ve bağlama duyarlı yetkilendirme davranışlarını desteklediğini göstermektedir.
 
-Modernizasyon kapsamında bu davranışlar korunacak; önerilen servis ve API tasarımları uygulanırsa aynı senaryolar regresyon testleriyle yeniden doğrulanacaktır.
+Yeni sistemde bu işlevsel davranışlar ASP.NET Core Identity, ASP.NET Core Authorization ve uygulamaya özgü ders kapsamlı yetkilendirme bileşenleriyle yeniden gerçekleştirilecektir.
+
+Moodle'ın mevcut PHP kodları ve veritabanı yeni sistemin çalışma zamanı bağımlılığı olmayacaktır.
+
+Yeni sistem geliştirildikten sonra aynı işlevsel senaryolar yeniden uygulanacak ve sonuçlar WBS-1 referans davranışlarıyla karşılaştırılacaktır.
 
 **Kaynak:** WBS-1 §4.1.9 Gereksinimler, §4.1.10 Test senaryoları ve AUTH-BUG-01–02 bulguları.
 
 **Gereksinim ilişkisi:** AUTH-FR-01–AUTH-FR-09, AUTH-NFR-01–AUTH-NFR-02.
-
 ### 3.2 Ders ve kayıt (Sinem)
 
 #### 3.2.1 Tasarım yaklaşımı
 
-Ders ve kayıt (CRS) modülünün modernizasyonunda, Moodle 5.3.1 kaynak kodundan elde edilen mevcut veri modeli ve iş kuralları temel alınacaktır. Amaç, mevcut ders yönetimi ve kullanıcı kayıt işlevlerini koruyarak veri doğrulama, yetkilendirme, arayüz erişimi ve bakım kolaylığı açısından daha sürdürülebilir bir hedef tasarım oluşturmaktır.
+Ders ve kayıt (CRS) modülü, Moodle 5.3.1 üzerinde WBS-1 kapsamında incelenen mevcut işlevsel davranışlar temel alınarak C# ve .NET 10 teknolojileriyle yeniden geliştirilecektir.
 
-Hedef tasarımda ders oluşturma, güncelleme ve silme işlemleri ile kullanıcıyı derse kaydetme, kayıt bilgilerini güncelleme ve dersten kayıt silme işlemleri ayrı servis operasyonları olarak ele alınacaktır. Bu operasyonlara erişim için REST tabanlı API arayüzleri önerilecektir.
+Yeni sistem, Moodle'ın PHP tabanlı kaynak kodundan ve mevcut çalışma veritabanından bağımsız olacaktır. Ders ve kayıt yönetimi için ASP.NET Core, Entity Framework Core (EF Core), PostgreSQL ve Blazor kullanılacaktır.
 
-Mevcut Moodle veri yapısındaki course, course_categories, enrol ve user_enrolments tabloları ile user ilişkisi korunacaktır. Veri bütünlüğü kontrolleri, iş kuralları ve yetkilendirme doğrulamaları servis katmanında uygulanacaktır.
+Amaç; ders oluşturma, güncelleme ve silme ile kullanıcıyı derse kaydetme, kayıt durumunu güncelleme ve dersten çıkarma işlevlerini yeni mimaride güvenli, sürdürülebilir ve test edilebilir biçimde gerçekleştirmektir.
 
-Kaynak sistem üzerinde gerçekleştirilen CRS-TEST-01–07 testleri, temel ders ve kayıt işlemlerinin beklenen sonuçlarını doğrulamıştır. Test sırasında ders kısa adının başında bulunan TAB karakterinin ayrı bir değer olarak kabul edildiği gözlemlenmiştir. Bu nedenle hedef tasarımda kısa adların kaydedilmeden önce görünmeyen karakterler açısından doğrulanması önerilmektedir.
+**Temel tasarım ilkeleri**
 
-Bu bölümde tanımlanan REST API uç noktaları ve servis katmanı, mevcut Moodle 5.3.1 uygulamasında bulunduğu doğrulanan bileşenler değil, modernizasyon kapsamında önerilen hedef tasarım öğeleridir.
+1. Ders yönetimi ve kullanıcı kayıt yönetimi ayrı uygulama servisleri üzerinden gerçekleştirilecektir.
+2. Veri erişimi EF Core aracılığıyla yeni PostgreSQL veritabanında yürütülecektir.
+3. Kullanıcı kimliği ve yetkilendirme kontrolleri AUTH modülü üzerinden sağlanacaktır.
+4. Ders ve kayıt işlemlerinde veri doğrulama ve bütünlük kuralları uygulanacaktır.
+5. Ders bazlı rol ve yetkiler, yeni sistemin kaynak kapsamlı yetkilendirme modeliyle değerlendirilecektir.
+6. Kullanıcı arayüzü Blazor ile geliştirilecektir.
+7. Mevcut Moodle veritabanına çalışma zamanında yazma işlemi yapılmayacaktır.
+8. Moodle verileri gerektiğinde ayrı bir veri aktarım süreciyle yeni veritabanına taşınacaktır.
+9. İlk sürümde zorunlu (M) gereksinimler önceliklendirilecektir.
+10. İkinci sürümde geliştirilecek FILE modülüyle ilgili veri ve dosya bağımlılıkları ayrıca ele alınacaktır.
+
+**Hedef mimari bileşenleri**
+
+| Bileşen | Teknoloji | Sorumluluk |
+|---|---|---|
+| Course Management | ASP.NET Core Application Service | Ders oluşturma, güncelleme ve silme |
+| Enrolment Management | ASP.NET Core Application Service | Kullanıcı kayıt işlemlerinin yönetimi |
+| Authorization | ASP.NET Core Authorization | Ders ve kategori kapsamlı yetki kontrolleri |
+| Data Access | Entity Framework Core | Ders ve kayıt verilerine erişim |
+| Database | PostgreSQL | Ders, kategori ve kayıt bilgilerinin saklanması |
+| User Interface | Blazor | Ders ve kayıt yönetimi ekranları |
+| Validation | ASP.NET Core ve uygulama doğrulama katmanı | Alan doğrulama ve iş kurallarının uygulanması |
+
+Bu bileşenler mantıksal sorumlulukları temsil eder. Ayrı mikroservisler olarak uygulanmaları zorunlu değildir.
+
+**Mevcut sistemle ilişki**
+
+Moodle 5.3.1, CRS modülünün mevcut davranışlarının anlaşılması ve gereksinimlerin belirlenmesi amacıyla referans sistem olarak kullanılacaktır.
+
+WBS-1 kapsamında gerçekleştirilen T-CRS-01–T-CRS-07 testleri mevcut Moodle sisteminin davranışlarını göstermektedir. Yeni sistem geliştirildikten sonra aynı işlevsel senaryolar yeniden doğrulanacaktır.
+
+Testlerde ders kısa adının başında TAB karakteri bulunabildiği gözlemlenmiştir. Bu nedenle yeni sistemde ders kısa adlarının görünmeyen karakterler açısından doğrulanması hedeflenmektedir.
+
+Bu bölümde tanımlanan servisler ve REST API uç noktaları hedef tasarım önerileridir; henüz geliştirilmiş bileşenler değildir.
 
 #### 3.2.2 Veri modeli ve bütünlük kuralları
 
-Hedef CRS tasarımında Moodle 5.3.1 veri modeliyle uyumluluk korunacaktır. Dersler, kategoriler, kayıt yöntemleri ve kullanıcı kayıtları mevcut tablolar üzerinden yönetilecektir. Yeni bir veritabanı şeması oluşturulması bu aşamada önerilmemektedir.
+CRS modülünün hedef veri modeli, EF Core kullanılarak yeni PostgreSQL veritabanında oluşturulacaktır.
 
-| Tablo | Temel alanlar | Hedef tasarımdaki görevi |
+Moodle'ın `course`, `course_categories`, `enrol`, `user_enrolments` ve `user` tabloları doğrudan kullanılmayacaktır. Bu tabloların temsil ettiği temel işlevler, yeni sistemin ihtiyaçlarına uygun varlıklarla yeniden tasarlanacaktır.
+
+**Önerilen veri modeli**
+
+| Varlık | Temel alanlar | Sorumluluk |
 |---|---|---|
-| `course` | `id`, `category`, `fullname`, `shortname`, `idnumber`, `visible` | Ders bilgilerinin yönetilmesi |
-| `course_categories` | `id`, `name`, `parent`, `visible` | Ders kategorilerinin ve hiyerarşinin yönetilmesi |
-| `enrol` | `id`, `courseid`, `enrol`, `status` | Ders kayıt yöntemlerinin tanımlanması |
-| `user_enrolments` | `id`, `enrolid`, `userid`, `status`, `timestart`, `timeend` | Kullanıcı ders kayıtlarının yönetilmesi |
-| `user` | `id` | Ders kayıtlarının kullanıcılarla ilişkilendirilmesi |
+| `Courses` | `Id`, `CategoryId`, `FullName`, `ShortName`, `IdNumber`, `StartDate`, `EndDate`, `IsVisible` | Ders bilgilerinin yönetilmesi |
+| `CourseCategories` | `Id`, `Name`, `ParentCategoryId`, `IsVisible` | Ders kategorilerinin ve hiyerarşinin yönetilmesi |
+| `EnrolmentMethods` | `Id`, `CourseId`, `MethodType`, `IsEnabled` | Ders kayıt yöntemlerinin tanımlanması |
+| `CourseEnrolments` | `Id`, `EnrolmentMethodId`, `UserId`, `Status`, `StartTime`, `EndTime` | Kullanıcıların ders kayıtlarının yönetilmesi |
+| `AspNetUsers` | `Id` | Ders kayıtlarının AUTH kullanıcılarıyla ilişkilendirilmesi |
+| `CourseRoleAssignments` | `Id`, `CourseId`, `UserId`, `RoleId` | Ders bazlı rol atamalarının yönetilmesi |
 
-**Temel ilişkiler**
+Bu tablo ve alan adları önerilen hedef veri modelini temsil etmektedir. Nihai adlandırma, AUTH ve diğer modüllerin ortak EF Core modeliyle uyumlu biçimde belirlenecektir.
 
-1. `course.category` → `course_categories.id`
-2. `course_categories.parent` → `course_categories.id`
-3. `enrol.courseid` → `course.id`
-4. `user_enrolments.enrolid` → `enrol.id`
-5. `user_enrolments.userid` → `user.id`
+**Temel veri ilişkileri**
+
+1. `Courses.CategoryId` → `CourseCategories.Id`
+2. `CourseCategories.ParentCategoryId` → `CourseCategories.Id`
+3. `EnrolmentMethods.CourseId` → `Courses.Id`
+4. `CourseEnrolments.EnrolmentMethodId` → `EnrolmentMethods.Id`
+5. `CourseEnrolments.UserId` → `AspNetUsers.Id`
+6. `CourseRoleAssignments.CourseId` → `Courses.Id`
+7. `CourseRoleAssignments.UserId` → `AspNetUsers.Id`
 
 **Hedef veri bütünlüğü kuralları**
 
-- Ders oluşturma ve güncelleme işlemlerinde kategori geçerliliği kontrol edilecektir.
-- Ders kısa adı (`shortname`) ve boş olmayan ders kimlik numarası (`idnumber`) benzersizlik açısından doğrulanacaktır.
-- Kısa ad alanındaki baştaki ve sondaki boşluklar ile TAB gibi görünmeyen karakterler için açık bir doğrulama politikası uygulanacaktır. Bu politika mevcut kayıtlarla uyumluluk değerlendirilerek belirlenecektir.
-- Aynı kullanıcı, aynı kayıt yöntemi örneğine birden fazla kez kaydedilemeyecektir.
-- Kayıt işlemlerinde kullanıcı ve kayıt yöntemi varlığı doğrulanacaktır.
-- Ders silme işlemlerinde ilişkili kayıtların ve içeriklerin tutarlı biçimde temizlenmesi sağlanacaktır.
-- Kayıt durumu ve başlangıç/bitiş zamanları servis katmanında doğrulanacaktır.
+1. Ders oluşturma ve güncelleme işlemlerinde kategori geçerliliği kontrol edilecektir.
+2. Ders kısa adı (`ShortName`) benzersiz olacaktır.
+3. Boş olmayan ders kimlik numaraları (`IdNumber`) için benzersizlik kontrolü uygulanacaktır.
+4. Kısa ad alanındaki baştaki ve sondaki boşluklar ile TAB gibi görünmeyen karakterler açık bir normalizasyon veya reddetme politikasıyla yönetilecektir.
+5. Aynı kullanıcı aynı kayıt yöntemi üzerinden birden fazla kez kaydedilemeyecektir.
+6. Kayıt işlemlerinde kullanıcı, ders ve kayıt yöntemi ilişkileri doğrulanacaktır.
+7. Kayıt başlangıç ve bitiş zamanlarının tutarlılığı kontrol edilecektir.
+8. Ders silme sırasında ilişkili kayıtlar ve diğer modül verileri tutarlı biçimde yönetilecektir.
+9. Ders bazlı rol atamalarında geçerli kullanıcı, ders ve rol ilişkileri zorunlu olacaktır.
+10. Birden fazla veri değişikliği içeren işlemlerde transaction yönetimi uygulanacaktır.
 
-**Veritabanı ve servis katmanı sorumlulukları**
+**Benzersizlik ve eşzamanlılık**
 
-Mevcut `user_enrolments` tablosundaki `(enrolid, userid)` benzersizliği korunacaktır. `course.shortname` alanında ise mevcut PostgreSQL şemasında benzersiz olmayan indeks bulunduğu gözlemlenmiştir. Bu nedenle kısa ad benzersizliği servis katmanında kontrol edilecektir.
+Ders kısa adının benzersizliği yalnızca uygulama servisinde kontrol edilmeyecek, uygun veritabanı benzersizlik kısıtlarıyla da desteklenecektir.
 
-Eşzamanlı işlemler nedeniyle oluşabilecek mükerrer kayıt riskleri ayrıca değerlendirilecektir. Veritabanı düzeyinde ek benzersizlik kısıtı uygulanması, mevcut Moodle uyumluluğu ve veri temizliği analizinden sonra kararlaştırılacaktır.
+Aynı şekilde `CourseEnrolments` için `(EnrolmentMethodId, UserId)` birleşiminde benzersizlik kısıtı önerilmektedir.
 
-Bu tasarım, WBS-1 kapsamındaki CRS-BR-01, CRS-BR-02, CRS-BR-03, CRS-BR-07 ve CRS-FR-01, CRS-FR-02, CRS-FR-06 gereksinimleriyle ilişkilidir.
+Bu yaklaşım, eşzamanlı isteklerde mükerrer kayıt oluşmasını önlemeyi hedeflemektedir.
+
+**Moodle veri aktarımı**
+
+Moodle'daki mevcut ders, kategori ve kullanıcı kayıtları gerektiğinde ayrı bir aktarım süreciyle yeni sisteme taşınacaktır.
+
+Aktarım sırasında eski ve yeni kullanıcı/ders kimlikleri arasındaki eşleştirmeler korunacaktır. Ders kısa adlarında bulunan görünmeyen karakterler, hedef sisteme aktarılmadan önce tespit edilecek ve belirlenen normalizasyon politikasına göre değerlendirilecektir.
+
+Aktarım işlemi Moodle'ın mevcut veritabanını güncellemeyecek; hedef PostgreSQL veritabanına kontrollü veri yazımı gerçekleştirecektir.
+
+**Gereksinim ilişkisi:** CRS-BR-01–CRS-BR-13, CRS-FR-01, CRS-FR-02, CRS-FR-06.
+
 #### 3.2.3 REST API tasarımı
 
-Hedef CRS modülünde ders yönetimi ve kullanıcı kayıt işlemlerinin REST tabanlı API uç noktaları üzerinden sunulması önerilmektedir. API tasarımı mevcut Moodle 5.3.1 iş kurallarını koruyacak, ancak istemci ile iş mantığı arasındaki bağımlılığı azaltacaktır.
+CRS modülünde ders yönetimi ve kullanıcı kayıt işlemleri ASP.NET Core tabanlı REST API uç noktaları üzerinden sunulacaktır.
 
-Aşağıdaki uç noktalar modernizasyon kapsamında önerilen hedef arayüzlerdir; mevcut Moodle API uç noktaları oldukları iddia edilmemektedir.
+Blazor arayüzü bu uç noktaları veya aynı uygulama içerisindeki ilgili servis katmanını kullanacaktır.
+
+Aşağıdaki uç noktalar hedef sistem için önerilmiştir; henüz uygulanmış servisler değildir.
 
 **Ders yönetimi API'leri**
 
-| Metot | Yol | İstek | Başarılı yanıt | Yetkili rol |
+| Metot | Yol | İstek | Başarılı yanıt | Yetkili kullanıcı |
 |---|---|---|---|---|
-| POST | `/api/v1/courses` | `categoryId`, `fullName`, `shortName`, `idNumber`, `startDate`, `endDate` | `201 Created`, ders kimliği | Yetkili yönetici / ders oluşturma yetkisine sahip kullanıcı |
-| PATCH | `/api/v1/courses/{courseId}` | Güncellenecek ders alanları | `200 OK`, güncel ders bilgileri | Yetkili yönetici / ders düzenleme yetkisine sahip kullanıcı |
-| DELETE | `/api/v1/courses/{courseId}` | Ders kimliği | `204 No Content` veya asenkron işlem için `202 Accepted` | Yetkili yönetici / ders silme yetkisine sahip kullanıcı |
+| POST | `/api/v1/courses` | `categoryId`, `fullName`, `shortName`, `idNumber`, `startDate`, `endDate` | `201 Created`, ders kimliği | Ders oluşturma yetkisine sahip kullanıcı |
+| PATCH | `/api/v1/courses/{courseId}` | Güncellenecek ders alanları | `200 OK`, güncel ders bilgileri | İlgili derste düzenleme yetkisi bulunan kullanıcı |
+| DELETE | `/api/v1/courses/{courseId}` | Ders kimliği | `204 No Content` | Ders silme yetkisine sahip kullanıcı |
 
 **Kullanıcı kayıt API'leri**
 
-| Metot | Yol | İstek | Başarılı yanıt | Yetkili rol |
+| Metot | Yol | İstek | Başarılı yanıt | Yetkili kullanıcı |
 |---|---|---|---|---|
-| POST | `/api/v1/courses/{courseId}/enrolments` | `userId`, `enrolId`, `roleId`, `startTime`, `endTime` | `201 Created`, kayıt kimliği | Kullanıcı kaydetme yetkisine sahip kullanıcı |
+| POST | `/api/v1/courses/{courseId}/enrolments` | `userId`, `enrolmentMethodId`, `roleId`, `startTime`, `endTime` | `201 Created`, kayıt kimliği | Kullanıcı kaydetme yetkisine sahip kullanıcı |
 | PATCH | `/api/v1/courses/{courseId}/enrolments/{enrolmentId}` | `status`, `startTime`, `endTime` | `200 OK`, güncel kayıt bilgileri | Kayıt düzenleme yetkisine sahip kullanıcı |
 | DELETE | `/api/v1/courses/{courseId}/enrolments/{enrolmentId}` | Kayıt kimliği | `204 No Content` | Kayıt silme yetkisine sahip kullanıcı |
 
+**Kullanıcı kaydı ve rol atama işlemlerinin bütünlüğü**
+
+Kullanıcının derse kaydedilmesi ve ilgili derste rol atanması, veri modelinde ayrı sorumluluklar olarak ele alınacaktır. Ders kaydı `CourseEnrolments`, ders kapsamlı rol ataması ise `CourseRoleAssignments` üzerinden yönetilecektir.
+
+`POST /api/v1/courses/{courseId}/enrolments` isteğinde `roleId` alanı gönderildiğinde, kayıt oluşturma ve rol atama işlemleri aynı uygulama servisi tarafından yürütülecektir.
+
+Her iki işlem de aynı PostgreSQL veritabanında EF Core üzerinden tek transaction kapsamında gerçekleştirilecektir. İşlemlerden herhangi biri başarısız olursa transaction geri alınacak ve kısmi kayıt oluşması engellenecektir.
+
+Rol atama yetkisi, kayıt oluşturma yetkisinden ayrı olarak AUTH modülü üzerinden doğrulanacaktır. Böylece kullanıcıyı derse kaydetme yetkisi, otomatik olarak herhangi bir rolü atama yetkisi sağlamayacaktır.
+
+İlerleyen aşamalarda ders rolünün bağımsız olarak değiştirilmesi gerektiğinde ayrı bir rol yönetimi servis operasyonu tanımlanabilecektir.
+
 **API tasarım ilkeleri**
 
-- API sürümlemesi `/api/v1` yolu üzerinden yapılacaktır.
-- İstek verileri servis katmanında doğrulanacaktır.
-- Ders kısa adı ve kimlik numarası benzersizlik kontrolleri uygulanacaktır.
-- Kayıt yöntemi, kullanıcı ve ders ilişkileri doğrulanacaktır.
-- Yetkilendirme yalnızca kullanıcı rol adına göre değil, ilgili ders veya kategori bağlamındaki yetkilere göre yapılacaktır.
-- Başarılı işlemlerde uygun HTTP durum kodları döndürülecektir.
-- Hatalı istekler için tutarlı hata yanıtları kullanılacaktır.
-- Ders ve kayıt değişiklikleri için sistem olayları oluşturulacaktır.
-- Ders silme işlemi asenkron yürütülürse istemciye işlem durumu takip edilebilir şekilde sunulacaktır.
+1. API sürümlemesi `/api/v1` yolu üzerinden gerçekleştirilecektir.
+2. Kimlik doğrulama AUTH modülü tarafından sağlanacaktır.
+3. Yetkilendirme ilgili ders veya kategori kapsamına göre uygulanacaktır.
+4. İstek alanları sunucu tarafında doğrulanacaktır.
+5. Ders kısa adı ve kimlik numarası benzersizlik kontrolleri uygulanacaktır.
+6. Kullanıcı, ders ve kayıt yöntemi ilişkileri doğrulanacaktır.
+7. Veri değişikliklerinde EF Core transaction mekanizmaları kullanılacaktır.
+8. Başarılı işlemlerde uygun HTTP durum kodları döndürülecektir.
+9. Hatalı istekler standart hata yanıtlarıyla bildirilecektir.
+10. Ders ve kayıt değişiklikleri için uygulamaya özgü olay veya denetim kayıtları oluşturulabilecektir.
 
 **Önerilen hata yanıtları**
 
 | HTTP kodu | Durum |
 |---|---|
-| `400 Bad Request` | Geçersiz veya eksik istek alanları |
+| `400 Bad Request` | Eksik veya geçersiz istek alanları |
 | `401 Unauthorized` | Kimlik doğrulaması yapılmamış istek |
-| `403 Forbidden` | İşlem için gerekli yetki bulunmaması |
+| `403 Forbidden` | İşlem için gerekli yetkinin bulunmaması |
 | `404 Not Found` | Ders, kullanıcı kaydı veya ilgili kaynağın bulunamaması |
 | `409 Conflict` | Mükerrer kısa ad, kimlik numarası veya kayıt çakışması |
-| `422 Unprocessable Content` | Tarih aralığı veya alan doğrulama kurallarının ihlali |
+| `422 Unprocessable Content` | Tarih aralığı veya iş kuralı doğrulama hatası |
+| `500 Internal Server Error` | Beklenmeyen sunucu hatası |
+
+**Modüller arası entegrasyon**
+
+CRS modülü kullanıcı kimliği ve yetkilendirme için AUTH modülünü kullanacaktır.
+
+ASG ve GRD modülleri, ders ve kullanıcı kayıt bilgilerine ihtiyaç duyduklarında CRS tarafından sağlanan servis arayüzleri üzerinden erişecektir.
+
+İkinci sürümde geliştirilecek FILE modülünün ders ve içerik ilişkileri ayrıca tasarlanacaktır.
 
 **Gereksinim ilişkisi:** CRS-FR-01–CRS-FR-11, CRS-BR-01–CRS-BR-13.
+
 #### 3.2.4 Rol bazlı yetkilendirme
 
-Hedef CRS tasarımında yetkilendirme, Moodle'ın rol ve bağlam (context) tabanlı erişim kontrolü yaklaşımıyla uyumlu olacaktır. Kullanıcının yalnızca rol adına bakılarak işlem izni verilmeyecek; ilgili ders veya kategori bağlamında gerekli yetkiye sahip olup olmadığı kontrol edilecektir.
+Yeni CRS modülünde yetkilendirme, ASP.NET Core Authorization altyapısı ve AUTH modülünde tanımlanan ders kapsamlı yetkilendirme modeli üzerinden gerçekleştirilecektir.
 
-**Yetkilendirme matrisi**
+Moodle'ın `has_capability()` fonksiyonu veya mevcut rol-bağlam tabloları yeni sistemin çalışma zamanı bağımlılığı olmayacaktır.
 
-| İşlem | Gerekli Moodle yetkisi | Kontrol bağlamı |
+Ancak WBS-1 kapsamında belirlenen ders ve kategori kapsamlı yetki davranışları hedef sistemde yeniden uygulanacaktır.
+
+**Önerilen yetkilendirme matrisi**
+
+| İşlem | Hedef sistem yetkisi | Kontrol kapsamı |
 |---|---|---|
-| Ders oluşturma | `moodle/course:create` | Kategori |
-| Ders bilgilerini güncelleme | `moodle/course:update` | Ders |
-| Ders silme | `moodle/course:delete` | Ders |
-| Kullanıcıyı derse kaydetme | `enrol/manual:enrol` | Ders |
-| Kullanıcının kayıt durumunu güncelleme | `enrol/manual:manage` | Ders |
-| Kullanıcıyı dersten çıkarma | `enrol/manual:unenrol` | Ders |
-| Kullanıcıya rol atama | `moodle/role:assign` | Ders |
+| Ders oluşturma | `course.create` | Kategori veya sistem |
+| Ders bilgilerini güncelleme | `course.update` | Ders |
+| Ders silme | `course.delete` | Ders |
+| Kullanıcıyı derse kaydetme | `enrolment.create` | Ders |
+| Kullanıcının kayıt durumunu güncelleme | `enrolment.update` | Ders |
+| Kullanıcıyı dersten çıkarma | `enrolment.delete` | Ders |
+| Kullanıcıya ders rolü atama | `course.role.assign` | Ders |
 
-Bu matris, manuel kayıt yöntemi ve temel ders yönetimi işlemleri için önerilen yetkilendirme eşlemesini göstermektedir. Farklı kayıt eklentileri kendi yetki kurallarını uygulayabilir. Gerçek yetki kontrolleri, ilgili Moodle işlemlerinin kaynak kodu ve bağlam kurallarıyla uyumlu şekilde uygulanacaktır.
+Bu yetki adları yeni uygulama için önerilen tanımlardır. Moodle capability adları değildir.
 
 **Yetkilendirme ilkeleri**
 
-1. Her API isteğinde kimlik doğrulaması yapılacaktır.
-2. İlgili ders veya kategori bağlamı belirlenecektir.
-3. İşlem için gerekli capability kontrol edilecektir.
-4. Yetkisiz işlemler `403 Forbidden` yanıtıyla reddedilecektir.
-5. Kullanıcı kayıt işlemlerinde ilgili kayıt yönteminin etkinliği ve işlem yetkisi doğrulanacaktır.
-6. Rol atama işlemlerinde kullanıcının hedef rolü atamaya yetkili olup olmadığı ayrıca kontrol edilecektir.
-7. Sistem ana sayfası dersi (`SITEID`) için mevcut Moodle kısıtları korunacaktır.
-8. Yetki kontrolleri yalnızca istemci arayüzünde değil, sunucu tarafında gerçekleştirilecektir.
+1. Korunan her API isteğinde kimlik doğrulaması yapılacaktır.
+2. İşlem için gerekli authorization policy belirlenecektir.
+3. İlgili ders veya kategori kaynağı tespit edilecektir.
+4. Kullanıcının sistem rolü ve kaynak kapsamındaki yetkileri değerlendirilecektir.
+5. Yetkisiz işlemler `403 Forbidden` yanıtıyla reddedilecektir.
+6. Kayıt işlemlerinde ilgili kayıt yönteminin etkinliği kontrol edilecektir.
+7. Rol atamalarında kullanıcının hedef rolü atamaya yetkili olup olmadığı doğrulanacaktır.
+8. Yetkilendirme kontrolleri yalnızca Blazor arayüzünde değil, sunucu tarafında da uygulanacaktır.
+9. Yetki bulunmadığında korunan veriler değiştirilmeden bırakılacaktır.
 
-**Gereksinim ilişkisi:** CRS-FR-01, CRS-FR-04, CRS-FR-05, CRS-FR-06, CRS-FR-07, CRS-FR-08, CRS-FR-09 ve CRS-BR-05, CRS-BR-12.
+**Ders bazlı yetkilendirme örneği**
+
+Bir kullanıcı A dersinde öğretmen, B dersinde öğrenci olabilir.
+
+Bu durumda A dersinin ayarlarını değiştirebilmesi, B dersinin ayarlarını da değiştirebileceği anlamına gelmez.
+
+Yetki kontrolü ilgili ders kimliği ve kullanıcının ders kapsamındaki rol atamaları üzerinden yapılacaktır.
+
+**Gereksinim ilişkisi:** CRS-FR-01, CRS-FR-04–CRS-FR-09, CRS-BR-05, CRS-BR-12.
 
 #### 3.2.5 İşlem akışları ve hata yönetimi
 
-Hedef CRS modülünde ders yönetimi ve kullanıcı kayıt işlemleri API, servis ve veri erişim katmanları üzerinden yürütülecektir. İş kuralları servis katmanında merkezi olarak uygulanacak; veri doğrulama, yetkilendirme ve veri bütünlüğü kontrolleri ilgili işlemler kapsamında gerçekleştirilecektir.
+CRS modülündeki ders ve kayıt işlemleri ASP.NET Core API, uygulama servisleri ve EF Core veri erişim katmanı üzerinden yürütülecektir.
 
 **Genel işlem akışı**
 
-1. İstemci REST API üzerinden isteği gönderir.
-2. API katmanında kimlik doğrulaması yapılır.
-3. İlgili ders veya kategori bağlamında yetkilendirme kontrolü gerçekleştirilir.
-4. Servis katmanında istek alanları ve iş kuralları doğrulanır.
-5. Veri erişim katmanı gerekli veritabanı işlemlerini gerçekleştirir.
-6. İlgili sistem olayları tetiklenir ve gerekli önbellekler geçersiz kılınır.
-7. İstemciye uygun HTTP yanıtı döndürülür.
+1. Kullanıcı Blazor arayüzünden işlemi başlatır.
+2. İstek ilgili ASP.NET Core API veya uygulama servisine iletilir.
+3. AUTH modülü üzerinden kimlik doğrulama ve yetkilendirme kontrolleri gerçekleştirilir.
+4. Servis katmanında iş kuralları ve istek alanları doğrulanır.
+5. EF Core üzerinden gerekli veritabanı işlemleri yürütülür.
+6. İşlem başarılıysa değişiklikler kaydedilir.
+7. Gerekli uygulama olayları veya denetim kayıtları oluşturulur.
+8. Kullanıcıya uygun sonuç veya hata mesajı döndürülür.
 
 **Ders yönetimi**
 
-| İşlem | Hedef servis operasyonu | Temel kontroller |
+| İşlem | Önerilen servis operasyonu | Temel kontroller |
 |---|---|---|
-| Ders oluşturma | `createCourse()` | Kategori geçerliliği, kısa ad ve kimlik numarası benzersizliği, tarih doğrulama |
-| Ders güncelleme | `updateCourse()` | Ders varlığı, yetkilendirme, alan doğrulama ve benzersizlik kontrolleri |
-| Ders silme | `deleteCourse()` | Silme yetkisi, SITEID kısıtı, yedekleme/geri yükleme çakışmaları, ilişkili veri temizliği |
+| Ders oluşturma | `CreateCourseAsync()` | Kategori geçerliliği, kısa ad ve kimlik numarası benzersizliği, tarih doğrulama |
+| Ders güncelleme | `UpdateCourseAsync()` | Ders varlığı, yetkilendirme, alan doğrulama ve benzersizlik kontrolleri |
+| Ders silme | `DeleteCourseAsync()` | Silme yetkisi, ilişkili kayıtlar ve modüller arası veri bütünlüğü |
 
 **Kullanıcı kayıt yönetimi**
 
-| İşlem | Hedef servis operasyonu | Temel kontroller |
+| İşlem | Önerilen servis operasyonu | Temel kontroller |
 |---|---|---|
-| Kullanıcı kaydetme | `enrolUser()` | Kullanıcı ve kayıt yöntemi varlığı, yetkilendirme, mükerrer kayıt kontrolü |
-| Kayıt güncelleme | `updateUserEnrolment()` | Kayıt varlığı, durum ve zaman alanları, değişiklik kontrolü |
-| Kayıt silme | `unenrolUser()` | Kayıt varlığı, yetkilendirme, diğer kayıt yöntemlerinin korunması |
+| Kullanıcı kaydetme | `EnrolUserAsync()` | Kullanıcı ve kayıt yöntemi varlığı, yetkilendirme, mükerrer kayıt kontrolü |
+| Kayıt güncelleme | `UpdateEnrolmentAsync()` | Kayıt varlığı, durum ve zaman alanları |
+| Kayıt silme | `UnenrolUserAsync()` | Kayıt varlığı, yetkilendirme ve diğer kayıt yöntemlerinin korunması |
 
-Belirtilen servis operasyonları modernizasyon kapsamında önerilen soyutlamalardır; Moodle 5.3.1 kaynak kodundaki PHP fonksiyonlarıyla birebir aynı bileşenler değildir.
+Bu operasyon adları hedef C# servis tasarımını temsil etmektedir.
 
 **İşlem tutarlılığı**
 
-- Birden fazla ilişkili veri değişikliği içeren işlemlerde uygun veritabanı transaction mekanizmaları kullanılacaktır.
-- Hata durumunda tutarsız veya kısmen tamamlanmış veri değişikliklerinin oluşması önlenecektir.
-- Ders silme sırasında ilişkili kayıtlar ve içerikler mevcut Moodle iş kurallarıyla uyumlu şekilde temizlenecektir.
-- Asenkron ders silme kullanıldığında işlem durumu izlenecek; işlem tamamlanmadan dersin tamamen silindiği bildirilmeyecektir.
+- Birden fazla ilişkili veri değişikliği içeren işlemlerde EF Core transaction mekanizmaları kullanılacaktır.
+- Hata durumunda kısmen tamamlanmış veri değişikliklerinin oluşması önlenecektir.
+- Ders silme sırasında ilişkili kullanıcı kayıtları ve diğer modüllere ait veriler kontrollü biçimde yönetilecektir.
+- Ders silme işlemi, ASG ve GRD modüllerinin veri ilişkileri dikkate alınarak tasarlanacaktır.
+- Asenkron silme mekanizması gerekiyorsa işlem durumu ayrıca izlenecektir.
 - Kullanıcının bir kayıt yöntemi üzerinden kaydı kaldırıldığında diğer kayıt yöntemlerinden gelen kayıtları korunacaktır.
 - Kayıt bilgileri değişmemişse gereksiz veritabanı güncellemelerinden kaçınılacaktır.
 
 **Hata yönetimi**
 
-API katmanında doğrulama, yetkilendirme ve veri bütünlüğü hataları standart bir yanıt yapısıyla sunulacaktır.
+Doğrulama, yetkilendirme ve veri bütünlüğü hataları standart bir API yanıt yapısıyla sunulacaktır.
 
-Önerilen hata yanıtı:
+Örnek hata yanıtı:
 
 ```json
 {
@@ -736,13 +955,15 @@ API katmanında doğrulama, yetkilendirme ve veri bütünlüğü hataları stand
 }
 ```
 
-Hata mesajlarında hassas sistem bilgileri veya veritabanı ayrıntıları istemciye açıklanmayacaktır. Sunucu tarafında ise hata türü ve ilgili işlem izlenebilir biçimde kaydedilecektir.
+Hata mesajlarında hassas sistem bilgileri veya veritabanı ayrıntıları istemciye açıklanmayacaktır.
+
+Sunucu tarafında hata türü, ilgili işlem ve gerekli teknik ayrıntılar güvenli biçimde kaydedilecektir.
 
 **Gereksinim ilişkisi:** CRS-FR-01–CRS-FR-11, CRS-NFR-01–CRS-NFR-08.
 
 #### 3.2.6 Gereksinim eşlemesi
 
-Hedef CRS tasarımında önerilen veri modeli, REST API uç noktaları, yetkilendirme kontrolleri ve servis operasyonları WBS-1 kapsamında belirlenen gereksinimlerle ilişkilendirilmiştir. Bu eşleme, analiz ve tasarım aşamaları arasında izlenebilirliği sağlamayı amaçlamaktadır.
+CRS modülünün hedef tasarımında önerilen veri modeli, REST API uç noktaları, yetkilendirme kontrolleri ve servis operasyonları WBS-1 kapsamında belirlenen gereksinimlerle ilişkilendirilmiştir.
 
 **Fonksiyonel gereksinim eşlemesi**
 
@@ -752,85 +973,102 @@ Hedef CRS tasarımında önerilen veri modeli, REST API uç noktaları, yetkilen
 | CRS-FR-02 | Kısa ad ve kimlik numarası benzersizlik kontrolü | 3.2.2, 3.2.5 |
 | CRS-FR-03 | Ders başlangıç ve bitiş tarihi doğrulaması | 3.2.3, 3.2.5 |
 | CRS-FR-04 | Ders bilgilerini güncelleme API'si | 3.2.3, 3.2.5 |
-| CRS-FR-05 | İlişkili verileri temizleyen ders silme operasyonu | 3.2.3, 3.2.5 |
+| CRS-FR-05 | İlişkili verileri yöneten ders silme operasyonu | 3.2.3, 3.2.5 |
 | CRS-FR-06 | Kayıt yöntemi üzerinden kullanıcıyı derse kaydetme API'si | 3.2.2, 3.2.3, 3.2.5 |
 | CRS-FR-07 | Kayıt durumu ve zaman bilgilerini güncelleme API'si | 3.2.3, 3.2.5 |
 | CRS-FR-08 | Belirli kayıt yöntemi üzerinden kaydı kaldırma API'si | 3.2.3, 3.2.5 |
-| CRS-FR-09 | Ders bağlamında rol atama ve yetki kontrolleri | 3.2.4, 3.2.5 |
-| CRS-FR-10 | Ders ve kayıt değişikliklerinde sistem olaylarının tetiklenmesi | 3.2.3, 3.2.5 |
-| CRS-FR-11 | Asenkron ders silme ve işlem durumu yönetimi | 3.2.3, 3.2.5 |
+| CRS-FR-09 | Ders kapsamlı rol atama ve yetki kontrolleri | 3.2.4, 3.2.5 |
+| CRS-FR-10 | Ders ve kayıt değişikliklerinde uygulama olayları veya denetim kayıtları | 3.2.3, 3.2.5 |
+| CRS-FR-11 | Gerekirse asenkron ders silme ve işlem durumu yönetimi | 3.2.3, 3.2.5 |
 
 **Fonksiyonel olmayan gereksinim eşlemesi**
 
 | Gereksinim ID | Hedef tasarım karşılığı | İlgili tasarım bölümü |
 |---|---|---|
-| CRS-NFR-01 | Mükerrer kullanıcı kaydının engellenmesi ve benzersizlik kontrolü | 3.2.2, 3.2.5 |
-| CRS-NFR-02 | Ders silme sırasında ilişkili verilerin tutarlı temizlenmesi | 3.2.2, 3.2.5 |
-| CRS-NFR-03 | Yedekleme/geri yükleme işlemleriyle çakışmanın engellenmesi | 3.2.5 |
-| CRS-NFR-04 | Veri değişikliklerinden sonra ilgili önbelleklerin geçersiz kılınması | 3.2.5 |
+| CRS-NFR-01 | Mükerrer kullanıcı kaydının engellenmesi | 3.2.2, 3.2.5 |
+| CRS-NFR-02 | Ders silme sırasında ilişkili verilerin tutarlı yönetilmesi | 3.2.2, 3.2.5 |
+| CRS-NFR-03 | Yedekleme ve geri yükleme süreçleriyle çakışmaların önlenmesi | 3.2.5 |
+| CRS-NFR-04 | Gerekli durumlarda önbellek geçersiz kılma mekanizması | 3.2.5 |
 | CRS-NFR-05 | Değişmeyen kayıt bilgilerinde gereksiz güncellemelerin önlenmesi | 3.2.5 |
-| CRS-NFR-06 | Yapılandırmaya bağlı asenkron ders silme desteği | 3.2.3, 3.2.5 |
-| CRS-NFR-07 | Ders ve kayıt değişikliklerinin sistem olaylarıyla izlenmesi | 3.2.3, 3.2.5 |
-| CRS-NFR-08 | Eklenti genişletme mekanizmalarıyla uyumluluğun korunması | 3.2.1, 3.2.5 |
+| CRS-NFR-06 | İhtiyaç hâlinde asenkron ders silme desteği | 3.2.3, 3.2.5 |
+| CRS-NFR-07 | Ders ve kayıt değişikliklerinin izlenmesi | 3.2.3, 3.2.5 |
+| CRS-NFR-08 | Moodle eklenti ve hook mekanizmalarına bağımlı olmadan modüler servisler ve tanımlı genişletme noktaları aracılığıyla yeni işlevlerin desteklenmesi | 3.2.1, 3.2.5 |
 
 **İzlenebilirlik yaklaşımı**
 
 - Her CRS fonksiyonel gereksinimi en az bir hedef tasarım bileşeniyle eşleştirilmiştir.
-- Fonksiyonel olmayan gereksinimler veri bütünlüğü, güvenilirlik, performans, verimlilik, ölçeklenebilirlik, izlenebilirlik ve genişletilebilirlik açısından değerlendirilmiştir.
-- WBS-1'de tanımlanan CRS-BR-01–CRS-BR-13 iş kuralları hedef tasarımda korunacaktır.
-- Bu eşleme tasarım kapsamını göstermektedir; hedef sistemin uygulanmış veya bütün gereksinimlerin test edilmiş olduğu anlamına gelmemektedir.
-- Ayrıntılı gereksinim izlenebilirliği proje kapsamındaki `docs/izlenebilirlik.md` dosyasıyla tutarlı tutulacaktır.
+- Fonksiyonel olmayan gereksinimler veri bütünlüğü, güvenilirlik, performans, izlenebilirlik ve genişletilebilirlik açısından değerlendirilmiştir.
+- WBS-1 kapsamında belirlenen CRS-BR-01–CRS-BR-13 iş kuralları yeni sistem tasarımında referans alınacaktır.
+- İlk sürüm kapsamı, WBS-1 gereksinim tablosunda M olarak sınıflandırılan gereksinimlere göre belirlenecektir.
+- Bu eşleme hedef tasarımı göstermektedir; yeni sistemin geliştirilmiş veya test edilmiş olduğu anlamına gelmemektedir.
+- Ayrıntılı izlenebilirlik kayıtları `docs/izlenebilirlik.md` ile tutarlı tutulacaktır.
+
 #### 3.2.7 Test bulguları ve tasarım kararları
 
-Moodle 5.3.1 üzerinde ders yönetimi ve kullanıcı kayıt işlemlerinin mevcut davranışını değerlendirmek amacıyla manuel arayüz testleri gerçekleştirilmiştir. İlgili işlemler PostgreSQL veritabanı üzerinden de kontrol edilmiştir.
+Moodle 5.3.1 üzerinde ders yönetimi ve kullanıcı kayıt işlemlerinin mevcut davranışlarını değerlendirmek amacıyla manuel arayüz testleri gerçekleştirilmiştir.
 
-**Gerçekleştirilen testler**
+İlgili işlemler Moodle'ın PostgreSQL veritabanı üzerinden de kontrol edilmiştir.
+
+Bu testler mevcut Moodle sistemine aittir. Yeni C# / .NET uygulamasının test sonuçları değildir.
+
+**WBS-1 mevcut sistem testleri**
 
 | Test ID | Test senaryosu | Gerçekleşen sonuç | Durum |
 |---|---|---|---|
-| CRS-TEST-01 | Yeni ders oluşturma | Yeni ders oluşturuldu ve Moodle arayüzünde görüntülendi. | PASS |
-| CRS-TEST-02 | Ders bilgilerini güncelleme | Dersin tam adı başarıyla güncellendi. | PASS |
-| CRS-TEST-03 | Mükerrer ders kısa adı kontrolü | Aynı kısa adla yeni ders oluşturma girişimi hata mesajıyla engellendi. | PASS |
-| CRS-TEST-04 | Ders silme | Ders silindi; veritabanında ilgili ders kaydının bulunmadığı doğrulandı. | PASS |
-| CRS-TEST-05 | Kullanıcıyı derse kaydetme | Kullanıcı Student rolüyle kaydedildi; veritabanında aktif kayıt doğrulandı. | PASS |
-| CRS-TEST-06 | Kullanıcı kayıt durumunu güncelleme | Kullanıcı kaydı Suspended durumuna getirildi; veritabanında `status = 1` doğrulandı. | PASS |
-| CRS-TEST-07 | Kullanıcıyı dersten çıkarma | Kullanıcı katılımcı listesinden kaldırıldı; ilgili kayıt veritabanında bulunamadı. | PASS |
+| T-CRS-01 | Yeni ders oluşturma | Yeni ders oluşturuldu ve Moodle arayüzünde görüntülendi. | PASS |
+| T-CRS-02 | Ders bilgilerini güncelleme | Dersin tam adı başarıyla güncellendi. | PASS |
+| T-CRS-03 | Mükerrer ders kısa adı kontrolü | Aynı kısa adla yeni ders oluşturma girişimi hata mesajıyla engellendi. | PASS |
+| T-CRS-04 | Ders silme | Ders silindi; veritabanında ilgili ders kaydının bulunmadığı doğrulandı. | PASS |
+| T-CRS-05 | Kullanıcıyı derse kaydetme | Kullanıcı Student rolüyle kaydedildi; veritabanında aktif kayıt doğrulandı. | PASS |
+| T-CRS-06 | Kullanıcı kayıt durumunu güncelleme | Kullanıcı kaydı Suspended durumuna getirildi; veritabanında `status = 1` doğrulandı. | PASS |
+| T-CRS-07 | Kullanıcıyı dersten çıkarma | Kullanıcı katılımcı listesinden kaldırıldı; ilgili kayıt veritabanında bulunamadı. | PASS |
 
-**Veritabanı doğrulamaları**
+**Mevcut sistem veritabanı doğrulamaları**
 
 Testlerde Moodle'ın PostgreSQL veritabanındaki `m_course` ve `m_user_enrolments` tabloları kullanılmıştır.
 
-- CRS-TEST-04: Silinen dersin `id = 6` kaydı için sorgu sonucu `0 rows` olarak gözlemlenmiştir.
-- CRS-TEST-05: `ogrenci5` kullanıcısının `courseid = 5` için kayıt durumunun `status = 0` olduğu doğrulanmıştır.
-- CRS-TEST-06: Aynı kaydın durumunun `status = 1` olarak güncellendiği doğrulanmıştır.
-- CRS-TEST-07: Kullanıcının ilgili ders kaydının kaldırıldığı ve sorgunun `0 rows` döndürdüğü doğrulanmıştır.
+- T-CRS-04: Silinen dersin `id = 6` kaydı için sorgu sonucu `0 rows` olarak gözlemlenmiştir.
+- T-CRS-05: `ogrenci5` kullanıcısının `courseid = 5` için kayıt durumunun `status = 0` olduğu doğrulanmıştır.
+- T-CRS-06: Aynı kaydın durumunun `status = 1` olarak güncellendiği doğrulanmıştır.
+- T-CRS-07: Kullanıcının ilgili ders kaydının kaldırıldığı ve sorgunun `0 rows` döndürdüğü doğrulanmıştır.
 
 **Ek bulgu: Ders kısa adında görünmeyen karakter**
 
-Test sırasında iki dersin kısa adının arayüzde aynı göründüğü gözlemlenmiştir. Veritabanında yapılan karakter düzeyindeki inceleme sonucunda ilk dersin kısa adının başında TAB karakteri (`0x09`) bulunduğu belirlenmiştir.
+Test sırasında iki dersin kısa adının arayüzde aynı göründüğü gözlemlenmiştir.
+
+Veritabanında yapılan karakter düzeyindeki incelemede ilk dersin kısa adının başında TAB karakteri (`0x09`) bulunduğu belirlenmiştir.
 
 | Ders ID | Kısa adın gerçek içeriği | Uzunluk |
 |---|---|---|
 | 5 | TAB + `CRS_TEST_01` | 12 |
 | 6 | `CRS_TEST_01` | 11 |
 
-Bu nedenle iki kısa ad veritabanında farklı değerler olarak değerlendirilmiştir. Başında TAB bulunmayan `CRS_TEST_01` kısa adıyla yeniden ders oluşturulmaya çalışıldığında Moodle, kısa adın başka bir ders tarafından kullanıldığını belirten hata mesajı göstermiştir.
+Bu nedenle iki kısa ad veritabanında farklı değerler olarak değerlendirilmiştir.
 
-Bu bulgu, mevcut kısa ad benzersizlik kontrolünün çalıştığını; ancak görünmeyen karakterlerin kullanıcı açısından yanıltıcı ders adlarına neden olabileceğini göstermektedir.
+Başında TAB bulunmayan `CRS_TEST_01` kısa adıyla yeniden ders oluşturulmaya çalışıldığında Moodle, kısa adın başka bir ders tarafından kullanıldığını belirten hata mesajı göstermiştir.
 
-**Hedef tasarım kararları**
+Bu bulgu, mevcut kısa ad benzersizlik kontrolünün çalıştığını ancak görünmeyen karakterlerin kullanıcı açısından yanıltıcı ders adlarına neden olabileceğini göstermektedir.
+
+**Yeni sistem için tasarım kararları**
 
 1. Ders kısa adları kaydedilmeden önce görünmeyen karakterler açısından doğrulanacaktır.
-2. Kısa ad normalizasyonu uygulanmadan önce mevcut kayıtlarla geriye dönük uyumluluk değerlendirilecektir.
-3. Mükerrer kısa ad kontrolü servis katmanında korunacaktır.
-4. Veri bütünlüğü açısından ek veritabanı kısıtları, mevcut Moodle şemasıyla uyumluluk değerlendirmesinden sonra kararlaştırılacaktır.
-5. Ders ve kayıt işlemlerinin doğrulanması için arayüz testleri ile veritabanı kontrolleri birlikte kullanılacaktır.
+2. Kısa ad normalizasyonu uygulanırken veri aktarımı sırasında oluşabilecek çakışmalar değerlendirilecektir.
+3. Mükerrer kısa ad kontrolü hem servis katmanında hem de uygun veritabanı kısıtlarıyla desteklenecektir.
+4. Ders ve kayıt verileri yeni PostgreSQL veritabanında saklanacaktır.
+5. Kullanıcı kimliği ve ders bazlı yetkilendirme AUTH modülüyle entegre olacaktır.
+6. Ders ve kayıt işlemlerinde EF Core transaction mekanizmaları kullanılacaktır.
+7. Yeni sistem geliştirildikten sonra WBS-1 test senaryoları yeniden uygulanacaktır.
 
 **Değerlendirme sınırları**
 
-Gerçekleştirilen testler seçilen temel işlevsel senaryolarla sınırlıdır. Eşzamanlı işlem davranışı, yüksek kullanıcı yükü, performans, farklı kayıt eklentileri ve tüm yetkilendirme senaryoları test edilmemiştir. Bu nedenle sonuçlar, CRS modülünün bütün gereksinimlerinin doğrulandığı anlamına gelmemektedir.
+Gerçekleştirilen testler seçilen temel işlevsel senaryolarla sınırlıdır.
+
+Eşzamanlı işlem davranışı, yüksek kullanıcı yükü, performans, farklı kayıt yöntemleri ve tüm yetkilendirme senaryoları test edilmemiştir.
+
+Bu nedenle mevcut sistemdeki test sonuçları, yeni CRS modülünün bütün gereksinimlerinin doğrulandığı anlamına gelmemektedir.
 
 **İlgili gereksinimler:** CRS-FR-01, CRS-FR-02, CRS-FR-04–CRS-FR-08, CRS-NFR-01, CRS-NFR-02.
+
 ### 3.3 Danışmanlık (İrem)
 
 Moodle'da ADV'nin karşılığı yoktur (WBS-1 §4.3.1); aşağıdaki veri ve API tasarımı sıfırdan tanımlanmıştır ve WBS-1 §4.3.9'daki ADV-FR gereksinimlerini karşılamak üzere kurulmuştur.
@@ -1131,414 +1369,496 @@ Her gereksinim; eski sistemdeki kaynağına, yeni sistemdeki karşılığına ve
 | Geri izlenebilirlik: kod → gereksinim | Her pull request'te | Gereksinim kimliği olmayan değişiklik birleştirilmez (işlevsel olmayan düzenlemeler hariç) |
 | Sonuç karşılaştırması | Her geliştirme döngüsü sonunda | K: iki sistemde geçer · D: eski kalır, yeni geçer · Y: yeni geçer |
 | Kapsam özeti | Ara ve son raporda | Modül bazında K / D / Y sayıları ve geçme oranları |
-
 ## 6. Modernizasyon süreç taslağı (Sinem)
+
 ### 6.1 Modernizasyon yaklaşımı
 
-Moodle 5.3.1 modernizasyon sürecinde temel yaklaşım, mevcut sistemin işlevsel davranışlarını ve veri bütünlüğünü koruyarak güvenlik, sürdürülebilirlik, bakım kolaylığı ve genişletilebilirlik açısından iyileştirilmesidir.
+Moodle 5.3.1 modernizasyonunda temel yaklaşım, mevcut sistemin işlevsel davranışlarının ve iş kurallarının analiz edilerek C# ve .NET 10 teknolojileriyle bağımsız bir uygulama olarak yeniden geliştirilmesidir.
 
-Modernizasyon, Moodle altyapısının tamamen yeniden geliştirilmesi yerine mevcut bileşenlerin analiz edilmesi, iyileştirme gerektiren noktaların belirlenmesi ve hedef mimariye kontrollü biçimde geçilmesi esasına dayanacaktır.
+Yeni sistemde ASP.NET Core, ASP.NET Core Identity, Entity Framework Core (EF Core), PostgreSQL ve Blazor kullanılacaktır. Moodle'ın mevcut PHP kaynak kodu, veritabanı tabloları ve eklenti mekanizmaları yeni uygulamanın çalışma zamanı bağımlılığı olmayacaktır.
+
+Modernizasyon sürecinde mevcut Moodle sistemi, işlevsel gereksinimlerin belirlenmesi ve hedef sistem davranışlarının karşılaştırılması için referans olarak kullanılacaktır.
 
 **Temel ilkeler**
 
-1. **Mevcut davranışların korunması:** WBS-1 kapsamında belirlenen iş kuralları ve temel kullanıcı iş akışları korunacaktır.
-2. **Gereksinim odaklı geliştirme:** Modernizasyon çalışmaları WBS-1 gereksinimleri ve WBS-2 hedef tasarımları üzerinden yürütülecektir.
-3. **Modüler yaklaşım:** AUTH, CRS, ASG, GRD, FILE ve diğer modüller arasındaki sorumluluklar ve bağımlılıklar dikkate alınacaktır.
-4. **Veri uyumluluğu:** Mevcut Moodle veri modeli ve ilişkileri mümkün olduğunca korunacak; şema değişiklikleri gerektiğinde kontrollü geçiş planı hazırlanacaktır.
-5. **Güvenli geliştirme:** Kimlik doğrulama, yetkilendirme, oturum yönetimi ve veri erişimi kontrolleri modernizasyon boyunca korunacaktır.
-6. **Kademeli uygulama:** Değişiklikler küçük, test edilebilir ve geri alınabilir geliştirme adımlarıyla gerçekleştirilecektir.
-7. **Regresyon testleri:** Mevcut sistemde doğrulanan temel davranışların modernizasyon sonrasında da çalıştığı test edilecektir.
-8. **İzlenebilirlik:** Gereksinimler, tasarım kararları, geliştirme değişiklikleri ve test sonuçları ilişkilendirilecektir.
+1. **Mevcut davranışların referans alınması:** WBS-1 kapsamında belirlenen iş kuralları ve temel kullanıcı iş akışları yeni sistem tasarımına aktarılacaktır.
+2. **Yeniden geliştirme:** Mevcut PHP kodunun dönüştürülmesi yerine, belirlenen gereksinimler C# ve .NET 10 kullanılarak yeniden uygulanacaktır.
+3. **Gereksinim odaklı geliştirme:** Çalışmalar WBS-1 gereksinimleri ve WBS-2 hedef tasarımları doğrultusunda yürütülecektir.
+4. **Modüler mimari:** AUTH, CRS, ASG, GRD ve sonraki sürümlerde geliştirilecek FILE modülü arasındaki sorumluluklar açıkça ayrılacaktır.
+5. **Bağımsız veri modeli:** Yeni PostgreSQL veritabanı EF Core aracılığıyla yönetilecek, Moodle tablolarına doğrudan bağımlılık oluşturulmayacaktır.
+6. **Güvenli geliştirme:** Kimlik doğrulama, yetkilendirme, oturum yönetimi ve veri erişimi kontrolleri sunucu tarafında uygulanacaktır.
+7. **Kademeli uygulama:** Geliştirme küçük, test edilebilir ve sürüm kontrolünde izlenebilir görevlerle gerçekleştirilecektir.
+8. **Yapay zekâ destekli geliştirme:** Yapay zekâ araçları analiz, kod önerisi, test senaryosu oluşturma ve dokümantasyon çalışmalarında yardımcı olarak kullanılabilecektir.
+9. **Uzman doğrulaması:** Yapay zekâ tarafından oluşturulan çıktılar doğrudan kabul edilmeyecek; geliştiriciler tarafından incelenecek ve uygun testlerden geçirilecektir.
+10. **İzlenebilirlik:** Gereksinimler, tasarım kararları, kod değişiklikleri, test sonuçları ve yapay zekâ kullanım kayıtları ilişkilendirilecektir.
 
 **Modernizasyon kapsamı**
 
-Modernizasyon çalışmaları, WBS-1 analizinde belirlenen korunacak davranışlar, iyileştirme adayları ve yeni gereksinimler doğrultusunda planlanacaktır.
+İlk sürümde AUTH, CRS, ASG ve GRD modüllerinin zorunlu (M) gereksinimlerinin karşılanması önceliklendirilecektir.
 
-WBS-2 kapsamında hazırlanan hedef tasarımlar, geliştirme aşaması için teknik referans olarak kullanılacaktır. Önerilen REST API uç noktaları ve mantıksal servis bileşenleri hedef tasarım önerileridir; mevcut Moodle 5.3.1 altyapısında uygulanmış özellikler olarak değerlendirilmemelidir.
+Ödev teslimi ilk sürümde metin tabanlı olarak gerçekleştirilecek; dosya yükleme ve dosya yönetimi işlevleri ikinci sürümde FILE modülü kapsamında ele alınacaktır.
+
+Yeni işlevlerin geliştirilmesi ve kapsam genişletmeleri, ilgili gereksinimlerin öncelikleri ve proje planı doğrultusunda değerlendirilecektir.
 
 **Beklenen çıktı**
 
-Modernizasyon sürecinin sonunda mevcut Moodle işlevleriyle uyumlu, güvenlik kontrolleri doğrulanmış, gereksinimlerle izlenebilir ve test sonuçlarıyla desteklenmiş bir sistem elde edilmesi hedeflenmektedir.
+WBS-1 gereksinimleriyle izlenebilir, WBS-2 hedef tasarımına uygun, .NET 10 tabanlı, modüler, güvenli ve testlerle doğrulanmış bağımsız bir öğrenme yönetim sistemi geliştirilmesi hedeflenmektedir.
 
 ### 6.2 Modernizasyon aşamaları
 
-Moodle 5.3.1 modernizasyon süreci, mevcut sistemin analizinden hedef tasarımın doğrulanmasına kadar birbirini takip eden aşamalar halinde planlanacaktır.
+Modernizasyon süreci, mevcut Moodle sisteminin analizinden yeni uygulamanın geliştirilmesine ve doğrulanmasına kadar birbirini takip eden aşamalar halinde planlanacaktır.
 
-Bu yaklaşım, geliştirme faaliyetlerinin kontrollü yürütülmesini ve mevcut sistem davranışlarının korunmasını amaçlamaktadır.
+Aşamalar sıralı olarak tanımlansa da geliştirme ve test sonuçlarına göre önceki aşamalara geri dönülerek gerekli güncellemeler yapılabilecektir.
 
 **Aşama 1 — Mevcut sistem analizi**
 
-Mevcut Moodle modüllerinin işlevleri, veri modelleri, iş kuralları, kullanıcı rolleri ve modüller arası bağımlılıkları incelenir.
+Moodle 5.3.1 modüllerinin işlevleri, veri modelleri, iş kuralları, kullanıcı rolleri ve modüller arası bağımlılıkları incelenir.
 
-- Mevcut iş akışları belirlenir.
-- Korunacak davranışlar ve iyileştirme adayları tanımlanır.
+- Mevcut kullanıcı iş akışları belirlenir.
+- Korunması gereken işlevsel davranışlar tanımlanır.
 - Fonksiyonel ve fonksiyonel olmayan gereksinimler oluşturulur.
-- Mevcut davranışları doğrulamak için temel testler gerçekleştirilir.
+- Gereksinimler sınıflandırılır ve önceliklendirilir.
+- Mevcut sistemin davranışlarını doğrulamak amacıyla temel testler gerçekleştirilir.
+- Kaynak kodu incelemeleri ve test bulguları kayıt altına alınır.
 
-**Çıktı:** WBS-1 analiz belgesi ve gereksinim listesi.
+**Yapay zekâ desteği:** Kaynak kodunun açıklanması, analiz notlarının düzenlenmesi ve gereksinim taslaklarının oluşturulmasında kullanılabilir.
+
+**Uzman kontrol noktası:** Gereksinimlerin ve mevcut sistem hakkındaki teknik iddiaların kaynak kodu, gözlem veya test kanıtıyla doğrulanması.
+
+**Çıktı:** WBS-1 analiz belgesi, gereksinim listesi ve mevcut sistem test sonuçları.
 
 **Aşama 2 — Hedef sistem tasarımı**
 
-WBS-1 gereksinimleri temel alınarak modernizasyon sonrası hedeflenen mimari ve bileşen davranışları tasarlanır.
+WBS-1 gereksinimleri temel alınarak yeni .NET 10 uygulamasının mimarisi tasarlanır.
 
-- Modüllerin hedef sorumlulukları belirlenir.
-- Veri modeli ve bütünlük kuralları değerlendirilir.
-- Gerekli servis ve API arayüzleri önerilir.
-- Yetkilendirme ve güvenlik kontrolleri tasarlanır.
-- Gereksinimlerle tasarım bileşenleri eşleştirilir.
+- Modüllerin sorumlulukları ve bağımlılıkları belirlenir.
+- ASP.NET Core ve Blazor tabanlı uygulama yapısı tasarlanır.
+- ASP.NET Core Identity ile kimlik doğrulama ve yetkilendirme yaklaşımı belirlenir.
+- EF Core üzerinden yeni PostgreSQL veri modeli tasarlanır.
+- REST API uç noktaları ve servis sözleşmeleri hazırlanır.
+- Veri bütünlüğü ve güvenlik kuralları tanımlanır.
+- Gereksinimler hedef tasarım bileşenleriyle eşleştirilir.
+
+**Yapay zekâ desteği:** Alternatif mimari yaklaşımların değerlendirilmesi, API sözleşmesi önerileri ve veri modeli taslaklarının hazırlanmasında kullanılabilir.
+
+**Uzman kontrol noktası:** Önerilen mimarinin proje gereksinimleri, modüller arası bağımlılıklar, güvenlik ve teknik uygulanabilirlik açısından incelenmesi.
 
 **Çıktı:** WBS-2 hedef tasarım belgesi ve gereksinim izlenebilirliği.
 
 **Aşama 3 — Geliştirme planlaması**
 
-Hedef tasarımda belirlenen değişiklikler uygulanabilir geliştirme görevlerine ayrılır.
+Hedef tasarım, uygulanabilir geliştirme görevlerine ayrılır.
 
-- İş paketleri ve öncelikler belirlenir.
-- Modüller arası bağımlılıklar değerlendirilir.
-- Geliştirme sırası planlanır.
-- Test ve kabul kriterleri netleştirilir.
-- Olası teknik riskler ve geri dönüş ihtiyaçları belirlenir.
+- Gereksinimler önceliklerine göre değerlendirilir.
+- İlk sürüm ve sonraki sürümlerin kapsamı netleştirilir.
+- AUTH, CRS, ASG ve GRD modülleri arasındaki bağımlılıklar belirlenir.
+- Ortak altyapı ve veritabanı hazırlıkları planlanır.
+- Geliştirme görevleri ve sorumluları belirlenir.
+- Her görev için kabul kriterleri ve test ihtiyaçları hazırlanır.
+- Teknik riskler ve olası gecikmeler değerlendirilir.
 
-**Çıktı:** Geliştirme görevleri, uygulama sırası ve test planı.
+**Yapay zekâ desteği:** İş kırılımı, geliştirme sırası, test kapsamı ve risk listesi önerilerinde kullanılabilir.
 
-**Aşama 4 — Kademeli uygulama**
+**Uzman kontrol noktası:** Görevlerin uygulanabilirliğinin, kapsamının ve bağımlılıklarının ekip tarafından onaylanması.
 
-Onaylanan tasarım kararları doğrultusunda modernizasyon değişiklikleri küçük ve kontrol edilebilir adımlarla uygulanır.
+**Çıktı:** Geliştirme planı, görev listesi, modül bağımlılıkları ve test planı.
 
-- Mevcut Moodle altyapısıyla uyumlu geliştirmeler yapılır.
-- Gerektiğinde servis ve API arayüzleri eklenir.
-- Veri bütünlüğü ve mevcut modül entegrasyonları korunur.
-- Değişiklikler sürüm kontrol sistemi üzerinden takip edilir.
-- Kod incelemesi ve birleştirme süreçleri uygulanır.
+**Aşama 4 — Yeni sistemin kademeli geliştirilmesi**
 
-**Çıktı:** Sürüm kontrolünde izlenebilir geliştirme değişiklikleri.
+Onaylanan tasarım kararları doğrultusunda yeni uygulama C# ve .NET 10 kullanılarak geliştirilir.
+
+- ASP.NET Core ve Blazor proje altyapısı hazırlanır.
+- EF Core ve PostgreSQL bağlantısı yapılandırılır.
+- ASP.NET Core Identity tabanlı AUTH bileşenleri geliştirilir.
+- Ders ve kullanıcı kayıt yönetimi için CRS servisleri oluşturulur.
+- ASG ve GRD modülleri belirlenen bağımlılıklara göre geliştirilir.
+- Gerekli REST API uç noktaları uygulanır.
+- Sunucu tarafı doğrulama ve yetkilendirme kontrolleri eklenir.
+- Kod değişiklikleri Git üzerinden ayrı branch'lerde yürütülür.
+- Pull Request ve kod inceleme süreçleri uygulanır.
+
+**Yapay zekâ desteği:** C# kod taslakları, EF Core yapılandırmaları, Blazor bileşenleri, test kodları ve refactoring önerilerinin hazırlanmasında kullanılabilir.
+
+**Uzman kontrol noktası:** Yapay zekâ tarafından önerilen kodun güvenlik, doğruluk, performans, veri bütünlüğü ve proje standartları açısından incelenmesi.
+
+**Çıktı:** Sürüm kontrolünde izlenebilir, incelenmiş ve test edilebilir uygulama bileşenleri.
 
 **Aşama 5 — Test ve doğrulama**
 
-Geliştirilen değişiklikler, WBS-1 gereksinimleri ve WBS-2 tasarım kararları temel alınarak doğrulanır.
+Geliştirilen uygulama WBS-1 gereksinimleri ve WBS-2 tasarım kararları temel alınarak doğrulanır.
 
-- Fonksiyonel testler uygulanır.
-- Yetkilendirme ve güvenlik kontrolleri gerçekleştirilir.
-- Veri bütünlüğü ve modüller arası entegrasyonlar test edilir.
-- Mevcut davranışların korunması için regresyon testleri yapılır.
+- Birim testleri gerçekleştirilir.
+- API ve entegrasyon testleri uygulanır.
+- Kimlik doğrulama ve yetkilendirme kontrolleri test edilir.
+- Veri bütünlüğü ve eşzamanlılık senaryoları değerlendirilir.
+- Blazor kullanıcı iş akışları doğrulanır.
+- Mevcut Moodle testleri yeni sistemde karşılaştırma amacıyla yeniden uygulanır.
 - Başarısız testler ve eksik doğrulamalar kayıt altına alınır.
 
-**Çıktı:** Test sonuçları, hata kayıtları ve gereksinim doğrulama durumu.
+**Yapay zekâ desteği:** Test senaryosu önerileri, sınır durumlarının belirlenmesi, hata analizleri ve otomatik test taslaklarının hazırlanmasında kullanılabilir.
 
-**Aşama 6 — Geçiş ve değerlendirme**
+**Uzman kontrol noktası:** Testlerin gerçekten çalıştırılması, sonuçların incelenmesi ve kabul kriterlerinin karşılandığının doğrulanması.
 
-Modernizasyon değişikliklerinin mevcut sistemle uyumluluğu değerlendirilir ve uygulanabilir bir geçiş yaklaşımı hazırlanır.
+**Çıktı:** Test raporları, hata kayıtları ve gereksinim doğrulama durumu.
 
-- Veri ve yapılandırma uyumluluğu kontrol edilir.
-- Gerekli yedekleme ve geri dönüş adımları belirlenir.
-- Tamamlanan ve ertelenen geliştirmeler raporlanır.
-- Kalan riskler ve doğrulama eksiklikleri değerlendirilir.
-- Hedeflenen kabul kriterlerinin karşılanma durumu incelenir.
+**Aşama 6 — Veri aktarımı, geçiş ve değerlendirme**
 
-**Çıktı:** Modernizasyon değerlendirme raporu ve geçiş planı.
+Gerekli olması durumunda Moodle verilerinin yeni PostgreSQL veritabanına kontrollü aktarımı planlanır.
+
+- Aktarılacak veri kapsamı belirlenir.
+- Eski ve yeni veri modelleri arasında alan eşleştirmeleri hazırlanır.
+- Kullanıcı, ders, kayıt ve rol ilişkileri doğrulanır.
+- Parola karmaları için güvenli geçiş yaklaşımı belirlenir.
+- Veri aktarımı test ortamında denenir.
+- Yedekleme ve geri dönüş planı hazırlanır.
+- Yeni sistemin kabul kriterleri değerlendirilir.
+- Tamamlanan ve ertelenen işlevler raporlanır.
+
+**Yapay zekâ desteği:** Veri eşleştirme taslakları, dönüşüm kodu önerileri, aktarım kontrol listeleri ve geçiş risklerinin analizinde kullanılabilir.
+
+**Uzman kontrol noktası:** Aktarım sonuçlarının, veri bütünlüğünün, kullanıcı yetkilerinin ve geri dönüş planının doğrulanması.
+
+**Çıktı:** Veri geçiş planı, doğrulama raporu ve modernizasyon değerlendirme kaydı.
 
 **Aşamalar arası ilişki**
 
-Aşamalar sıralı olarak tanımlanmış olsa da testlerde veya geliştirme sırasında ortaya çıkan bulgular önceki aşamalardaki gereksinimlerin ve tasarım kararlarının güncellenmesini gerektirebilir.
+Yapay zekâ araçları geliştirme sürecinde yardımcı olarak kullanılacaktır. Ancak üretilen çıktıların doğruluğu, güvenliği ve gereksinimlere uygunluğu proje ekibinin sorumluluğundadır.
 
-Bu nedenle modernizasyon süreci, geri bildirimlere açık ve yinelemeli bir yaklaşımla yürütülecektir.
+Yapay zekâ tarafından oluşturulan bir kod önerisi, yalnızca üretilmiş olması nedeniyle tamamlanmış geliştirme kabul edilmeyecektir. Kod incelemesi ve ilgili testler tamamlandıktan sonra birleştirme sürecine alınacaktır.
 
-WBS-1 ve WBS-2 kapsamında tamamlanan analiz ve tasarım faaliyetleri ile sonraki aşamalar için önerilen geliştirme ve geçiş faaliyetleri birbirinden ayrı değerlendirilecektir.
+Yapay zekâ kullanımının belgelenmesi ve değerlendirilmesi WBS-2 §4 kapsamında tanımlanan yöntemle uyumlu yürütülecektir.
 
 ### 6.3 Veri uyumluluğu ve geçiş stratejisi
 
-Moodle 5.3.1 modernizasyon sürecinde mevcut kullanıcı, ders, kayıt, rol ve yetkilendirme verilerinin bütünlüğünün korunması temel önceliklerden biridir.
+Yeni uygulama, Moodle 5.3.1 veritabanından bağımsız bir PostgreSQL veritabanı kullanacaktır.
 
-Hedef tasarımda mümkün olduğunca mevcut Moodle veri modelinin kullanılması, gereksiz şema değişikliklerinden kaçınılması ve modüller arası veri ilişkilerinin korunması esas alınacaktır.
+Mevcut Moodle tablolarının korunması veya doğrudan kullanılması hedeflenmemektedir. Bunun yerine işlevsel olarak gerekli veriler yeni EF Core modeline dönüştürülecektir.
 
-**6.3.1 Veri uyumluluğu ilkeleri**
+#### 6.3.1 Veri geçişi ilkeleri
 
-1. Mevcut Moodle tabloları ve temel veri ilişkileri korunacaktır.
-2. Veri modeli değişiklikleri yalnızca doğrulanmış gereksinimler doğrultusunda planlanacaktır.
-3. Yeni alan veya tablo eklenmesi gerektiğinde mevcut modüller üzerindeki etkileri değerlendirilecektir.
-4. Birincil anahtar, yabancı anahtar, benzersizlik ve indeks yapıları dikkate alınacaktır.
-5. Veri erişim işlemleri Moodle'ın mevcut veri erişim mekanizmalarıyla uyumlu gerçekleştirilecektir.
-6. Mevcut verilerin yeni tasarımla uyumluluğu geçiş öncesinde doğrulanacaktır.
+1. Moodle veritabanı veri aktarımı için kaynak sistem olarak kullanılacaktır.
+2. Yeni uygulamanın çalışma veritabanı ayrı olacaktır.
+3. Yeni veritabanı şeması EF Core üzerinden yönetilecektir.
+4. Veri aktarımı sırasında kaynak Moodle kayıtları değiştirilmeden korunacaktır.
+5. Eski ve yeni kimlikler arasında gerekli eşleştirmeler oluşturulacaktır.
+6. Birincil anahtar, yabancı anahtar ve benzersizlik kuralları hedef veri modelinde tanımlanacaktır.
+7. Geçersiz veya çakışan veriler aktarım öncesinde tespit edilecektir.
+8. Veri aktarımı kontrollü, doğrulanabilir ve gerektiğinde tekrarlanabilir biçimde tasarlanacaktır.
 
-**6.3.2 Modül bazlı veri bütünlüğü**
+#### 6.3.2 Modül bazlı veri bütünlüğü
 
-| Modül | Korunacak temel veri yapıları | Temel kontrol |
+| Modül | Hedef veri yapısı | Temel kontrol |
 |---|---|---|
-| AUTH | `user`, `role`, `context`, `role_assignments`, `role_capabilities` | Kullanıcı kimliği, rol atamaları ve bağlama duyarlı yetkilendirme |
-| CRS | `course`, `enrol`, `user_enrolments` | Ders bilgileri, kayıt ilişkileri ve kayıt durumları |
-| ASG | Ödev ve teslim verileri | Ödevlerin ve kullanıcı teslimlerinin korunması |
-| GRD | Notlandırma verileri | Notların ve değerlendirme ilişkilerinin korunması |
-| FILE | Dosya ve dosya bağlamı verileri | Dosya sahipliği, erişim yetkileri ve dosya bütünlüğü |
+| AUTH | ASP.NET Core Identity tabloları ve ders bazlı rol atamaları | Kullanıcı kimliği, hesap durumu, rol ve yetkilendirme ilişkileri |
+| CRS | Ders, kategori, kayıt yöntemi ve kullanıcı kayıt varlıkları | Ders bilgileri, kayıt ilişkileri ve kayıt durumları |
+| ASG | Ödev ve metin tabanlı teslim varlıkları | Ödevlerin, teslimlerin ve kullanıcı ilişkilerinin bütünlüğü |
+| GRD | Notlandırma ve değerlendirme varlıkları | Notların ve ilgili değerlendirme ilişkilerinin bütünlüğü |
+| FILE | İkinci sürümde tasarlanacak dosya varlıkları | Dosya sahipliği, erişim yetkileri ve dosya bütünlüğü |
 
-Bu tablo modüllerin temel veri sorumluluklarını özetlemektedir. Ayrıntılı tablo ve alan ilişkileri ilgili WBS-1 analiz ve WBS-2 tasarım bölümlerinde ele alınacaktır.
+Tablodaki veri yapıları hedef sistemin mantıksal sorumluluklarını göstermektedir. Nihai tablo ve alan adları ilgili modül tasarımlarında belirlenecektir.
 
-**6.3.3 Veritabanı değişikliklerinin yönetimi**
+#### 6.3.3 Veritabanı şema yönetimi
 
-Modernizasyon sırasında veritabanı şemasında değişiklik yapılması gerekirse aşağıdaki süreç izlenecektir:
+Yeni PostgreSQL veritabanının şeması EF Core Migrations kullanılarak yönetilecektir.
 
-1. Değişiklik ihtiyacı ilgili gereksinimle ilişkilendirilir.
-2. Etkilenen tablolar ve modüller belirlenir.
-3. Mevcut veriler üzerindeki olası etkiler değerlendirilir.
-4. Moodle'ın desteklediği yükseltme ve şema yönetimi mekanizmaları kullanılarak değişiklik planlanır.
-5. Değişiklik önce geliştirme veya test ortamında uygulanır.
-6. Veri bütünlüğü ve regresyon testleri gerçekleştirilir.
-7. Doğrulama başarılıysa kontrollü geçiş için hazırlanır.
+1. Şema değişikliği ilgili gereksinimle ilişkilendirilir.
+2. Etkilenen varlıklar ve modüller belirlenir.
+3. EF Core migration hazırlanır.
+4. Değişiklik geliştirme veya test ortamında uygulanır.
+5. Veri bütünlüğü ve entegrasyon testleri gerçekleştirilir.
+6. Migration kodu incelemeden geçirilir.
+7. Doğrulanan değişiklik kontrollü biçimde birleştirilir.
 
-Doğrudan veritabanı üzerinde kontrolsüz şema değişiklikleri yapılması hedeflenmemektedir.
+Moodle'ın PHP tabanlı yükseltme ve şema yönetimi mekanizmaları yeni uygulamanın veritabanı değişiklikleri için kullanılmayacaktır.
 
-**6.3.4 Yedekleme ve geri dönüş yaklaşımı**
+#### 6.3.4 Yedekleme ve geri dönüş yaklaşımı
 
-Modernizasyon değişiklikleri uygulanmadan önce mevcut verilerin ve yapılandırmanın geri yüklenebilir yedeklerinin alınması planlanacaktır.
+Veri aktarımı veya kritik şema değişikliklerinden önce geri yüklenebilir yedeklerin hazırlanması planlanacaktır.
 
 Yedekleme kapsamı:
 
-- Moodle veritabanı.
-- Moodle dosya depolama alanı (`moodledata`).
-- Uygulama kaynak kodu ve ilgili sürüm bilgileri.
-- Ortama özgü yapılandırma dosyaları ve gerekli sistem ayarları.
+- Kaynak Moodle veritabanı.
+- Aktarım kapsamına giriyorsa Moodle dosya depolama alanı.
+- Yeni PostgreSQL veritabanı.
+- Uygulama kaynak kodu ve sürüm bilgileri.
+- Ortama özgü yapılandırmaların güvenli yedekleri.
+- Veri eşleştirme ve aktarım kayıtları.
 
-Geri dönüş ihtiyacında yalnızca kaynak kodunun eski sürüme alınmasının yeterli olmayabileceği dikkate alınacaktır. Veritabanı şeması ve dosya depolama alanı da uyumlu bir yedekleme noktasından geri yüklenmelidir.
+Geri dönüş sürecinde uygulama sürümü ile veritabanı şemasının uyumlu olması sağlanacaktır.
 
-Bu nedenle geri dönüş adımları, değişikliğin veri üzerindeki etkisine göre önceden planlanacak ve mümkün olduğunda test ortamında doğrulanacaktır.
+Yalnızca Git üzerinden önceki kod sürümüne dönülmesi, veritabanı değişikliklerinin otomatik olarak geri alınacağı anlamına gelmemektedir.
 
-**6.3.5 Geçiş doğrulama kriterleri**
+#### 6.3.5 Geçiş doğrulama kriterleri
 
-Geçiş sonrasında aşağıdaki kontrollerin yapılması hedeflenmektedir:
+Veri aktarımı gerçekleştirildiğinde aşağıdaki kontroller uygulanacaktır:
 
-- Mevcut kullanıcı hesaplarının ve hesap durumlarının korunması.
-- Rol atamalarının ve bağlama duyarlı yetkilendirme davranışlarının değişmemesi.
-- Ders bilgilerinin ve kullanıcı kayıtlarının bütünlüğünün korunması.
-- Ödev, not ve dosya verilerine erişimin ilgili yetkiler doğrultusunda sürdürülmesi.
-- Temel iş akışlarının regresyon testlerinden geçmesi.
-- Veri kaybı veya beklenmeyen yetki genişlemesi oluşmaması.
+- Aktarılan kullanıcı ve ders kayıtlarının sayısal tutarlılığı.
+- Kullanıcıların hesap durumlarının doğru dönüştürülmesi.
+- Ders ve kategori ilişkilerinin korunması.
+- Kullanıcı kayıtlarının doğru derslerle ilişkilendirilmesi.
+- Ders bazlı rol ve yetkilerin hedef sistemde doğru karşılanması.
+- Kısa ad gibi alanlarda normalizasyon çakışmalarının yönetilmesi.
+- Parola geçişinin güvenli biçimde gerçekleştirilmesi.
+- Beklenmeyen veri kaybı veya yetki genişlemesi oluşmaması.
 
 **Geçiş stratejisi**
 
-Modernizasyon değişiklikleri önce yerel geliştirme ve test ortamlarında doğrulanacak, ardından uygun görülen değişiklikler kontrollü biçimde birleştirilecektir.
+Öncelikle yeni sistem bağımsız geliştirme ve test ortamında doğrulanacaktır. Veri aktarımı gerekli görülürse ayrı bir test ortamında gerçekleştirilecek ve sonuçlar kontrol edilecektir.
 
-Üretim ortamına geçiş, veri taşıma veya geri yükleme işlemlerinin gerçekleştirildiği varsayılmamaktadır. Bu bölüm, sonraki uygulama aşamaları için önerilen veri uyumluluğu ve geçiş yaklaşımını tanımlamaktadır.
+Üretim ortamına geçiş veya veri aktarımı işlemlerinin tamamlandığı varsayılmamaktadır. Bu bölüm, sonraki geliştirme aşamaları için önerilen yaklaşımı tanımlamaktadır.
 
 ### 6.4 Test ve kalite güvence stratejisi
 
-Moodle 5.3.1 modernizasyon sürecinde kalite güvencesinin temel amacı, mevcut sistemin işlevsel davranışlarının korunmasını ve modernizasyon kapsamında geliştirilen değişikliklerin gereksinimleri karşılamasını sağlamaktır.
+Kalite güvencesinin temel amacı, yeni .NET 10 uygulamasının belirlenen gereksinimleri karşılamasını, güvenli çalışmasını ve Moodle'dan referans alınan temel işlevsel davranışları doğru biçimde gerçekleştirmesini sağlamaktır.
 
-Test faaliyetleri WBS-1 kapsamında tanımlanan gereksinimler, mevcut sistem testleri ve WBS-2 hedef tasarım kararları temel alınarak yürütülecektir.
+Test faaliyetleri WBS-1 gereksinimleri, mevcut sistem testleri ve WBS-2 hedef tasarım kararları temel alınarak yürütülecektir.
 
-**6.4.1 Test seviyeleri**
+#### 6.4.1 Test seviyeleri
 
 | Test seviyesi | Amaç | Örnek doğrulama |
 |---|---|---|
-| Birim testleri | Değiştirilen fonksiyonların beklenen davranışını doğrulamak | Girdi doğrulama ve iş kuralı kontrolleri |
-| Entegrasyon testleri | Modüller arasındaki veri ve işlem uyumluluğunu kontrol etmek | AUTH–CRS yetkilendirme ve kayıt ilişkileri |
-| Fonksiyonel testler | Kullanıcı iş akışlarının gereksinimleri karşıladığını doğrulamak | Giriş, ders oluşturma ve kullanıcı kaydı |
-| Güvenlik testleri | Yetkisiz erişim ve hassas bilgi ifşasını önlemek | Capability kontrolü ve hata mesajları |
-| Regresyon testleri | Mevcut davranışların değişikliklerden etkilenmediğini doğrulamak | Önceden başarılı olan senaryoların tekrarlanması |
-| Veri bütünlüğü testleri | Veritabanı ilişkilerinin ve kayıtların korunmasını doğrulamak | Ders silme ve kayıt sonlandırma sonrası veri kontrolü |
+| Birim testleri | Servislerin ve iş kurallarının doğrulanması | Ders kısa adı kontrolü, tarih doğrulama |
+| Entegrasyon testleri | Modüller ve veri erişim katmanı arasındaki uyum | AUTH–CRS yetkilendirme ve kayıt ilişkileri |
+| API testleri | REST API sözleşmelerinin doğrulanması | HTTP durum kodları, istek doğrulama |
+| Fonksiyonel testler | Kullanıcı iş akışlarının gereksinimleri karşılaması | Giriş, ders oluşturma, kullanıcı kaydı |
+| Güvenlik testleri | Yetkisiz erişimin ve hassas bilgi ifşasının engellenmesi | Authorization policy ve oturum kontrolleri |
+| Regresyon testleri | Önceden doğrulanan işlevlerin bozulmadığının kontrolü | AUTH ve CRS senaryolarının yeniden çalıştırılması |
+| Veri bütünlüğü testleri | Veri ilişkileri ve kısıtların doğrulanması | Ders silme, mükerrer kayıt ve transaction kontrolü |
+| Kullanıcı arayüzü testleri | Blazor ekranlarının beklenen davranışı sağlaması | Form doğrulama ve yetkisiz işlem engelleme |
 
-**6.4.2 Mevcut testlerin referans alınması**
+#### 6.4.2 Mevcut testlerin referans alınması
 
-WBS-1 kapsamında gerçekleştirilen testler, modernizasyon öncesi sistem davranışlarını gösteren başlangıç doğrulama verileri olarak kullanılacaktır.
+WBS-1 kapsamında gerçekleştirilen testler, Moodle 5.3.1 sisteminin başlangıç davranışlarını gösteren referans testler olarak kullanılacaktır.
 
-AUTH modülünde T-AUTH-01–T-AUTH-10 testleri uygulanmış ve beklenen temel davranışlar gözlemlenmiştir. Bazı senaryolarda silinmiş hesap, oturum zaman aşımı, kayıt doğrulama ve parola değiştirme işleminin tamamlanması gibi ek kontroller gerekmektedir.
+AUTH modülünde T-AUTH-01–T-AUTH-10 senaryoları uygulanmıştır. Bazı senaryolarda silinmiş hesap, oturum zaman aşımı, güvenlik kaydı ve parola değiştirme işleminin tamamlanması gibi ek doğrulama ihtiyaçları bulunmaktadır.
 
-CRS modülünde CRS-TEST-01–CRS-TEST-07 testleriyle ders oluşturma, güncelleme, silme ve kullanıcı kayıt işlemleri doğrulanmıştır.
+CRS modülünde T-CRS-01–T-CRS-07 senaryolarıyla ders oluşturma, güncelleme, silme ve kullanıcı kayıt işlemlerinin temel davranışları doğrulanmıştır.
 
-Modernizasyon sonrasında bu testlerin yeniden uygulanması, mevcut davranışların korunup korunmadığını değerlendirmek için kullanılacaktır.
+Bu testler mevcut Moodle sistemine aittir. Yeni C# uygulamasında aynı senaryoların yeniden çalıştırılması gerekecektir.
 
-**6.4.3 Test yürütme süreci**
+#### 6.4.3 Test yürütme süreci
 
-1. Test edilecek değişiklik ve ilişkili gereksinimler belirlenir.
-2. İlgili WBS-1 test senaryoları ve kabul kriterleri incelenir.
-3. Gerekli test kullanıcıları, dersler ve veriler hazırlanır.
-4. Testler uygun geliştirme veya test ortamında gerçekleştirilir.
-5. Gerçekleşen sonuçlar beklenen sonuçlarla karşılaştırılır.
-6. Başarısız testler ve beklenmeyen davranışlar kayıt altına alınır.
-7. Düzeltmelerden sonra ilgili testler yeniden çalıştırılır.
-8. Etkilenen modüllerde regresyon kontrolleri gerçekleştirilir.
+1. Test edilecek gereksinim ve geliştirme görevi belirlenir.
+2. İlgili WBS-1 test senaryoları ve WBS-2 tasarım kararları incelenir.
+3. Beklenen sonuç ve kabul kriteri tanımlanır.
+4. Gerekli test kullanıcıları ve veriler hazırlanır.
+5. Otomatik veya manuel testler çalıştırılır.
+6. Gerçekleşen sonuçlar beklenen sonuçlarla karşılaştırılır.
+7. Başarısız testler ve beklenmeyen davranışlar kayıt altına alınır.
+8. Düzeltmelerden sonra ilgili testler yeniden çalıştırılır.
+9. Etkilenen modüllerde regresyon testleri uygulanır.
+10. Test sonuçları ilgili gereksinim ve Pull Request ile ilişkilendirilir.
 
-**6.4.4 Kalite ve kabul kriterleri**
+Yapay zekâ tarafından önerilen testler de aynı doğrulama sürecinden geçirilecektir. Test kodunun oluşturulması, testin başarıyla çalıştırıldığı anlamına gelmeyecektir.
 
-Modernizasyon değişikliklerinin kabulünde aşağıdaki kriterler esas alınacaktır:
+#### 6.4.4 Kalite ve kabul kriterleri
 
 - İlgili fonksiyonel gereksinimlerin kabul kriterleri karşılanmalıdır.
+- İlk sürüm kapsamındaki zorunlu (M) gereksinimler doğrulanmalıdır.
 - Yetkisiz kullanıcılar korunan işlemleri gerçekleştirememelidir.
 - Kullanıcı, rol, ders ve kayıt verilerinde beklenmeyen veri kaybı oluşmamalıdır.
-- Mevcut iş akışlarında doğrulanmış davranışlar korunmalıdır.
 - Güvenlik kontrolleri sunucu tarafında uygulanmalıdır.
-- Kullanıcıya hassas sistem ayrıntıları ve hata ayıklama bilgileri gösterilmemelidir.
-- Kritik veya yüksek öncelikli açık hatalar kabul öncesinde değerlendirilmelidir.
-- Test sonuçları ilgili gereksinim ve geliştirme değişikliğiyle ilişkilendirilmelidir.
+- API yanıtları tanımlanan sözleşmelerle uyumlu olmalıdır.
+- Hassas sistem ayrıntıları ve hata ayıklama bilgileri kullanıcıya gösterilmemelidir.
+- Kritik ve yüksek öncelikli hatalar kabul öncesinde giderilmeli veya kabulü engelleyip engellemedikleri açıkça karara bağlanmalıdır.
+- Test sonuçları gereksinimler ve geliştirme değişiklikleriyle ilişkilendirilmelidir.
 
 WBS-1 kapsamında tanımlanan AUTH-NFR-02 gereksinimi doğrultusunda, test kapsamındaki yetkisiz işlemlerin tamamının reddedilmesi hedeflenmektedir.
 
-**6.4.5 Hata ve bulgu yönetimi**
+#### 6.4.5 Hata ve bulgu yönetimi
 
-Test sırasında tespit edilen sorunlar, doğrulanmış hatalar ve araştırılması gereken gözlemler olarak ayrı değerlendirilecektir.
+Testlerde tespit edilen sorunlar doğrulanmış hatalar ve araştırılması gereken gözlemler olarak ayrı değerlendirilecektir.
 
-Her bulgu için mümkün olduğunda şu bilgiler kaydedilecektir:
+Her bulgu için mümkün olduğunda aşağıdaki bilgiler kaydedilecektir:
 
 - İlgili modül ve gereksinim.
 - Test senaryosu.
 - Beklenen ve gerçekleşen davranış.
 - Tekrarlama adımları.
-- Etkilenen ortam ve yapılandırma.
+- Etkilenen ortam ve uygulama sürümü.
 - Hatanın durumu ve uygulanan düzeltme.
 - Yeniden test sonucu.
 
-Örneğin AUTH-BUG-01 kapsamında geliştirme ortamında çağrı yığını görüntülenmesi, üretim benzeri hata ayıklama ayarlarıyla tekrarlandığında gözlemlenmemiştir. Bu nedenle söz konusu bulgu doğrulanmış bir Moodle yazılım hatası olarak değerlendirilmemiştir.
+Örneğin AUTH-BUG-01 kapsamında geliştirme ortamında çağrı yığını görüntülenmesi, hata ayıklama ayarları kapatıldığında gözlemlenmemiştir. Bu bulgu doğrulanmış bir Moodle yazılım hatası olarak değerlendirilmemiştir.
 
-**6.4.6 Test raporlama ve izlenebilirlik**
+Yeni sistemde benzer bilgi ifşalarının önlenmesi için ASP.NET Core hata yönetimi ve üretim ortamı yapılandırması ayrıca test edilecektir.
 
-Test sonuçları gereksinim kimlikleriyle ilişkilendirilecek ve tamamlanan, başarısız olan, kısmen doğrulanan veya henüz uygulanmayan kontroller açıkça belirtilecektir.
+#### 6.4.6 Test raporlama ve izlenebilirlik
 
-Test raporlarında kullanılan ortam, uygulama sürümü ve varsa yapılandırma farklılıkları kayıt altına alınacaktır.
+Test sonuçları gereksinim kimlikleriyle ilişkilendirilecektir.
 
-Modernizasyon kapsamında önerilen yeni API veya servis bileşenleri geliştirilirse bunlar için ek test senaryoları hazırlanacaktır. Henüz uygulanmamış hedef tasarım bileşenleri test edilmiş olarak raporlanmayacaktır.
+Her test için başarılı, başarısız, kısmen doğrulanmış veya henüz uygulanmamış durumları açıkça belirtilecektir.
+
+Test raporlarında uygulama sürümü, kullanılan ortam ve ilgili yapılandırma bilgileri yer alacaktır.
+
+Yapay zekâ desteğiyle hazırlanan test senaryoları, gerekli inceleme ve yürütme işlemlerinden geçirilmeden doğrulanmış test olarak raporlanmayacaktır.
 
 **Beklenen çıktı**
 
-Gereksinimlerle ilişkilendirilmiş test sonuçları, doğrulanmış hata kayıtları, regresyon testleri ve modernizasyon değişikliklerinin kabul durumunu gösteren kalite güvence raporu.
+Gereksinimlerle ilişkilendirilmiş test sonuçları, hata kayıtları, regresyon testleri ve yeni uygulamanın kabul durumunu gösteren kalite güvence raporu.
+
 ### 6.5 Risk yönetimi ve geri dönüş planı
 
-Moodle 5.3.1 modernizasyon sürecinde mevcut sistem davranışlarının, veri bütünlüğünün ve güvenlik mekanizmalarının korunması önem taşımaktadır.
+Yeni sistemin C# ve .NET 10 ile yeniden geliştirilmesi sırasında işlevsel uyumsuzluk, veri kaybı, güvenlik hataları, modüller arası entegrasyon sorunları ve geliştirme gecikmeleri ortaya çıkabilir.
 
-Modernizasyon sırasında ortaya çıkabilecek teknik riskler önceden değerlendirilecek, gerekli önlemler planlanacak ve kritik değişiklikler için geri dönüş yaklaşımı belirlenecektir.
+Bu riskler önceden değerlendirilecek, uygun önlemler planlanacak ve kritik değişiklikler için geri dönüş yaklaşımı belirlenecektir.
 
-**6.5.1 Teknik risklerin belirlenmesi**
-
-Aşağıdaki tablo, modernizasyon kapsamında öngörülen başlıca riskleri ve bunlara yönelik önlemleri göstermektedir.
+#### 6.5.1 Teknik risklerin belirlenmesi
 
 | Risk | Olası etki | Önleyici yaklaşım |
 |---|---|---|
-| Mevcut iş kurallarının değişmesi | Kullanıcı iş akışlarının bozulması | WBS-1 gereksinimleri ve regresyon testleri |
-| Veri bütünlüğünün bozulması | Kullanıcı, ders veya kayıt verilerinin kaybı | Yedekleme, veri bütünlüğü testleri |
-| Yetkilendirme hataları | Yetkisiz kullanıcıların korunan işlemlere erişmesi | Sunucu tarafı capability kontrolleri |
-| Oturum yönetimi hataları | Geçersiz oturumlarla erişim veya beklenmeyen oturum sonlandırma | Oturum ve güvenlik testleri |
-| Modüller arası uyumsuzluk | AUTH, CRS ve diğer modüllerde işlev kaybı | Entegrasyon testleri |
-| API uyumsuzluğu | Mevcut istemcilerin veya eklentilerin etkilenmesi | Geriye dönük uyumluluk değerlendirmesi |
-| Veritabanı şema değişiklikleri | Mevcut sorguların veya veri ilişkilerinin bozulması | Kontrollü yükseltme ve şema doğrulama |
-| Hatalı yapılandırma | Hassas sistem bilgilerinin açığa çıkması | Güvenli yapılandırma ve hata mesajı kontrolleri |
+| Mevcut iş kurallarının yanlış yorumlanması | Kullanıcı iş akışlarının farklı davranması | WBS-1 analizi, uzman incelemesi ve karşılaştırmalı testler |
+| Yeni veri modelinde bütünlük hataları | Kullanıcı, ders veya kayıt verilerinin kaybı | EF Core kısıtları, transaction ve veri bütünlüğü testleri |
+| Yetkilendirme hataları | Yetkisiz kullanıcıların korunan işlemlere erişmesi | ASP.NET Core Authorization ve güvenlik testleri |
+| Oturum yönetimi hataları | Geçersiz oturumlarla erişim | ASP.NET Core Identity yapılandırması ve oturum testleri |
+| Modüller arası uyumsuzluk | AUTH, CRS, ASG ve GRD işlevlerinde hata | Ortak servis sözleşmeleri ve entegrasyon testleri |
+| API sözleşmesi uyumsuzluğu | Blazor arayüzü ve servisler arasında iletişim sorunları | API sözleşmesi incelemesi ve entegrasyon testleri |
+| Veri aktarımı hataları | Eksik veya yanlış eşleştirilmiş kayıtlar | Kontrollü aktarım, veri karşılaştırma ve yedekleme |
+| EF Core migration hataları | Veritabanı şemasının beklenmeyen biçimde değişmesi | Migration incelemesi ve test ortamında doğrulama |
+| Yapay zekâ kaynaklı hatalı kod | Güvenlik açığı, yanlış iş kuralı veya çalışma zamanı hatası | Uzman kod incelemesi ve otomatik testler |
 | Yetersiz test kapsamı | Hataların geç fark edilmesi | Gereksinim izlenebilirliği ve ek test senaryoları |
+| Geliştirme gecikmeleri | İlk sürüm kapsamının tamamlanamaması | M/S/C önceliklendirmesi ve kademeli geliştirme |
 
-Bu riskler, modernizasyon planlaması için öngörülen risklerdir; tamamının mevcut Moodle sisteminde gerçekleştiği anlamına gelmemektedir.
+Bu riskler öngörülen geliştirme riskleridir; tamamının mevcut Moodle sisteminde gerçekleştiği anlamına gelmemektedir.
 
-**6.5.2 Risk değerlendirme yaklaşımı**
+#### 6.5.2 Risk değerlendirme yaklaşımı
 
-Riskler, gerçekleşme olasılığı ve sistem üzerindeki etkileri dikkate alınarak değerlendirilecektir.
+Riskler gerçekleşme olasılığı ve sistem üzerindeki etkileri dikkate alınarak değerlendirilecektir.
 
-Özellikle aşağıdaki durumlar yüksek öncelikli olarak ele alınacaktır:
+Özellikle aşağıdaki durumlar yüksek öncelikli ele alınacaktır:
 
 1. Yetkisiz erişime neden olabilecek güvenlik açıkları.
-2. Kullanıcı veya ders verilerinin kaybına yol açabilecek değişiklikler.
-3. Temel kimlik doğrulama ve oturum yönetimi işlevlerinin bozulması.
+2. Kullanıcı veya ders verilerinin kaybı.
+3. Kimlik doğrulama ve oturum yönetimi işlevlerinin bozulması.
 4. Modüller arası kritik entegrasyonların çalışmaması.
 5. Geri dönüşü zor veritabanı değişiklikleri.
+6. Yapay zekâ tarafından önerilen kodun doğrulanmadan birleştirilmesi.
+7. İlk sürümün zorunlu gereksinimlerinin tamamlanamaması.
 
 Risk değerlendirmeleri geliştirme ve test aşamalarında güncellenecektir.
 
-**6.5.3 Geri dönüş planı**
+#### 6.5.3 Geri dönüş planı
 
-Modernizasyon değişikliklerinin beklenen davranışları karşılamaması veya kritik bir soruna neden olması durumunda kontrollü geri dönüş uygulanması planlanacaktır.
-
-Geri dönüş süreci aşağıdaki adımları içerecektir:
+Kritik bir geliştirme değişikliğinin beklenen davranışı karşılamaması durumunda kontrollü geri dönüş uygulanacaktır.
 
 1. Sorunun kapsamı ve etkilenen modüller belirlenir.
-2. İlgili değişikliğin sürüm kontrolündeki karşılığı tespit edilir.
-3. Değişikliğin veritabanı ve dosya depolama alanı üzerindeki etkileri değerlendirilir.
-4. Gerekirse etkilenen işlemler durdurularak yeni veri değişiklikleri engellenir.
-5. Önceden hazırlanmış ve doğrulanmış yedekler kullanılarak uygun geri yükleme işlemi gerçekleştirilir.
-6. Uygulama kodu, veritabanı ve dosya depolama alanı arasındaki uyumluluk kontrol edilir.
-7. Temel iş akışları ve güvenlik kontrolleri yeniden test edilir.
-8. Geri dönüş sonucu ve sorunun nedeni kayıt altına alınır.
+2. İlgili değişikliğin Git geçmişindeki karşılığı tespit edilir.
+3. Veritabanı ve diğer kalıcı veriler üzerindeki etkiler değerlendirilir.
+4. Gerekirse etkilenen işlemler geçici olarak durdurulur.
+5. Uygun kaynak kod sürümü ve doğrulanmış yedekler belirlenir.
+6. Gerektiğinde veritabanı geri yükleme işlemi gerçekleştirilir.
+7. Uygulama kodu ile veritabanı şeması arasındaki uyumluluk kontrol edilir.
+8. Temel iş akışları ve güvenlik testleri yeniden çalıştırılır.
+9. Geri dönüş sonucu kayıt altına alınır.
 
-**6.5.4 Sürüm kontrolü ve değişiklik yönetimi**
+Veri aktarımı sonrasında eski Moodle sistemine dönülmesi gerekirse, yeni uygulamada oluşmuş verilerin otomatik olarak Moodle'a geri aktarılabileceği varsayılmayacaktır. Böyle bir gereksinim için ayrıca veri uzlaştırma ve geçiş planı hazırlanacaktır.
+
+#### 6.5.4 Sürüm kontrolü ve değişiklik yönetimi
 
 Geliştirme değişiklikleri Git üzerinden takip edilecek ve ayrı branch'lerde yürütülecektir.
 
-- Değişiklikler ilgili gereksinim veya geliştirme göreviyle ilişkilendirilecektir.
+- Her değişiklik ilgili gereksinim veya geliştirme göreviyle ilişkilendirilecektir.
 - Commit mesajları yapılan değişikliğin kapsamını açıklayacaktır.
 - Pull Request üzerinden kod incelemesi ve birleştirme süreçleri uygulanacaktır.
 - Kritik değişiklikler birleştirilmeden önce ilgili testlerden geçirilecektir.
+- Yapay zekâ tarafından oluşturulan kodlar da aynı inceleme sürecine tabi olacaktır.
 - Gerektiğinde önceki kararlı sürüme dönüş için sürüm geçmişinden yararlanılacaktır.
 
-Git üzerinden kaynak kodunun geri alınması, veritabanı veya `moodledata` üzerinde gerçekleşmiş değişiklikleri otomatik olarak geri almaz. Bu nedenle geri dönüş planı tüm ilgili sistem bileşenlerini kapsayacaktır.
+Git üzerinden kaynak kodunun geri alınması, PostgreSQL veritabanında gerçekleşmiş değişiklikleri otomatik olarak geri almaz.
 
-**6.5.5 Risklerin izlenmesi ve raporlanması**
+#### 6.5.5 Risklerin izlenmesi ve raporlanması
 
-Modernizasyon süresince tespit edilen riskler ve doğrulama eksiklikleri kayıt altına alınacaktır.
+Her risk için mümkün olduğunda açıklama, etkilenen modül, olası etki, öncelik, alınacak önlem, sorumlu kişi ve güncel durum kayıt altına alınacaktır.
 
-Her risk için mümkün olduğunda riskin açıklaması, etkilenen modül, olası etkisi, önceliği, alınacak önlem ve güncel durumu belirtilecektir.
-
-WBS-1 kapsamında belirlenen ancak henüz tamamen doğrulanmamış davranışlar da ilgili risk değerlendirmelerinde dikkate alınacaktır.
+WBS-1 kapsamında belirlenen ancak tamamen doğrulanmamış davranışlar da risk değerlendirmesinde dikkate alınacaktır.
 
 **Beklenen çıktı**
 
-Modernizasyon sürecine ait risk kayıtları, önleyici tedbirler, sürüm kontrolüyle izlenebilir değişiklikler ve gerektiğinde uygulanabilecek geri dönüş planı.
+Teknik risk kayıtları, önleyici tedbirler, sürüm kontrolünde izlenebilir geliştirme değişiklikleri ve uygulanabilir geri dönüş planı.
+
 ### 6.6 Modernizasyon başarı ve kabul kriterleri
 
-Moodle 5.3.1 modernizasyon sürecinin başarısı, WBS-1 kapsamında belirlenen gereksinimlerin karşılanması, WBS-2 hedef tasarımına uygunluk, mevcut işlevlerin korunması ve gerçekleştirilen değişikliklerin testlerle doğrulanması üzerinden değerlendirilecektir.
+Modernizasyonun başarısı, WBS-1 kapsamında belirlenen gereksinimlerin yeni .NET 10 uygulamasında karşılanması, WBS-2 hedef tasarımına uygunluk, güvenlik ve veri bütünlüğünün sağlanması ve test sonuçlarıyla doğrulanması üzerinden değerlendirilecektir.
 
-Başarı kriterleri yalnızca yeni işlevlerin geliştirilmesini değil, mevcut sistem davranışlarının güvenli ve sürdürülebilir biçimde korunmasını da kapsamaktadır.
+Başarı değerlendirmesi, mevcut Moodle kodunun korunmasına değil, yeni uygulamanın belirlenen işlevsel gereksinimleri doğru biçimde gerçekleştirmesine dayanacaktır.
 
-**6.6.1 Fonksiyonel kabul kriterleri**
+#### 6.6.1 Fonksiyonel kabul kriterleri
 
 | Kriter | Kabul koşulu | Doğrulama yöntemi |
 |---|---|---|
 | Kimlik doğrulama | Geçerli kullanıcı bilgileriyle giriş yapılabilmeli, geçersiz girişler reddedilmelidir | AUTH fonksiyonel testleri |
-| Yetkilendirme | Kullanıcılar yalnızca yetkili oldukları bağlamlarda korunan işlemleri gerçekleştirebilmelidir | Rol ve capability testleri |
+| Yetkilendirme | Kullanıcılar yalnızca yetkili oldukları kaynaklarda korunan işlemleri gerçekleştirebilmelidir | Rol ve authorization policy testleri |
 | Oturum yönetimi | Çıkış ve oturum geçerliliği kontrolleri doğru çalışmalıdır | Oturum testleri |
-| Ders yönetimi | Ders oluşturma, güncelleme ve silme işlemleri mevcut iş kurallarına uygun olmalıdır | CRS fonksiyonel testleri |
+| Ders yönetimi | Ders oluşturma, güncelleme ve silme işlemleri gereksinimlere uygun olmalıdır | CRS fonksiyonel testleri |
 | Kullanıcı kayıtları | Derse kayıt, kayıt durumunu değiştirme ve kayıt sonlandırma işlemleri doğru çalışmalıdır | CRS kayıt testleri |
-| Modüller arası uyumluluk | AUTH, CRS ve diğer modüllerin temel entegrasyonları korunmalıdır | Entegrasyon testleri |
+| Ödev yönetimi | İlk sürümde metin tabanlı ödev teslimi desteklenmelidir | ASG fonksiyonel testleri |
+| Notlandırma | Yetkili kullanıcılar tanımlanan notlandırma işlemlerini gerçekleştirebilmelidir | GRD fonksiyonel testleri |
+| Modüller arası entegrasyon | AUTH, CRS, ASG ve GRD arasındaki temel ilişkiler doğru çalışmalıdır | Entegrasyon testleri |
 
-Bu kriterler, modernizasyon kapsamında değiştirilen veya etkilenen bileşenler için uygulanacaktır.
+Bu kriterler ilk sürümün onaylanan kapsamına göre değerlendirilecektir.
 
-**6.6.2 Güvenlik ve veri bütünlüğü kriterleri**
+#### 6.6.2 Güvenlik ve veri bütünlüğü kriterleri
 
 1. Test kapsamındaki yetkisiz erişim girişimlerinin tamamı reddedilmelidir.
-2. Kullanıcıların rol ve bağlam temelli yetkileri korunmalıdır.
-3. Askıya alınmış veya silinmiş hesaplara ilişkin erişim kuralları uygulanmalıdır.
-4. Hassas kimlik doğrulama bilgileri ve sistem hata ayıklama ayrıntıları kullanıcıya açıklanmamalıdır.
-5. Mevcut kullanıcı, ders, kayıt ve diğer modül verilerinde beklenmeyen veri kaybı oluşmamalıdır.
-6. Veritabanı değişiklikleri mevcut veri ilişkileri ve bütünlük kurallarıyla uyumlu olmalıdır.
-7. Kritik değişiklikler için yedekleme ve geri dönüş yaklaşımı belirlenmiş olmalıdır.
+2. Kullanıcıların sistem ve ders kapsamlı yetkileri doğru uygulanmalıdır.
+3. Askıya alınmış, devre dışı bırakılmış veya kilitlenmiş hesapların erişim kuralları uygulanmalıdır.
+4. Parolalar güvenli karma mekanizmalarıyla saklanmalıdır.
+5. Hassas kimlik doğrulama bilgileri ve hata ayıklama ayrıntıları kullanıcıya açıklanmamalıdır.
+6. Kullanıcı, ders, kayıt ve diğer modül verilerinde beklenmeyen veri kaybı oluşmamalıdır.
+7. EF Core veri modeli uygun bütünlük kısıtlarını sağlamalıdır.
+8. Kritik işlemlerde transaction ve hata yönetimi doğrulanmalıdır.
+9. Veri aktarımı gerçekleştirildiyse aktarım sonuçları ayrıca doğrulanmalıdır.
 
-**6.6.3 Test ve izlenebilirlik kriterleri**
+#### 6.6.3 Test ve izlenebilirlik kriterleri
 
-- Modernizasyon kapsamına alınan gereksinimler ilgili tasarım bileşenleriyle eşleştirilmelidir.
+- İlk sürüm kapsamındaki zorunlu (M) gereksinimler ilgili tasarım bileşenleriyle eşleştirilmelidir.
 - Her gereksinim için uygun kabul kriteri ve doğrulama yöntemi belirlenmelidir.
-- Değişikliklerden etkilenen mevcut iş akışları regresyon testleriyle doğrulanmalıdır.
-- Test sonuçları başarılı, başarısız, kısmen doğrulanmış veya uygulanmamış olarak açıkça raporlanmalıdır.
-- Kritik ve yüksek öncelikli hatalar kabul öncesinde değerlendirilmelidir.
+- Yeni sistemde temel iş akışları fonksiyonel ve entegrasyon testleriyle doğrulanmalıdır.
+- WBS-1 testleri mevcut sistem davranışlarının karşılaştırılması için kullanılmalıdır.
+- Test sonuçları başarılı, başarısız, kısmen doğrulanmış veya uygulanmamış olarak raporlanmalıdır.
+- Kritik güvenlik ve veri bütünlüğü hataları kabul öncesinde değerlendirilmelidir.
 - Test kapsamı dışında kalan davranışlar doğrulanmış olarak gösterilmemelidir.
+- Yapay zekâ tarafından önerilen kod ve testler uzman incelemesi ve gerçek test yürütmesiyle doğrulanmalıdır.
 
-**6.6.4 Sürdürülebilirlik ve bakım kriterleri**
+#### 6.6.4 Sürdürülebilirlik ve bakım kriterleri
 
-Modernizasyon kapsamında gerçekleştirilen geliştirmelerin bakımının yapılabilir ve izlenebilir olması hedeflenmektedir.
+Yeni sistemin sürdürülebilir ve bakımı yapılabilir olması hedeflenmektedir.
 
 Bu doğrultuda:
 
-1. Kod değişiklikleri sürüm kontrol sisteminde takip edilmelidir.
+1. Kod değişiklikleri Git üzerinden takip edilmelidir.
 2. Tasarım kararları ve önemli teknik değişiklikler belgelenmelidir.
-3. Mevcut Moodle eklenti ve modül yapısıyla uyumluluk değerlendirilmelidir.
-4. Gereksiz veri modeli değişikliklerinden kaçınılmalıdır.
-5. Yeni servis veya API arayüzleri geliştirilirse bunların kullanım ve güvenlik kuralları belgelenmelidir.
+3. Modüller arası bağımlılıklar açık servis sözleşmeleriyle yönetilmelidir.
+4. Veri modeli değişiklikleri EF Core Migrations üzerinden izlenmelidir.
+5. REST API arayüzlerinin kullanım ve güvenlik kuralları belgelenmelidir.
 6. Geliştirme değişiklikleri ilgili gereksinimlerle ilişkilendirilmelidir.
+7. Yapay zekâ destekli geliştirme faaliyetleri proje kapsamında belirlenen kayıt yaklaşımıyla belgelenmelidir.
+8. Yeni sistemin Moodle PHP koduna veya mevcut Moodle eklentilerine çalışma zamanı bağımlılığı bulunmamalıdır.
 
-**6.6.5 Mevcut durum ve hedeflenen kabul**
+#### 6.6.5 Mevcut durum ve hedeflenen kabul
 
-WBS-1 kapsamında AUTH modülü için T-AUTH-01–T-AUTH-10, CRS modülü için CRS-TEST-01–CRS-TEST-07 senaryoları uygulanmış ve belirtilen temel davranışlar doğrulanmıştır.
+WBS-1 kapsamında AUTH modülü için T-AUTH-01–T-AUTH-10, CRS modülü için T-CRS-01–T-CRS-07 senaryoları uygulanmış ve belirtilen temel davranışlar gözlemlenmiştir.
 
 Bununla birlikte AUTH testlerinde belirlenen kapsam sınırlılıkları ve sonraki doğrulama ihtiyaçları devam etmektedir.
 
-WBS-2 kapsamında hazırlanan hedef tasarımlar, modernizasyonun uygulama aşaması için teknik referans niteliğindedir. Bu tasarımların belgelenmiş olması, önerilen API'lerin veya mimari değişikliklerin geliştirilip test edildiği anlamına gelmemektedir.
+WBS-2 kapsamında hazırlanan hedef tasarımlar, yeni uygulamanın geliştirme aşaması için teknik referans niteliğindedir.
+
+Bu tasarımların belgelenmiş olması, önerilen REST API'lerin, EF Core varlıklarının veya diğer bileşenlerin geliştirilip test edildiği anlamına gelmemektedir.
 
 **Nihai kabul yaklaşımı**
 
-Modernizasyon değişikliklerinin kabulü için ilgili gereksinimlerin karşılandığı, temel işlevlerin korunduğu, kritik güvenlik ve veri bütünlüğü kontrollerinin başarılı olduğu ve test sonuçlarının kayıt altına alındığı gösterilmelidir.
+Yeni uygulamanın kabulü için aşağıdaki koşulların sağlandığı gösterilmelidir:
+
+1. İlk sürüm kapsamındaki zorunlu gereksinimlerin karşılanması.
+2. AUTH, CRS, ASG ve GRD modüllerinin temel işlevlerinin çalışması.
+3. Kritik güvenlik ve veri bütünlüğü kontrollerinin başarılı olması.
+4. Modüller arası entegrasyonların doğrulanması.
+5. Test sonuçlarının ve açık bulguların kayıt altına alınması.
+6. Kod inceleme ve değişiklik yönetimi süreçlerinin tamamlanması.
+7. Yapay zekâ destekli geliştirme çıktılarının uzman tarafından değerlendirilmesi.
 
 Karşılanmayan kriterler ve tamamlanmamış doğrulamalar açıkça raporlanacak; kabul kararı bu bilgiler doğrultusunda verilecektir.
 
 **Beklenen çıktı**
 
-Gereksinimlerle ilişkilendirilmiş kabul kriterleri, test ve doğrulama sonuçları, açık kalan bulgular ve modernizasyonun kabul durumunu gösteren değerlendirme kaydı.
+Gereksinimlerle ilişkilendirilmiş kabul kriterleri, test ve doğrulama sonuçları, açık kalan bulgular ve yeni sistemin kabul durumunu gösteren değerlendirme kaydı.

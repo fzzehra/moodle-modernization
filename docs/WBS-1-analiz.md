@@ -172,17 +172,17 @@ Her modül için alt başlıklar: Moodle'daki karşılığı · İş akışları
 
 Kimlik doğrulama ve yetkilendirme Moodle'da tek bir modülden oluşmaz. Kimlik doğrulama eklentileri, oturum yönetimi, kullanıcı hesapları ve bağlama dayalı rol-yetenek (role-capability) sistemi birlikte çalışır.
 
-Bu analiz Moodle 5.3.1, revizyon `cfe123f2` temel alınarak hazırlanmıştır. Dosya yolları `public/` dizinine görecelidir.
+Bu analiz Moodle 5.3.1, revizyon `cfe123f2` temel alınarak hazırlanmıştır. Dosya yolları Moodle kaynak kodunun kök dizinine göre verilmiştir.
 
 | Bileşen | Kaynak kod | Görevi |
 | --- | --- | --- |
 | Giriş işlemleri | `login/index.php` | Kullanıcının sisteme girişini yönetir. |
-| Kimlik doğrulama | `lib/moodlelib.php:3795` — `authenticate_user_login()` | Kullanıcı adı, parola, hesap durumu ve doğrulama eklentilerini kontrol eder. |
-| Oturum oluşturma | `lib/moodlelib.php:4074` — `complete_user_login()` | Başarılı doğrulamadan sonra kullanıcı oturumunu oluşturur. |
-| Oturum ve erişim zorunluluğu | `lib/moodlelib.php:2259` — `require_login()` | Giriş, ders erişimi ve oturumla ilgili kontrolleri uygular. |
-| Yetenek kontrolü | `lib/accesslib.php:432` — `has_capability()` | Kullanıcının belirtilen bağlamda ilgili yeteneğe sahip olup olmadığını değerlendirir. |
-| Yetki zorunluluğu | `lib/accesslib.php:872` — `require_capability()` | Yetki bulunmuyorsa istisna oluşturur. |
-| Site yöneticisi kontrolü | `lib/accesslib.php:702` — `is_siteadmin()` | Site yöneticisi durumunu kontrol eder. |
+| Kimlik doğrulama | `public/lib/moodlelib.php:3795` — `authenticate_user_login()` | Kullanıcı adı, parola, hesap durumu ve doğrulama eklentilerini kontrol eder. |
+| Oturum oluşturma | `public/lib/moodlelib.php:4074` — `complete_user_login()` | Başarılı doğrulamadan sonra kullanıcı oturumunu oluşturur. |
+| Oturum ve erişim zorunluluğu | `public/lib/moodlelib.php:2259` — `require_login()` | Giriş, ders erişimi ve oturumla ilgili kontrolleri uygular. |
+| Yetenek kontrolü | `public/lib/accesslib.php:432` — `has_capability()` | Kullanıcının belirtilen bağlamda ilgili yeteneğe sahip olup olmadığını değerlendirir. |
+| Yetki zorunluluğu | `public/lib/accesslib.php:872` — `require_capability()` | Yetki bulunmuyorsa istisna oluşturur. |
+| Site yöneticisi kontrolü | `public/lib/accesslib.php:702` — `is_siteadmin()` | Site yöneticisi durumunu kontrol eder. |
 | Kimlik doğrulama eklentileri | `auth/` | Manual, email, LDAP, OAuth2 ve diğer doğrulama yöntemleri. |
 | Parola işlemleri | `login/forgot_password.php`, `login/change_password.php` | Parola sıfırlama ve değiştirme işlemleri. |
 | Yetkilendirme verileri | `lib/db/install.xml` | Kullanıcı, rol, yetenek ve bağlam verilerinin şeması. |
@@ -231,18 +231,18 @@ Bu maddeler doğrulanmış şikâyet değil, araştırılacak kullanıcı ihtiya
 
 | Kimlik | Kural | Eski kod |
 | --- | --- | --- |
-| AUTH-BR-01 | Kullanıcı sisteme giriş yapmadan önce etkin kimlik doğrulama yöntemi üzerinden doğrulanır. | `lib/moodlelib.php:3795` |
+| AUTH-BR-01 | Kullanıcı sisteme giriş yapmadan önce etkin kimlik doğrulama yöntemi üzerinden doğrulanır. | `public/lib/moodlelib.php:3795` |
 | AUTH-BR-02 | Silinmiş veya askıya alınmış kullanıcıların normal giriş yapması engellenir. | `authenticate_user_login()` |
 | AUTH-BR-03 | Hesap kilitleme etkinse kilitli hesapların giriş denemeleri reddedilir. | `authenticate_user_login()` |
 | AUTH-BR-04 | Başarısız giriş denemeleri kayıt altına alınır ve ilgili olay tetiklenir. | `authenticate_user_login()` |
 | AUTH-BR-05 | Başarılı girişten sonra kullanıcı oturumu oluşturulur ve giriş olayı tetiklenir. | `complete_user_login()` |
 | AUTH-BR-06 | Zorunlu parola değişikliği koşulu varsa kullanıcı normal iş akışına devam etmeden parola değiştirme sürecine yönlendirilir. | `complete_user_login()` |
-| AUTH-BR-07 | Korunan sayfalara erişimde geçerli oturum ve ilgili erişim koşulları denetlenir. | `lib/moodlelib.php:2259` |
-| AUTH-BR-08 | Yetkiler yalnızca kullanıcı rolüne değil, rolün geçerli olduğu bağlama göre değerlendirilir. | `lib/accesslib.php:432, 788` |
-| AUTH-BR-09 | İlgili bağlamda geçerli `CAP_PROHIBIT` izni erişimi engeller. | `lib/accesslib.php:788-843` |
-| AUTH-BR-10 | Misafir veya anonim kullanıcılar yazma işlemleri ve riskli yetenekler açısından sınırlandırılır. | `lib/accesslib.php:432-582` |
+| AUTH-BR-07 | Korunan sayfalara erişimde geçerli oturum ve ilgili erişim koşulları denetlenir. | `public/lib/moodlelib.php:2259` |
+| AUTH-BR-08 | Yetkiler yalnızca kullanıcı rolüne değil, rolün geçerli olduğu bağlama göre değerlendirilir. | `public/lib/accesslib.php:432, 788` |
+| AUTH-BR-09 | İlgili bağlamda geçerli `CAP_PROHIBIT` izni erişimi engeller. | `public/lib/accesslib.php:788-843` |
+| AUTH-BR-10 | Misafir veya anonim kullanıcılar yazma işlemleri ve riskli yetenekler açısından sınırlandırılır. | `public/lib/accesslib.php:432-582` |
 | AUTH-BR-11 | Bağlam kilitleri belirli yazma yeteneklerini sınırlandırabilir. | `has_capability()` |
-| AUTH-BR-12 | Yetki kontrolü başarısızsa `require_capability()` işlemi istisnayla durdurur. | `lib/accesslib.php:872-877` |
+| AUTH-BR-12 | Yetki kontrolü başarısızsa `require_capability()` işlemi istisnayla durdurur. | `public/lib/accesslib.php:872-877` |
 | AUTH-BR-13 | Site yöneticisi için özel yetki davranışları bulunur; ancak tüm güvenlik ve oturum kontrolleri koşulsuz atlanmaz. | `has_capability()`, `require_login()` |
 | AUTH-BR-14 | Ders erişimi, yalnızca oturum açılmış olmasına değil, ders kaydı ve ilgili erişim kurallarına da bağlıdır. | `require_login()` |
 
@@ -403,7 +403,9 @@ Tablo, incelenen rollerin örnek veri üzerindeki temel davranışlarını temsi
 
 #### 4.1.9 Gereksinimler
 
-Sınıf: **K** korunacak, **D** düzeltilecek, **Y** yeni. Öncelik: **M** mutlaka, **S** olmalı, **C** olabilir.
+Sınıf: **K** korunacak, **D** değiştirilecek/düzeltilecek, **Y** yeni. Öncelik: **M** mutlaka, **S** olmalı, **C** olabilir.
+
+D sınıfı, mevcut davranışın düzeltilmesini veya hedef mimariye uygun biçimde değiştirilmesini gerektiren gereksinimleri ifade eder. Sınıflandırma, işlevin korunması veya değiştirilmesiyle ilgilidir; bütün modüllerin C# ve .NET 10 kullanılarak yeniden geliştirilecek olması tek başına D sınıfı anlamına gelmez.
 
 | Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -547,7 +549,7 @@ Moodle 5.3.1'de ders oluşturma işlemi `public/course/lib.php` dosyasındaki `c
 
 `create_course()` fonksiyonunun incelenen gövdesinde doğrudan bir kullanıcı yetki kontrolü bulunmamaktadır. Bu nedenle ders oluşturma yetkisinin çağıran bileşenlerde ayrıca incelenmesi gerekmektedir.
 
-**Kaynak:** Moodle 5.3.1, `public/course/lib.php`, satır 1774–1908.
+**Kaynak:** Moodle 5.3.1, `public/course/lib.php`, satır 1774–1913.
 
 #### 4.2.4 Ders Güncelleme İş Akışı
 
@@ -729,36 +731,37 @@ Moodle 5.3.1 kaynak kodunda ders yönetimi ve kullanıcı kayıt işlemleri içi
 
 | Kural ID | İş Kuralı | Kaynak |
 |---|---|---|
-| CRS-BR-01 | Ders oluşturulurken geçerli bir ders kategorisi bulunmalıdır. | `course/lib.php`, `create_course()` |
-| CRS-BR-02 | Dersin kısa adı (`shortname`) benzersiz olmalıdır. | `course/lib.php`, `create_course()`, `update_course()` |
-| CRS-BR-03 | Boş olmayan ders kimlik numarası (`idnumber`) başka bir ders tarafından kullanılamaz. | `course/lib.php`, `create_course()`, `update_course()` |
-| CRS-BR-04 | Ders başlangıç ve bitiş tarihleri Moodle'ın tarih doğrulama kurallarına uygun olmalıdır. | `course/lib.php`, `create_course()`, `update_course()` |
-| CRS-BR-05 | Sistem ana sayfası dersi (`SITEID`) normal ders güncelleme, silme ve kullanıcı kaydetme işlemlerine konu olamaz. | `course/lib.php`, `update_course()`; `lib/moodlelib.php`, `delete_course()`; `lib/enrollib.php`, `enrol_user()` |
-| CRS-BR-06 | Bekleyen veya devam eden yedekleme/geri yükleme işlemi bulunan ders silinemez. | `lib/moodlelib.php`, `delete_course()` |
-| CRS-BR-07 | Aynı kullanıcı, aynı kayıt yöntemi örneğine birden fazla kez kaydedilemez. | `lib/db/install.xml`, `user_enrolments` benzersiz indeksi |
-| CRS-BR-08 | Mevcut ders kaydı yalnızca ilgili alanlarda değişiklik varsa güncellenir. | `lib/enrollib.php`, `update_user_enrol()` |
-| CRS-BR-09 | Kullanıcının bir kayıt yöntemi üzerinden kaydı kaldırıldığında diğer kayıt yöntemleri üzerinden mevcut kayıtları korunur. | `lib/enrollib.php`, `unenrol_user()` |
-| CRS-BR-10 | Kullanıcının dersteki son kaydı kaldırıldığında kalan roller, grup üyelikleri ve ilgili ders verileri için ek temizlik yapılır. | `lib/enrollib.php`, `unenrol_user()` |
-| CRS-BR-11 | Asenkron ders silme etkinse silme işlemi arka plan görevine aktarılabilir. | `lib/moodlelib.php`, `delete_course()` |
-| CRS-BR-12 | Kullanıcı derse kaydedilirken rol kimliği belirtilmişse ilgili ders bağlamında rol ataması yapılır. | `lib/enrollib.php`, `enrol_user()` |
-| CRS-BR-13 | Ders oluşturma, güncelleme, silme ve kullanıcı kayıt değişikliklerinde ilgili sistem olayları tetiklenir. | `course/lib.php`, `lib/moodlelib.php`, `lib/enrollib.php` |
+| CRS-BR-01 | Ders oluşturulurken geçerli bir ders kategorisi bulunmalıdır. | `public/course/lib.php`, `create_course()` |
+| CRS-BR-02 | Dersin kısa adı (`shortname`) benzersiz olmalıdır. | `public/course/lib.php`, `create_course()`, `update_course()` |
+| CRS-BR-03 | Boş olmayan ders kimlik numarası (`idnumber`) başka bir ders tarafından kullanılamaz. | `public/course/lib.php`, `create_course()`, `update_course()` |
+| CRS-BR-04 | Ders başlangıç ve bitiş tarihleri Moodle'ın tarih doğrulama kurallarına uygun olmalıdır. | `public/course/lib.php`, `create_course()`, `update_course()` |
+| CRS-BR-05 | Sistem ana sayfası dersi (`SITEID`) normal ders güncelleme, silme ve kullanıcı kaydetme işlemlerine konu olamaz. | `public/course/lib.php`, `update_course()`; `public/lib/moodlelib.php`, `delete_course()`; `public/lib/enrollib.php`, `enrol_user()` |
+| CRS-BR-06 | Bekleyen veya devam eden yedekleme/geri yükleme işlemi bulunan ders silinemez. | `public/lib/moodlelib.php`, `delete_course()` |
+| CRS-BR-07 | Aynı kullanıcı, aynı kayıt yöntemi örneğine birden fazla kez kaydedilemez. | `public/lib/db/install.xml`, `user_enrolments` benzersiz indeksi |
+| CRS-BR-08 | Mevcut ders kaydı yalnızca ilgili alanlarda değişiklik varsa güncellenir. | `public/lib/enrollib.php`, `update_user_enrol()` |
+| CRS-BR-09 | Kullanıcının bir kayıt yöntemi üzerinden kaydı kaldırıldığında diğer kayıt yöntemleri üzerinden mevcut kayıtları korunur. | `public/lib/enrollib.php`, `unenrol_user()` |
+| CRS-BR-10 | Kullanıcının dersteki son kaydı kaldırıldığında kalan roller, grup üyelikleri ve ilgili ders verileri için ek temizlik yapılır. | `public/lib/enrollib.php`, `unenrol_user()` |
+| CRS-BR-11 | Asenkron ders silme etkinse silme işlemi arka plan görevine aktarılabilir. | `public/lib/moodlelib.php`, `delete_course()` |
+| CRS-BR-12 | Kullanıcı derse kaydedilirken rol kimliği belirtilmişse ilgili ders bağlamında rol ataması yapılır. | `public/lib/enrollib.php`, `enrol_user()` |
+| CRS-BR-13 | Ders oluşturma, güncelleme, silme ve kullanıcı kayıt değişikliklerinde ilgili sistem olayları tetiklenir. | `public/course/lib.php`, `public/lib/moodlelib.php`, `public/lib/enrollib.php` |
+
 #### 4.2.10 Fonksiyonel Gereksinimler
 
 Moodle 5.3.1 kaynak kodunda doğrulanan ders yönetimi ve kayıt işlemleri temel alınarak aşağıdaki fonksiyonel gereksinimler belirlenmiştir.
 
-| Gereksinim ID | Fonksiyonel Gereksinim | İlgili İş Kuralı |
-|---|---|---|
-| CRS-FR-01 | Sistem, geçerli bir kategori altında yeni ders oluşturulmasını sağlamalıdır. | CRS-BR-01 |
-| CRS-FR-02 | Sistem, ders oluşturma ve güncelleme sırasında kısa ad ve ders kimlik numarası benzersizliğini kontrol etmelidir. | CRS-BR-02, CRS-BR-03 |
-| CRS-FR-03 | Sistem, ders başlangıç ve bitiş tarihlerini doğrulamalıdır. | CRS-BR-04 |
-| CRS-FR-04 | Sistem, mevcut ders bilgilerinin güncellenmesini sağlamalıdır. | CRS-BR-02, CRS-BR-03, CRS-BR-04 |
-| CRS-FR-05 | Sistem, silinmesine izin verilen derslerin içerikleri ve ilişkili kayıtlarıyla birlikte kaldırılmasını sağlamalıdır. | CRS-BR-05, CRS-BR-06 |
-| CRS-FR-06 | Sistem, kullanıcıların geçerli kayıt yöntemleri üzerinden derslere kaydedilmesini sağlamalıdır. | CRS-BR-05, CRS-BR-07 |
-| CRS-FR-07 | Sistem, mevcut kullanıcı ders kayıtlarının durum, başlangıç ve bitiş zamanı bilgilerinin güncellenmesini sağlamalıdır. | CRS-BR-08 |
-| CRS-FR-08 | Sistem, kullanıcıların belirli bir kayıt yöntemi üzerinden ders kayıtlarının kaldırılmasını sağlamalıdır. | CRS-BR-09, CRS-BR-10 |
-| CRS-FR-09 | Sistem, ders kayıt işlemlerinde ilgili kullanıcı rollerini yönetebilmelidir. | CRS-BR-10, CRS-BR-12 |
-| CRS-FR-10 | Sistem, ders oluşturma, güncelleme, silme ve kullanıcı kayıt değişikliklerinde ilgili olayları tetiklemelidir. | CRS-BR-13 |
-| CRS-FR-11 | Sistem, etkinleştirilmişse ders silme işlemlerini asenkron görev olarak yürütebilmelidir. | CRS-BR-11 |
+| Gereksinim ID | Sınıf (K/D/Y) | Öncelik (M/S/C) | Fonksiyonel Gereksinim | İlgili İş Kuralı |
+|---|---|---|---|---|
+| CRS-FR-01 | K | M | Sistem, geçerli bir kategori altında yeni ders oluşturulmasını sağlamalıdır. | CRS-BR-01 |
+| CRS-FR-02 | K | M | Sistem, ders oluşturma ve güncelleme sırasında kısa ad ve ders kimlik numarası benzersizliğini kontrol etmelidir. | CRS-BR-02, CRS-BR-03 |
+| CRS-FR-03 | K | M | Sistem, ders başlangıç ve bitiş tarihlerini doğrulamalıdır. | CRS-BR-04 |
+| CRS-FR-04 | K | M | Sistem, mevcut ders bilgilerinin güncellenmesini sağlamalıdır. | CRS-BR-02, CRS-BR-03, CRS-BR-04 |
+| CRS-FR-05 | D | M | Sistem, silinmesine izin verilen derslerin içerikleri ve ilişkili kayıtlarıyla birlikte kaldırılmasını sağlamalıdır. | CRS-BR-05, CRS-BR-06 |
+| CRS-FR-06 | D | M | Sistem, kullanıcıların geçerli kayıt yöntemleri üzerinden derslere kaydedilmesini sağlamalıdır. | CRS-BR-05, CRS-BR-07 |
+| CRS-FR-07 | K | M | Sistem, mevcut kullanıcı ders kayıtlarının durum, başlangıç ve bitiş zamanı bilgilerinin güncellenmesini sağlamalıdır. | CRS-BR-08 |
+| CRS-FR-08 | D | M | Sistem, kullanıcıların belirli bir kayıt yöntemi üzerinden ders kayıtlarının kaldırılmasını sağlamalıdır. | CRS-BR-09, CRS-BR-10 |
+| CRS-FR-09 | D | M | Sistem, ders kayıt işlemlerinde ilgili kullanıcı rollerini yönetebilmelidir. | CRS-BR-10, CRS-BR-12 |
+| CRS-FR-10 | D | S | Sistem, ders oluşturma, güncelleme, silme ve kullanıcı kayıt değişikliklerinde ilgili olayları tetiklemelidir. | CRS-BR-13 |
+| CRS-FR-11 | D | C | Sistem, etkinleştirilmişse ders silme işlemlerini asenkron görev olarak yürütebilmelidir. | CRS-BR-11 |
 
 **Kaynaklar:**
 - `public/course/lib.php`: `create_course()`, `update_course()`
@@ -771,21 +774,31 @@ Moodle 5.3.1 kaynak kodunda doğrulanan ders yönetimi ve kayıt işlemleri teme
 #### 4.2.11 Fonksiyonel Olmayan Gereksinimler
 
 Moodle 5.3.1 ders ve kayıt yönetimi kaynak kodu incelenerek aşağıdaki fonksiyonel olmayan gereksinimler türetilmiştir.
-
-| Gereksinim ID | Kategori | Fonksiyonel Olmayan Gereksinim | Kaynak |
-|---|---|---|---|
-| CRS-NFR-01 | Veri Bütünlüğü | Sistem, aynı kullanıcının aynı kayıt yöntemi örneğine mükerrer kaydedilmesini engellemelidir. | `lib/db/install.xml` |
-| CRS-NFR-02 | Veri Bütünlüğü | Sistem, ders silme sırasında ilişkili içeriklerin ve kayıtların temizlenmesini sağlamalıdır. | `lib/moodlelib.php`, `delete_course()` |
-| CRS-NFR-03 | Güvenilirlik | Sistem, devam eden veya bekleyen yedekleme/geri yükleme işlemleriyle çakışabilecek ders silme işlemlerini engellemelidir. | `lib/moodlelib.php`, `delete_course()` |
-| CRS-NFR-04 | Performans | Sistem, ders ve kullanıcı kayıt bilgilerindeki değişikliklerden sonra ilgili önbellekleri geçersiz kılmalıdır. | `course/lib.php`, `lib/enrollib.php` |
-| CRS-NFR-05 | Verimlilik | Sistem, kayıt bilgileri değişmediğinde gereksiz veritabanı güncellemesi yapmamalıdır. | `lib/enrollib.php`, `update_user_enrol()` |
-| CRS-NFR-06 | Ölçeklenebilirlik | Sistem, yapılandırmaya bağlı olarak ders silme işlemlerini arka plan görevleriyle gerçekleştirebilmelidir. | `lib/moodlelib.php`, `delete_course()` |
-| CRS-NFR-07 | İzlenebilirlik | Sistem, ders ve kullanıcı kayıt değişikliklerinde ilgili olayları oluşturmalıdır. | `course/lib.php`, `lib/moodlelib.php`, `lib/enrollib.php` |
-| CRS-NFR-08 | Genişletilebilirlik | Sistem, ders ve kayıt işlemlerinde eklentilerin ilgili hook mekanizmaları üzerinden işlem yapabilmesini desteklemelidir. | `course/lib.php`, `lib/moodlelib.php`, `lib/enrollib.php` |
+| Gereksinim ID | Sınıf (K/D/Y) | Öncelik (M/S/C) | Kategori | Fonksiyonel Olmayan Gereksinim | Kaynak |
+|---|---|---|---|---|---|
+| CRS-NFR-01 | K | M | Veri Bütünlüğü | Sistem, aynı kullanıcının aynı kayıt yöntemi örneğine mükerrer kaydedilmesini engellemelidir. | `public/lib/db/install.xml` |
+| CRS-NFR-02 | D | M | Veri Bütünlüğü | Sistem, ders silme sırasında ilişkili içeriklerin ve kayıtların temizlenmesini sağlamalıdır. | `public/lib/moodlelib.php`, `delete_course()` |
+| CRS-NFR-03 | D | S | Güvenilirlik | Sistem, devam eden veya bekleyen yedekleme/geri yükleme işlemleriyle çakışabilecek ders silme işlemlerini engellemelidir. | `public/lib/moodlelib.php`, `delete_course()` |
+| CRS-NFR-04 | D | S | Performans | Sistem, ders ve kullanıcı kayıt bilgilerindeki değişikliklerden sonra ilgili önbellekleri geçersiz kılmalıdır. | `public/course/lib.php`, `public/lib/enrollib.php` |
+| CRS-NFR-05 | K | S | Verimlilik | Sistem, kayıt bilgileri değişmediğinde gereksiz veritabanı güncellemesi yapmamalıdır. | `public/lib/enrollib.php`, `update_user_enrol()` |
+| CRS-NFR-06 | D | C | Ölçeklenebilirlik | Sistem, yapılandırmaya bağlı olarak ders silme işlemlerini arka plan görevleriyle gerçekleştirebilmelidir. | `public/lib/moodlelib.php`, `delete_course()` |
+| CRS-NFR-07 | D | S | İzlenebilirlik | Sistem, ders ve kullanıcı kayıt değişikliklerinde ilgili olayları oluşturmalıdır. | `public/course/lib.php`, `public/lib/moodlelib.php`, `public/lib/enrollib.php` |
+| CRS-NFR-08 | D | C | Genişletilebilirlik | Yeni sistem, ders ve kayıt işlemlerine ilişkin ek işlevlerin Moodle eklenti ve hook mekanizmalarına bağımlı olmadan, modüler servisler ve tanımlı genişletme noktaları aracılığıyla geliştirilebilmesini desteklemelidir. | `public/course/lib.php`, `public/lib/moodlelib.php`, `public/lib/enrollib.php` (mevcut Moodle genişletme mekanizmaları; hedef tasarım önerisi) |
 
 **Değerlendirme Sınırları**
 
 Bu gereksinimler kaynak kod incelemesinden türetilmiştir. Performans, eşzamanlı kullanıcı kapasitesi, işlem süreleri ve yük altındaki sistem davranışı için ölçüm yapılmamıştır. Dolayısıyla bu özelliklerin belirli bir performans seviyesini karşıladığı iddia edilmemektedir.
+
+**Sınıflandırma ve Önceliklendirme Notu**
+
+Gereksinimlerin sınıflandırılmasında K (Korunacak), D (Değiştirilecek/Düzeltilecek) ve Y (Yeni); önceliklendirilmesinde M (Must), S (Should) ve C (Could) kullanılmıştır.
+
+K sınıfındaki gereksinimlerin işlevsel davranışlarının yeni sistemde korunması, D sınıfındaki gereksinimlerin ise hedef mimariye uygun olarak yeniden tasarlanması öngörülmektedir. Tüm gereksinimler C# ve .NET 10 tabanlı yeni uygulamada yeniden geliştirilecektir.
+
+Özellikle Moodle'a özgü eklenti, hook, önbellek ve asenkron görev mekanizmalarının birebir taşınması hedeflenmemektedir. Bu mekanizmalarla ilişkili gereksinimler, yeni sistemin servis ve veri modeli doğrultusunda değerlendirilecektir.
+
+M öncelikli gereksinimler ilk sürüm için zorunlu kabul edilirken S ve C öncelikli gereksinimlerin uygulama sırası proje kapsamına ve geliştirme planına göre belirlenecektir. Bu sınıflandırma ve öncelikler hedef tasarım kararlarıdır; WBS-1 kaynak kod analizinde doğrulanmış Moodle özellikleriyle karıştırılmamalıdır.
+
 ### 4.3 Danışmanlık (İrem)
 
 #### 4.3.1 Moodle'daki karşılığı
@@ -1154,7 +1167,7 @@ Dosya yönetimi Moodle'da tek bir eklenti değil, çekirdekte (core) duran bir *
 | FILE-BR-05 | Yüklemeler önce kullanıcıya özel **taslak alanına** gider; 4 günden eski taslaklar silinir. | `lib/filestorage/file_storage.php:2268-2278` |
 | FILE-BR-06 | Dosya adı `PARAM_FILE` ile temizlenir ve en çok 255 karakter olabilir. | `repository/upload/lib.php:148-152, 173-175`; `file_storage.php:49` |
 | FILE-BR-07 | Aynı adlı dosya yüklenirse üzerine yazma istenmediyse benzersiz bir ad üretilir. | `repository/upload/lib.php:237-245`; `repository/lib.php:949` |
-| FILE-BR-08 | Boyut sınırları: dosya başına sınır (PHP `upload_max_filesize` ve `post_max_size`, site, ders ve modül sınırlarının **en küçüğü**), alan toplam sınırı ve taslak başına en çok öğe sayısı. Boş içerik veya klasör yüklemesi reddedilir. | `lib/moodlelib.php:6337-6364`; `repository/upload/lib.php:220-231, 212-214` |
+| FILE-BR-08 | Boyut sınırları: dosya başına sınır (PHP `upload_max_filesize` ve `post_max_size`, site, ders ve modül sınırlarının **en küçüğü**), alan toplam sınırı ve taslak başına en çok öğe sayısı. Boş içerik veya klasör yüklemesi reddedilir. | `public/lib/moodlelib.php:6337-6364`; `repository/upload/lib.php:220-231, 212-214` |
 | FILE-BR-09 | Kabul edilen dosya türü formda tanımlıysa, tür içeriğe ve uzantıya göre denetlenir. Her yüklenen dosya antivirüs taramasından geçer. | `repository/upload/lib.php:177-199, 202` |
 | FILE-BR-10 | Kullanıcı kotası: özel dosyalar için `userquota` (varsayılan 100 MB). `moodle/user:ignoreuserquota` yetkisi olan kullanıcı muaftır. | `admin/settings/security.php:63-65`; `lib/filelib.php:639-651`; `lib/db/access.php:632-637` |
 | FILE-BR-11 | Dosya sunumu her zaman dosyanın ait olduğu **bileşenin** yetki kontrolünden geçer; yetkisiz erişimde "dosya bulunamadı" döner. | `lib/filelib.php:4443-4620`; `mod/assign/lib.php:1383-1425`; `mod/assign/submission/file/lib.php:38-88` |

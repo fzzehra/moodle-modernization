@@ -1,4 +1,4 @@
-# WBS-2 Hedef Mimari ve Modernizasyon Sürecinin Tasarlanması
+﻿# WBS-2 Hedef Mimari ve Modernizasyon Sürecinin Tasarlanması
 
 ## 1. Hedef dil ve teknoloji seçimi (Seray)
 
@@ -12,6 +12,284 @@ API tabloları: Metot · Yol · İstek · Yanıt · Hangi rol çağırabilir
 
 ### 3.2 Ders ve kayıt (Sinem)
 
+#### 3.2.1 Tasarım yaklaşımı
+
+Ders ve kayıt (CRS) modülünün modernizasyonunda, Moodle 5.3.1 kaynak kodundan elde edilen mevcut veri modeli ve iş kuralları temel alınacaktır. Amaç, mevcut ders yönetimi ve kullanıcı kayıt işlevlerini koruyarak veri doğrulama, yetkilendirme, arayüz erişimi ve bakım kolaylığı açısından daha sürdürülebilir bir hedef tasarım oluşturmaktır.
+
+Hedef tasarımda ders oluşturma, güncelleme ve silme işlemleri ile kullanıcıyı derse kaydetme, kayıt bilgilerini güncelleme ve dersten kayıt silme işlemleri ayrı servis operasyonları olarak ele alınacaktır. Bu operasyonlara erişim için REST tabanlı API arayüzleri önerilecektir.
+
+Mevcut Moodle veri yapısındaki course, course_categories, enrol ve user_enrolments tabloları ile user ilişkisi korunacaktır. Veri bütünlüğü kontrolleri, iş kuralları ve yetkilendirme doğrulamaları servis katmanında uygulanacaktır.
+
+Kaynak sistem üzerinde gerçekleştirilen CRS-TEST-01–07 testleri, temel ders ve kayıt işlemlerinin beklenen sonuçlarını doğrulamıştır. Test sırasında ders kısa adının başında bulunan TAB karakterinin ayrı bir değer olarak kabul edildiği gözlemlenmiştir. Bu nedenle hedef tasarımda kısa adların kaydedilmeden önce görünmeyen karakterler açısından doğrulanması önerilmektedir.
+
+Bu bölümde tanımlanan REST API uç noktaları ve servis katmanı, mevcut Moodle 5.3.1 uygulamasında bulunduğu doğrulanan bileşenler değil, modernizasyon kapsamında önerilen hedef tasarım öğeleridir.
+
+#### 3.2.2 Veri modeli ve bütünlük kuralları
+
+Hedef CRS tasarımında Moodle 5.3.1 veri modeliyle uyumluluk korunacaktır. Dersler, kategoriler, kayıt yöntemleri ve kullanıcı kayıtları mevcut tablolar üzerinden yönetilecektir. Yeni bir veritabanı şeması oluşturulması bu aşamada önerilmemektedir.
+
+| Tablo | Temel alanlar | Hedef tasarımdaki görevi |
+|---|---|---|
+| `course` | `id`, `category`, `fullname`, `shortname`, `idnumber`, `visible` | Ders bilgilerinin yönetilmesi |
+| `course_categories` | `id`, `name`, `parent`, `visible` | Ders kategorilerinin ve hiyerarşinin yönetilmesi |
+| `enrol` | `id`, `courseid`, `enrol`, `status` | Ders kayıt yöntemlerinin tanımlanması |
+| `user_enrolments` | `id`, `enrolid`, `userid`, `status`, `timestart`, `timeend` | Kullanıcı ders kayıtlarının yönetilmesi |
+| `user` | `id` | Ders kayıtlarının kullanıcılarla ilişkilendirilmesi |
+
+**Temel ilişkiler**
+
+1. `course.category` → `course_categories.id`
+2. `course_categories.parent` → `course_categories.id`
+3. `enrol.courseid` → `course.id`
+4. `user_enrolments.enrolid` → `enrol.id`
+5. `user_enrolments.userid` → `user.id`
+
+**Hedef veri bütünlüğü kuralları**
+
+- Ders oluşturma ve güncelleme işlemlerinde kategori geçerliliği kontrol edilecektir.
+- Ders kısa adı (`shortname`) ve boş olmayan ders kimlik numarası (`idnumber`) benzersizlik açısından doğrulanacaktır.
+- Kısa ad alanındaki baştaki ve sondaki boşluklar ile TAB gibi görünmeyen karakterler için açık bir doğrulama politikası uygulanacaktır. Bu politika mevcut kayıtlarla uyumluluk değerlendirilerek belirlenecektir.
+- Aynı kullanıcı, aynı kayıt yöntemi örneğine birden fazla kez kaydedilemeyecektir.
+- Kayıt işlemlerinde kullanıcı ve kayıt yöntemi varlığı doğrulanacaktır.
+- Ders silme işlemlerinde ilişkili kayıtların ve içeriklerin tutarlı biçimde temizlenmesi sağlanacaktır.
+- Kayıt durumu ve başlangıç/bitiş zamanları servis katmanında doğrulanacaktır.
+
+**Veritabanı ve servis katmanı sorumlulukları**
+
+Mevcut `user_enrolments` tablosundaki `(enrolid, userid)` benzersizliği korunacaktır. `course.shortname` alanında ise mevcut PostgreSQL şemasında benzersiz olmayan indeks bulunduğu gözlemlenmiştir. Bu nedenle kısa ad benzersizliği servis katmanında kontrol edilecektir.
+
+Eşzamanlı işlemler nedeniyle oluşabilecek mükerrer kayıt riskleri ayrıca değerlendirilecektir. Veritabanı düzeyinde ek benzersizlik kısıtı uygulanması, mevcut Moodle uyumluluğu ve veri temizliği analizinden sonra kararlaştırılacaktır.
+
+Bu tasarım, WBS-1 kapsamındaki CRS-BR-01, CRS-BR-02, CRS-BR-03, CRS-BR-07 ve CRS-FR-01, CRS-FR-02, CRS-FR-06 gereksinimleriyle ilişkilidir.
+#### 3.2.3 REST API tasarımı
+
+Hedef CRS modülünde ders yönetimi ve kullanıcı kayıt işlemlerinin REST tabanlı API uç noktaları üzerinden sunulması önerilmektedir. API tasarımı mevcut Moodle 5.3.1 iş kurallarını koruyacak, ancak istemci ile iş mantığı arasındaki bağımlılığı azaltacaktır.
+
+Aşağıdaki uç noktalar modernizasyon kapsamında önerilen hedef arayüzlerdir; mevcut Moodle API uç noktaları oldukları iddia edilmemektedir.
+
+**Ders yönetimi API'leri**
+
+| Metot | Yol | İstek | Başarılı yanıt | Yetkili rol |
+|---|---|---|---|---|
+| POST | `/api/v1/courses` | `categoryId`, `fullName`, `shortName`, `idNumber`, `startDate`, `endDate` | `201 Created`, ders kimliği | Yetkili yönetici / ders oluşturma yetkisine sahip kullanıcı |
+| PATCH | `/api/v1/courses/{courseId}` | Güncellenecek ders alanları | `200 OK`, güncel ders bilgileri | Yetkili yönetici / ders düzenleme yetkisine sahip kullanıcı |
+| DELETE | `/api/v1/courses/{courseId}` | Ders kimliği | `204 No Content` veya asenkron işlem için `202 Accepted` | Yetkili yönetici / ders silme yetkisine sahip kullanıcı |
+
+**Kullanıcı kayıt API'leri**
+
+| Metot | Yol | İstek | Başarılı yanıt | Yetkili rol |
+|---|---|---|---|---|
+| POST | `/api/v1/courses/{courseId}/enrolments` | `userId`, `enrolId`, `roleId`, `startTime`, `endTime` | `201 Created`, kayıt kimliği | Kullanıcı kaydetme yetkisine sahip kullanıcı |
+| PATCH | `/api/v1/courses/{courseId}/enrolments/{enrolmentId}` | `status`, `startTime`, `endTime` | `200 OK`, güncel kayıt bilgileri | Kayıt düzenleme yetkisine sahip kullanıcı |
+| DELETE | `/api/v1/courses/{courseId}/enrolments/{enrolmentId}` | Kayıt kimliği | `204 No Content` | Kayıt silme yetkisine sahip kullanıcı |
+
+**API tasarım ilkeleri**
+
+- API sürümlemesi `/api/v1` yolu üzerinden yapılacaktır.
+- İstek verileri servis katmanında doğrulanacaktır.
+- Ders kısa adı ve kimlik numarası benzersizlik kontrolleri uygulanacaktır.
+- Kayıt yöntemi, kullanıcı ve ders ilişkileri doğrulanacaktır.
+- Yetkilendirme yalnızca kullanıcı rol adına göre değil, ilgili ders veya kategori bağlamındaki yetkilere göre yapılacaktır.
+- Başarılı işlemlerde uygun HTTP durum kodları döndürülecektir.
+- Hatalı istekler için tutarlı hata yanıtları kullanılacaktır.
+- Ders ve kayıt değişiklikleri için sistem olayları oluşturulacaktır.
+- Ders silme işlemi asenkron yürütülürse istemciye işlem durumu takip edilebilir şekilde sunulacaktır.
+
+**Önerilen hata yanıtları**
+
+| HTTP kodu | Durum |
+|---|---|
+| `400 Bad Request` | Geçersiz veya eksik istek alanları |
+| `401 Unauthorized` | Kimlik doğrulaması yapılmamış istek |
+| `403 Forbidden` | İşlem için gerekli yetki bulunmaması |
+| `404 Not Found` | Ders, kullanıcı kaydı veya ilgili kaynağın bulunamaması |
+| `409 Conflict` | Mükerrer kısa ad, kimlik numarası veya kayıt çakışması |
+| `422 Unprocessable Content` | Tarih aralığı veya alan doğrulama kurallarının ihlali |
+
+**Gereksinim ilişkisi:** CRS-FR-01–CRS-FR-11, CRS-BR-01–CRS-BR-13.
+#### 3.2.4 Rol bazlı yetkilendirme
+
+Hedef CRS tasarımında yetkilendirme, Moodle'ın rol ve bağlam (context) tabanlı erişim kontrolü yaklaşımıyla uyumlu olacaktır. Kullanıcının yalnızca rol adına bakılarak işlem izni verilmeyecek; ilgili ders veya kategori bağlamında gerekli yetkiye sahip olup olmadığı kontrol edilecektir.
+
+**Yetkilendirme matrisi**
+
+| İşlem | Gerekli Moodle yetkisi | Kontrol bağlamı |
+|---|---|---|
+| Ders oluşturma | `moodle/course:create` | Kategori |
+| Ders bilgilerini güncelleme | `moodle/course:update` | Ders |
+| Ders silme | `moodle/course:delete` | Ders |
+| Kullanıcıyı derse kaydetme | `enrol/manual:enrol` | Ders |
+| Kullanıcının kayıt durumunu güncelleme | `enrol/manual:manage` | Ders |
+| Kullanıcıyı dersten çıkarma | `enrol/manual:unenrol` | Ders |
+| Kullanıcıya rol atama | `moodle/role:assign` | Ders |
+
+Bu matris, manuel kayıt yöntemi ve temel ders yönetimi işlemleri için önerilen yetkilendirme eşlemesini göstermektedir. Farklı kayıt eklentileri kendi yetki kurallarını uygulayabilir. Gerçek yetki kontrolleri, ilgili Moodle işlemlerinin kaynak kodu ve bağlam kurallarıyla uyumlu şekilde uygulanacaktır.
+
+**Yetkilendirme ilkeleri**
+
+1. Her API isteğinde kimlik doğrulaması yapılacaktır.
+2. İlgili ders veya kategori bağlamı belirlenecektir.
+3. İşlem için gerekli capability kontrol edilecektir.
+4. Yetkisiz işlemler `403 Forbidden` yanıtıyla reddedilecektir.
+5. Kullanıcı kayıt işlemlerinde ilgili kayıt yönteminin etkinliği ve işlem yetkisi doğrulanacaktır.
+6. Rol atama işlemlerinde kullanıcının hedef rolü atamaya yetkili olup olmadığı ayrıca kontrol edilecektir.
+7. Sistem ana sayfası dersi (`SITEID`) için mevcut Moodle kısıtları korunacaktır.
+8. Yetki kontrolleri yalnızca istemci arayüzünde değil, sunucu tarafında gerçekleştirilecektir.
+
+**Gereksinim ilişkisi:** CRS-FR-01, CRS-FR-04, CRS-FR-05, CRS-FR-06, CRS-FR-07, CRS-FR-08, CRS-FR-09 ve CRS-BR-05, CRS-BR-12.
+
+#### 3.2.5 İşlem akışları ve hata yönetimi
+
+Hedef CRS modülünde ders yönetimi ve kullanıcı kayıt işlemleri API, servis ve veri erişim katmanları üzerinden yürütülecektir. İş kuralları servis katmanında merkezi olarak uygulanacak; veri doğrulama, yetkilendirme ve veri bütünlüğü kontrolleri ilgili işlemler kapsamında gerçekleştirilecektir.
+
+**Genel işlem akışı**
+
+1. İstemci REST API üzerinden isteği gönderir.
+2. API katmanında kimlik doğrulaması yapılır.
+3. İlgili ders veya kategori bağlamında yetkilendirme kontrolü gerçekleştirilir.
+4. Servis katmanında istek alanları ve iş kuralları doğrulanır.
+5. Veri erişim katmanı gerekli veritabanı işlemlerini gerçekleştirir.
+6. İlgili sistem olayları tetiklenir ve gerekli önbellekler geçersiz kılınır.
+7. İstemciye uygun HTTP yanıtı döndürülür.
+
+**Ders yönetimi**
+
+| İşlem | Hedef servis operasyonu | Temel kontroller |
+|---|---|---|
+| Ders oluşturma | `createCourse()` | Kategori geçerliliği, kısa ad ve kimlik numarası benzersizliği, tarih doğrulama |
+| Ders güncelleme | `updateCourse()` | Ders varlığı, yetkilendirme, alan doğrulama ve benzersizlik kontrolleri |
+| Ders silme | `deleteCourse()` | Silme yetkisi, SITEID kısıtı, yedekleme/geri yükleme çakışmaları, ilişkili veri temizliği |
+
+**Kullanıcı kayıt yönetimi**
+
+| İşlem | Hedef servis operasyonu | Temel kontroller |
+|---|---|---|
+| Kullanıcı kaydetme | `enrolUser()` | Kullanıcı ve kayıt yöntemi varlığı, yetkilendirme, mükerrer kayıt kontrolü |
+| Kayıt güncelleme | `updateUserEnrolment()` | Kayıt varlığı, durum ve zaman alanları, değişiklik kontrolü |
+| Kayıt silme | `unenrolUser()` | Kayıt varlığı, yetkilendirme, diğer kayıt yöntemlerinin korunması |
+
+Belirtilen servis operasyonları modernizasyon kapsamında önerilen soyutlamalardır; Moodle 5.3.1 kaynak kodundaki PHP fonksiyonlarıyla birebir aynı bileşenler değildir.
+
+**İşlem tutarlılığı**
+
+- Birden fazla ilişkili veri değişikliği içeren işlemlerde uygun veritabanı transaction mekanizmaları kullanılacaktır.
+- Hata durumunda tutarsız veya kısmen tamamlanmış veri değişikliklerinin oluşması önlenecektir.
+- Ders silme sırasında ilişkili kayıtlar ve içerikler mevcut Moodle iş kurallarıyla uyumlu şekilde temizlenecektir.
+- Asenkron ders silme kullanıldığında işlem durumu izlenecek; işlem tamamlanmadan dersin tamamen silindiği bildirilmeyecektir.
+- Kullanıcının bir kayıt yöntemi üzerinden kaydı kaldırıldığında diğer kayıt yöntemlerinden gelen kayıtları korunacaktır.
+- Kayıt bilgileri değişmemişse gereksiz veritabanı güncellemelerinden kaçınılacaktır.
+
+**Hata yönetimi**
+
+API katmanında doğrulama, yetkilendirme ve veri bütünlüğü hataları standart bir yanıt yapısıyla sunulacaktır.
+
+Önerilen hata yanıtı:
+
+```json
+{
+  "error": {
+    "code": "COURSE_SHORTNAME_CONFLICT",
+    "message": "Ders kısa adı zaten kullanılıyor.",
+    "field": "shortName"
+  }
+}
+```
+
+Hata mesajlarında hassas sistem bilgileri veya veritabanı ayrıntıları istemciye açıklanmayacaktır. Sunucu tarafında ise hata türü ve ilgili işlem izlenebilir biçimde kaydedilecektir.
+
+**Gereksinim ilişkisi:** CRS-FR-01–CRS-FR-11, CRS-NFR-01–CRS-NFR-08.
+
+#### 3.2.6 Gereksinim eşlemesi
+
+Hedef CRS tasarımında önerilen veri modeli, REST API uç noktaları, yetkilendirme kontrolleri ve servis operasyonları WBS-1 kapsamında belirlenen gereksinimlerle ilişkilendirilmiştir. Bu eşleme, analiz ve tasarım aşamaları arasında izlenebilirliği sağlamayı amaçlamaktadır.
+
+**Fonksiyonel gereksinim eşlemesi**
+
+| Gereksinim ID | Hedef tasarım karşılığı | İlgili tasarım bölümü |
+|---|---|---|
+| CRS-FR-01 | Kategori doğrulamasıyla ders oluşturma API'si | 3.2.2, 3.2.3, 3.2.5 |
+| CRS-FR-02 | Kısa ad ve kimlik numarası benzersizlik kontrolü | 3.2.2, 3.2.5 |
+| CRS-FR-03 | Ders başlangıç ve bitiş tarihi doğrulaması | 3.2.3, 3.2.5 |
+| CRS-FR-04 | Ders bilgilerini güncelleme API'si | 3.2.3, 3.2.5 |
+| CRS-FR-05 | İlişkili verileri temizleyen ders silme operasyonu | 3.2.3, 3.2.5 |
+| CRS-FR-06 | Kayıt yöntemi üzerinden kullanıcıyı derse kaydetme API'si | 3.2.2, 3.2.3, 3.2.5 |
+| CRS-FR-07 | Kayıt durumu ve zaman bilgilerini güncelleme API'si | 3.2.3, 3.2.5 |
+| CRS-FR-08 | Belirli kayıt yöntemi üzerinden kaydı kaldırma API'si | 3.2.3, 3.2.5 |
+| CRS-FR-09 | Ders bağlamında rol atama ve yetki kontrolleri | 3.2.4, 3.2.5 |
+| CRS-FR-10 | Ders ve kayıt değişikliklerinde sistem olaylarının tetiklenmesi | 3.2.3, 3.2.5 |
+| CRS-FR-11 | Asenkron ders silme ve işlem durumu yönetimi | 3.2.3, 3.2.5 |
+
+**Fonksiyonel olmayan gereksinim eşlemesi**
+
+| Gereksinim ID | Hedef tasarım karşılığı | İlgili tasarım bölümü |
+|---|---|---|
+| CRS-NFR-01 | Mükerrer kullanıcı kaydının engellenmesi ve benzersizlik kontrolü | 3.2.2, 3.2.5 |
+| CRS-NFR-02 | Ders silme sırasında ilişkili verilerin tutarlı temizlenmesi | 3.2.2, 3.2.5 |
+| CRS-NFR-03 | Yedekleme/geri yükleme işlemleriyle çakışmanın engellenmesi | 3.2.5 |
+| CRS-NFR-04 | Veri değişikliklerinden sonra ilgili önbelleklerin geçersiz kılınması | 3.2.5 |
+| CRS-NFR-05 | Değişmeyen kayıt bilgilerinde gereksiz güncellemelerin önlenmesi | 3.2.5 |
+| CRS-NFR-06 | Yapılandırmaya bağlı asenkron ders silme desteği | 3.2.3, 3.2.5 |
+| CRS-NFR-07 | Ders ve kayıt değişikliklerinin sistem olaylarıyla izlenmesi | 3.2.3, 3.2.5 |
+| CRS-NFR-08 | Eklenti genişletme mekanizmalarıyla uyumluluğun korunması | 3.2.1, 3.2.5 |
+
+**İzlenebilirlik yaklaşımı**
+
+- Her CRS fonksiyonel gereksinimi en az bir hedef tasarım bileşeniyle eşleştirilmiştir.
+- Fonksiyonel olmayan gereksinimler veri bütünlüğü, güvenilirlik, performans, verimlilik, ölçeklenebilirlik, izlenebilirlik ve genişletilebilirlik açısından değerlendirilmiştir.
+- WBS-1'de tanımlanan CRS-BR-01–CRS-BR-13 iş kuralları hedef tasarımda korunacaktır.
+- Bu eşleme tasarım kapsamını göstermektedir; hedef sistemin uygulanmış veya bütün gereksinimlerin test edilmiş olduğu anlamına gelmemektedir.
+- Ayrıntılı gereksinim izlenebilirliği proje kapsamındaki `docs/izlenebilirlik.md` dosyasıyla tutarlı tutulacaktır.
+#### 3.2.7 Test bulguları ve tasarım kararları
+
+Moodle 5.3.1 üzerinde ders yönetimi ve kullanıcı kayıt işlemlerinin mevcut davranışını değerlendirmek amacıyla manuel arayüz testleri gerçekleştirilmiştir. İlgili işlemler PostgreSQL veritabanı üzerinden de kontrol edilmiştir.
+
+**Gerçekleştirilen testler**
+
+| Test ID | Test senaryosu | Gerçekleşen sonuç | Durum |
+|---|---|---|---|
+| CRS-TEST-01 | Yeni ders oluşturma | Yeni ders oluşturuldu ve Moodle arayüzünde görüntülendi. | PASS |
+| CRS-TEST-02 | Ders bilgilerini güncelleme | Dersin tam adı başarıyla güncellendi. | PASS |
+| CRS-TEST-03 | Mükerrer ders kısa adı kontrolü | Aynı kısa adla yeni ders oluşturma girişimi hata mesajıyla engellendi. | PASS |
+| CRS-TEST-04 | Ders silme | Ders silindi; veritabanında ilgili ders kaydının bulunmadığı doğrulandı. | PASS |
+| CRS-TEST-05 | Kullanıcıyı derse kaydetme | Kullanıcı Student rolüyle kaydedildi; veritabanında aktif kayıt doğrulandı. | PASS |
+| CRS-TEST-06 | Kullanıcı kayıt durumunu güncelleme | Kullanıcı kaydı Suspended durumuna getirildi; veritabanında `status = 1` doğrulandı. | PASS |
+| CRS-TEST-07 | Kullanıcıyı dersten çıkarma | Kullanıcı katılımcı listesinden kaldırıldı; ilgili kayıt veritabanında bulunamadı. | PASS |
+
+**Veritabanı doğrulamaları**
+
+Testlerde Moodle'ın PostgreSQL veritabanındaki `m_course` ve `m_user_enrolments` tabloları kullanılmıştır.
+
+- CRS-TEST-04: Silinen dersin `id = 6` kaydı için sorgu sonucu `0 rows` olarak gözlemlenmiştir.
+- CRS-TEST-05: `ogrenci5` kullanıcısının `courseid = 5` için kayıt durumunun `status = 0` olduğu doğrulanmıştır.
+- CRS-TEST-06: Aynı kaydın durumunun `status = 1` olarak güncellendiği doğrulanmıştır.
+- CRS-TEST-07: Kullanıcının ilgili ders kaydının kaldırıldığı ve sorgunun `0 rows` döndürdüğü doğrulanmıştır.
+
+**Ek bulgu: Ders kısa adında görünmeyen karakter**
+
+Test sırasında iki dersin kısa adının arayüzde aynı göründüğü gözlemlenmiştir. Veritabanında yapılan karakter düzeyindeki inceleme sonucunda ilk dersin kısa adının başında TAB karakteri (`0x09`) bulunduğu belirlenmiştir.
+
+| Ders ID | Kısa adın gerçek içeriği | Uzunluk |
+|---|---|---|
+| 5 | TAB + `CRS_TEST_01` | 12 |
+| 6 | `CRS_TEST_01` | 11 |
+
+Bu nedenle iki kısa ad veritabanında farklı değerler olarak değerlendirilmiştir. Başında TAB bulunmayan `CRS_TEST_01` kısa adıyla yeniden ders oluşturulmaya çalışıldığında Moodle, kısa adın başka bir ders tarafından kullanıldığını belirten hata mesajı göstermiştir.
+
+Bu bulgu, mevcut kısa ad benzersizlik kontrolünün çalıştığını; ancak görünmeyen karakterlerin kullanıcı açısından yanıltıcı ders adlarına neden olabileceğini göstermektedir.
+
+**Hedef tasarım kararları**
+
+1. Ders kısa adları kaydedilmeden önce görünmeyen karakterler açısından doğrulanacaktır.
+2. Kısa ad normalizasyonu uygulanmadan önce mevcut kayıtlarla geriye dönük uyumluluk değerlendirilecektir.
+3. Mükerrer kısa ad kontrolü servis katmanında korunacaktır.
+4. Veri bütünlüğü açısından ek veritabanı kısıtları, mevcut Moodle şemasıyla uyumluluk değerlendirmesinden sonra kararlaştırılacaktır.
+5. Ders ve kayıt işlemlerinin doğrulanması için arayüz testleri ile veritabanı kontrolleri birlikte kullanılacaktır.
+
+**Değerlendirme sınırları**
+
+Gerçekleştirilen testler seçilen temel işlevsel senaryolarla sınırlıdır. Eşzamanlı işlem davranışı, yüksek kullanıcı yükü, performans, farklı kayıt eklentileri ve tüm yetkilendirme senaryoları test edilmemiştir. Bu nedenle sonuçlar, CRS modülünün bütün gereksinimlerinin doğrulandığı anlamına gelmemektedir.
+
+**İlgili gereksinimler:** CRS-FR-01, CRS-FR-02, CRS-FR-04–CRS-FR-08, CRS-NFR-01, CRS-NFR-02.
 ### 3.3 Danışmanlık (İrem)
 
 Moodle'da ADV'nin karşılığı yoktur (WBS-1 §4.3.1); aşağıdaki veri ve API tasarımı sıfırdan tanımlanmıştır ve WBS-1 §4.3.9'daki ADV-FR gereksinimlerini karşılamak üzere kurulmuştur.
@@ -314,3 +592,6 @@ Her gereksinim; eski sistemdeki kaynağına, yeni sistemdeki karşılığına ve
 | Kapsam özeti | Ara ve son raporda | Modül bazında K / D / Y sayıları ve geçme oranları |
 
 ## 6. Modernizasyon süreç taslağı (Sinem)
+
+
+

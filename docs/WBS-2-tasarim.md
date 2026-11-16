@@ -939,6 +939,412 @@ Her gereksinim; eski sistemdeki kaynağına, yeni sistemdeki karşılığına ve
 | Kapsam özeti | Ara ve son raporda | Modül bazında K / D / Y sayıları ve geçme oranları |
 
 ## 6. Modernizasyon süreç taslağı (Sinem)
+### 6.1 Modernizasyon yaklaşımı
 
+Moodle 5.3.1 modernizasyon sürecinde temel yaklaşım, mevcut sistemin işlevsel davranışlarını ve veri bütünlüğünü koruyarak güvenlik, sürdürülebilirlik, bakım kolaylığı ve genişletilebilirlik açısından iyileştirilmesidir.
 
+Modernizasyon, Moodle altyapısının tamamen yeniden geliştirilmesi yerine mevcut bileşenlerin analiz edilmesi, iyileştirme gerektiren noktaların belirlenmesi ve hedef mimariye kontrollü biçimde geçilmesi esasına dayanacaktır.
 
+**Temel ilkeler**
+
+1. **Mevcut davranışların korunması:** WBS-1 kapsamında belirlenen iş kuralları ve temel kullanıcı iş akışları korunacaktır.
+2. **Gereksinim odaklı geliştirme:** Modernizasyon çalışmaları WBS-1 gereksinimleri ve WBS-2 hedef tasarımları üzerinden yürütülecektir.
+3. **Modüler yaklaşım:** AUTH, CRS, ASG, GRD, FILE ve diğer modüller arasındaki sorumluluklar ve bağımlılıklar dikkate alınacaktır.
+4. **Veri uyumluluğu:** Mevcut Moodle veri modeli ve ilişkileri mümkün olduğunca korunacak; şema değişiklikleri gerektiğinde kontrollü geçiş planı hazırlanacaktır.
+5. **Güvenli geliştirme:** Kimlik doğrulama, yetkilendirme, oturum yönetimi ve veri erişimi kontrolleri modernizasyon boyunca korunacaktır.
+6. **Kademeli uygulama:** Değişiklikler küçük, test edilebilir ve geri alınabilir geliştirme adımlarıyla gerçekleştirilecektir.
+7. **Regresyon testleri:** Mevcut sistemde doğrulanan temel davranışların modernizasyon sonrasında da çalıştığı test edilecektir.
+8. **İzlenebilirlik:** Gereksinimler, tasarım kararları, geliştirme değişiklikleri ve test sonuçları ilişkilendirilecektir.
+
+**Modernizasyon kapsamı**
+
+Modernizasyon çalışmaları, WBS-1 analizinde belirlenen korunacak davranışlar, iyileştirme adayları ve yeni gereksinimler doğrultusunda planlanacaktır.
+
+WBS-2 kapsamında hazırlanan hedef tasarımlar, geliştirme aşaması için teknik referans olarak kullanılacaktır. Önerilen REST API uç noktaları ve mantıksal servis bileşenleri hedef tasarım önerileridir; mevcut Moodle 5.3.1 altyapısında uygulanmış özellikler olarak değerlendirilmemelidir.
+
+**Beklenen çıktı**
+
+Modernizasyon sürecinin sonunda mevcut Moodle işlevleriyle uyumlu, güvenlik kontrolleri doğrulanmış, gereksinimlerle izlenebilir ve test sonuçlarıyla desteklenmiş bir sistem elde edilmesi hedeflenmektedir.
+
+### 6.2 Modernizasyon aşamaları
+
+Moodle 5.3.1 modernizasyon süreci, mevcut sistemin analizinden hedef tasarımın doğrulanmasına kadar birbirini takip eden aşamalar halinde planlanacaktır.
+
+Bu yaklaşım, geliştirme faaliyetlerinin kontrollü yürütülmesini ve mevcut sistem davranışlarının korunmasını amaçlamaktadır.
+
+**Aşama 1 — Mevcut sistem analizi**
+
+Mevcut Moodle modüllerinin işlevleri, veri modelleri, iş kuralları, kullanıcı rolleri ve modüller arası bağımlılıkları incelenir.
+
+- Mevcut iş akışları belirlenir.
+- Korunacak davranışlar ve iyileştirme adayları tanımlanır.
+- Fonksiyonel ve fonksiyonel olmayan gereksinimler oluşturulur.
+- Mevcut davranışları doğrulamak için temel testler gerçekleştirilir.
+
+**Çıktı:** WBS-1 analiz belgesi ve gereksinim listesi.
+
+**Aşama 2 — Hedef sistem tasarımı**
+
+WBS-1 gereksinimleri temel alınarak modernizasyon sonrası hedeflenen mimari ve bileşen davranışları tasarlanır.
+
+- Modüllerin hedef sorumlulukları belirlenir.
+- Veri modeli ve bütünlük kuralları değerlendirilir.
+- Gerekli servis ve API arayüzleri önerilir.
+- Yetkilendirme ve güvenlik kontrolleri tasarlanır.
+- Gereksinimlerle tasarım bileşenleri eşleştirilir.
+
+**Çıktı:** WBS-2 hedef tasarım belgesi ve gereksinim izlenebilirliği.
+
+**Aşama 3 — Geliştirme planlaması**
+
+Hedef tasarımda belirlenen değişiklikler uygulanabilir geliştirme görevlerine ayrılır.
+
+- İş paketleri ve öncelikler belirlenir.
+- Modüller arası bağımlılıklar değerlendirilir.
+- Geliştirme sırası planlanır.
+- Test ve kabul kriterleri netleştirilir.
+- Olası teknik riskler ve geri dönüş ihtiyaçları belirlenir.
+
+**Çıktı:** Geliştirme görevleri, uygulama sırası ve test planı.
+
+**Aşama 4 — Kademeli uygulama**
+
+Onaylanan tasarım kararları doğrultusunda modernizasyon değişiklikleri küçük ve kontrol edilebilir adımlarla uygulanır.
+
+- Mevcut Moodle altyapısıyla uyumlu geliştirmeler yapılır.
+- Gerektiğinde servis ve API arayüzleri eklenir.
+- Veri bütünlüğü ve mevcut modül entegrasyonları korunur.
+- Değişiklikler sürüm kontrol sistemi üzerinden takip edilir.
+- Kod incelemesi ve birleştirme süreçleri uygulanır.
+
+**Çıktı:** Sürüm kontrolünde izlenebilir geliştirme değişiklikleri.
+
+**Aşama 5 — Test ve doğrulama**
+
+Geliştirilen değişiklikler, WBS-1 gereksinimleri ve WBS-2 tasarım kararları temel alınarak doğrulanır.
+
+- Fonksiyonel testler uygulanır.
+- Yetkilendirme ve güvenlik kontrolleri gerçekleştirilir.
+- Veri bütünlüğü ve modüller arası entegrasyonlar test edilir.
+- Mevcut davranışların korunması için regresyon testleri yapılır.
+- Başarısız testler ve eksik doğrulamalar kayıt altına alınır.
+
+**Çıktı:** Test sonuçları, hata kayıtları ve gereksinim doğrulama durumu.
+
+**Aşama 6 — Geçiş ve değerlendirme**
+
+Modernizasyon değişikliklerinin mevcut sistemle uyumluluğu değerlendirilir ve uygulanabilir bir geçiş yaklaşımı hazırlanır.
+
+- Veri ve yapılandırma uyumluluğu kontrol edilir.
+- Gerekli yedekleme ve geri dönüş adımları belirlenir.
+- Tamamlanan ve ertelenen geliştirmeler raporlanır.
+- Kalan riskler ve doğrulama eksiklikleri değerlendirilir.
+- Hedeflenen kabul kriterlerinin karşılanma durumu incelenir.
+
+**Çıktı:** Modernizasyon değerlendirme raporu ve geçiş planı.
+
+**Aşamalar arası ilişki**
+
+Aşamalar sıralı olarak tanımlanmış olsa da testlerde veya geliştirme sırasında ortaya çıkan bulgular önceki aşamalardaki gereksinimlerin ve tasarım kararlarının güncellenmesini gerektirebilir.
+
+Bu nedenle modernizasyon süreci, geri bildirimlere açık ve yinelemeli bir yaklaşımla yürütülecektir.
+
+WBS-1 ve WBS-2 kapsamında tamamlanan analiz ve tasarım faaliyetleri ile sonraki aşamalar için önerilen geliştirme ve geçiş faaliyetleri birbirinden ayrı değerlendirilecektir.
+
+### 6.3 Veri uyumluluğu ve geçiş stratejisi
+
+Moodle 5.3.1 modernizasyon sürecinde mevcut kullanıcı, ders, kayıt, rol ve yetkilendirme verilerinin bütünlüğünün korunması temel önceliklerden biridir.
+
+Hedef tasarımda mümkün olduğunca mevcut Moodle veri modelinin kullanılması, gereksiz şema değişikliklerinden kaçınılması ve modüller arası veri ilişkilerinin korunması esas alınacaktır.
+
+**6.3.1 Veri uyumluluğu ilkeleri**
+
+1. Mevcut Moodle tabloları ve temel veri ilişkileri korunacaktır.
+2. Veri modeli değişiklikleri yalnızca doğrulanmış gereksinimler doğrultusunda planlanacaktır.
+3. Yeni alan veya tablo eklenmesi gerektiğinde mevcut modüller üzerindeki etkileri değerlendirilecektir.
+4. Birincil anahtar, yabancı anahtar, benzersizlik ve indeks yapıları dikkate alınacaktır.
+5. Veri erişim işlemleri Moodle'ın mevcut veri erişim mekanizmalarıyla uyumlu gerçekleştirilecektir.
+6. Mevcut verilerin yeni tasarımla uyumluluğu geçiş öncesinde doğrulanacaktır.
+
+**6.3.2 Modül bazlı veri bütünlüğü**
+
+| Modül | Korunacak temel veri yapıları | Temel kontrol |
+|---|---|---|
+| AUTH | `user`, `role`, `context`, `role_assignments`, `role_capabilities` | Kullanıcı kimliği, rol atamaları ve bağlama duyarlı yetkilendirme |
+| CRS | `course`, `enrol`, `user_enrolments` | Ders bilgileri, kayıt ilişkileri ve kayıt durumları |
+| ASG | Ödev ve teslim verileri | Ödevlerin ve kullanıcı teslimlerinin korunması |
+| GRD | Notlandırma verileri | Notların ve değerlendirme ilişkilerinin korunması |
+| FILE | Dosya ve dosya bağlamı verileri | Dosya sahipliği, erişim yetkileri ve dosya bütünlüğü |
+
+Bu tablo modüllerin temel veri sorumluluklarını özetlemektedir. Ayrıntılı tablo ve alan ilişkileri ilgili WBS-1 analiz ve WBS-2 tasarım bölümlerinde ele alınacaktır.
+
+**6.3.3 Veritabanı değişikliklerinin yönetimi**
+
+Modernizasyon sırasında veritabanı şemasında değişiklik yapılması gerekirse aşağıdaki süreç izlenecektir:
+
+1. Değişiklik ihtiyacı ilgili gereksinimle ilişkilendirilir.
+2. Etkilenen tablolar ve modüller belirlenir.
+3. Mevcut veriler üzerindeki olası etkiler değerlendirilir.
+4. Moodle'ın desteklediği yükseltme ve şema yönetimi mekanizmaları kullanılarak değişiklik planlanır.
+5. Değişiklik önce geliştirme veya test ortamında uygulanır.
+6. Veri bütünlüğü ve regresyon testleri gerçekleştirilir.
+7. Doğrulama başarılıysa kontrollü geçiş için hazırlanır.
+
+Doğrudan veritabanı üzerinde kontrolsüz şema değişiklikleri yapılması hedeflenmemektedir.
+
+**6.3.4 Yedekleme ve geri dönüş yaklaşımı**
+
+Modernizasyon değişiklikleri uygulanmadan önce mevcut verilerin ve yapılandırmanın geri yüklenebilir yedeklerinin alınması planlanacaktır.
+
+Yedekleme kapsamı:
+
+- Moodle veritabanı.
+- Moodle dosya depolama alanı (`moodledata`).
+- Uygulama kaynak kodu ve ilgili sürüm bilgileri.
+- Ortama özgü yapılandırma dosyaları ve gerekli sistem ayarları.
+
+Geri dönüş ihtiyacında yalnızca kaynak kodunun eski sürüme alınmasının yeterli olmayabileceği dikkate alınacaktır. Veritabanı şeması ve dosya depolama alanı da uyumlu bir yedekleme noktasından geri yüklenmelidir.
+
+Bu nedenle geri dönüş adımları, değişikliğin veri üzerindeki etkisine göre önceden planlanacak ve mümkün olduğunda test ortamında doğrulanacaktır.
+
+**6.3.5 Geçiş doğrulama kriterleri**
+
+Geçiş sonrasında aşağıdaki kontrollerin yapılması hedeflenmektedir:
+
+- Mevcut kullanıcı hesaplarının ve hesap durumlarının korunması.
+- Rol atamalarının ve bağlama duyarlı yetkilendirme davranışlarının değişmemesi.
+- Ders bilgilerinin ve kullanıcı kayıtlarının bütünlüğünün korunması.
+- Ödev, not ve dosya verilerine erişimin ilgili yetkiler doğrultusunda sürdürülmesi.
+- Temel iş akışlarının regresyon testlerinden geçmesi.
+- Veri kaybı veya beklenmeyen yetki genişlemesi oluşmaması.
+
+**Geçiş stratejisi**
+
+Modernizasyon değişiklikleri önce yerel geliştirme ve test ortamlarında doğrulanacak, ardından uygun görülen değişiklikler kontrollü biçimde birleştirilecektir.
+
+Üretim ortamına geçiş, veri taşıma veya geri yükleme işlemlerinin gerçekleştirildiği varsayılmamaktadır. Bu bölüm, sonraki uygulama aşamaları için önerilen veri uyumluluğu ve geçiş yaklaşımını tanımlamaktadır.
+
+### 6.4 Test ve kalite güvence stratejisi
+
+Moodle 5.3.1 modernizasyon sürecinde kalite güvencesinin temel amacı, mevcut sistemin işlevsel davranışlarının korunmasını ve modernizasyon kapsamında geliştirilen değişikliklerin gereksinimleri karşılamasını sağlamaktır.
+
+Test faaliyetleri WBS-1 kapsamında tanımlanan gereksinimler, mevcut sistem testleri ve WBS-2 hedef tasarım kararları temel alınarak yürütülecektir.
+
+**6.4.1 Test seviyeleri**
+
+| Test seviyesi | Amaç | Örnek doğrulama |
+|---|---|---|
+| Birim testleri | Değiştirilen fonksiyonların beklenen davranışını doğrulamak | Girdi doğrulama ve iş kuralı kontrolleri |
+| Entegrasyon testleri | Modüller arasındaki veri ve işlem uyumluluğunu kontrol etmek | AUTH–CRS yetkilendirme ve kayıt ilişkileri |
+| Fonksiyonel testler | Kullanıcı iş akışlarının gereksinimleri karşıladığını doğrulamak | Giriş, ders oluşturma ve kullanıcı kaydı |
+| Güvenlik testleri | Yetkisiz erişim ve hassas bilgi ifşasını önlemek | Capability kontrolü ve hata mesajları |
+| Regresyon testleri | Mevcut davranışların değişikliklerden etkilenmediğini doğrulamak | Önceden başarılı olan senaryoların tekrarlanması |
+| Veri bütünlüğü testleri | Veritabanı ilişkilerinin ve kayıtların korunmasını doğrulamak | Ders silme ve kayıt sonlandırma sonrası veri kontrolü |
+
+**6.4.2 Mevcut testlerin referans alınması**
+
+WBS-1 kapsamında gerçekleştirilen testler, modernizasyon öncesi sistem davranışlarını gösteren başlangıç doğrulama verileri olarak kullanılacaktır.
+
+AUTH modülünde T-AUTH-01–T-AUTH-10 testleri uygulanmış ve beklenen temel davranışlar gözlemlenmiştir. Bazı senaryolarda silinmiş hesap, oturum zaman aşımı, kayıt doğrulama ve parola değiştirme işleminin tamamlanması gibi ek kontroller gerekmektedir.
+
+CRS modülünde CRS-TEST-01–CRS-TEST-07 testleriyle ders oluşturma, güncelleme, silme ve kullanıcı kayıt işlemleri doğrulanmıştır.
+
+Modernizasyon sonrasında bu testlerin yeniden uygulanması, mevcut davranışların korunup korunmadığını değerlendirmek için kullanılacaktır.
+
+**6.4.3 Test yürütme süreci**
+
+1. Test edilecek değişiklik ve ilişkili gereksinimler belirlenir.
+2. İlgili WBS-1 test senaryoları ve kabul kriterleri incelenir.
+3. Gerekli test kullanıcıları, dersler ve veriler hazırlanır.
+4. Testler uygun geliştirme veya test ortamında gerçekleştirilir.
+5. Gerçekleşen sonuçlar beklenen sonuçlarla karşılaştırılır.
+6. Başarısız testler ve beklenmeyen davranışlar kayıt altına alınır.
+7. Düzeltmelerden sonra ilgili testler yeniden çalıştırılır.
+8. Etkilenen modüllerde regresyon kontrolleri gerçekleştirilir.
+
+**6.4.4 Kalite ve kabul kriterleri**
+
+Modernizasyon değişikliklerinin kabulünde aşağıdaki kriterler esas alınacaktır:
+
+- İlgili fonksiyonel gereksinimlerin kabul kriterleri karşılanmalıdır.
+- Yetkisiz kullanıcılar korunan işlemleri gerçekleştirememelidir.
+- Kullanıcı, rol, ders ve kayıt verilerinde beklenmeyen veri kaybı oluşmamalıdır.
+- Mevcut iş akışlarında doğrulanmış davranışlar korunmalıdır.
+- Güvenlik kontrolleri sunucu tarafında uygulanmalıdır.
+- Kullanıcıya hassas sistem ayrıntıları ve hata ayıklama bilgileri gösterilmemelidir.
+- Kritik veya yüksek öncelikli açık hatalar kabul öncesinde değerlendirilmelidir.
+- Test sonuçları ilgili gereksinim ve geliştirme değişikliğiyle ilişkilendirilmelidir.
+
+WBS-1 kapsamında tanımlanan AUTH-NFR-02 gereksinimi doğrultusunda, test kapsamındaki yetkisiz işlemlerin tamamının reddedilmesi hedeflenmektedir.
+
+**6.4.5 Hata ve bulgu yönetimi**
+
+Test sırasında tespit edilen sorunlar, doğrulanmış hatalar ve araştırılması gereken gözlemler olarak ayrı değerlendirilecektir.
+
+Her bulgu için mümkün olduğunda şu bilgiler kaydedilecektir:
+
+- İlgili modül ve gereksinim.
+- Test senaryosu.
+- Beklenen ve gerçekleşen davranış.
+- Tekrarlama adımları.
+- Etkilenen ortam ve yapılandırma.
+- Hatanın durumu ve uygulanan düzeltme.
+- Yeniden test sonucu.
+
+Örneğin AUTH-BUG-01 kapsamında geliştirme ortamında çağrı yığını görüntülenmesi, üretim benzeri hata ayıklama ayarlarıyla tekrarlandığında gözlemlenmemiştir. Bu nedenle söz konusu bulgu doğrulanmış bir Moodle yazılım hatası olarak değerlendirilmemiştir.
+
+**6.4.6 Test raporlama ve izlenebilirlik**
+
+Test sonuçları gereksinim kimlikleriyle ilişkilendirilecek ve tamamlanan, başarısız olan, kısmen doğrulanan veya henüz uygulanmayan kontroller açıkça belirtilecektir.
+
+Test raporlarında kullanılan ortam, uygulama sürümü ve varsa yapılandırma farklılıkları kayıt altına alınacaktır.
+
+Modernizasyon kapsamında önerilen yeni API veya servis bileşenleri geliştirilirse bunlar için ek test senaryoları hazırlanacaktır. Henüz uygulanmamış hedef tasarım bileşenleri test edilmiş olarak raporlanmayacaktır.
+
+**Beklenen çıktı**
+
+Gereksinimlerle ilişkilendirilmiş test sonuçları, doğrulanmış hata kayıtları, regresyon testleri ve modernizasyon değişikliklerinin kabul durumunu gösteren kalite güvence raporu.
+### 6.5 Risk yönetimi ve geri dönüş planı
+
+Moodle 5.3.1 modernizasyon sürecinde mevcut sistem davranışlarının, veri bütünlüğünün ve güvenlik mekanizmalarının korunması önem taşımaktadır.
+
+Modernizasyon sırasında ortaya çıkabilecek teknik riskler önceden değerlendirilecek, gerekli önlemler planlanacak ve kritik değişiklikler için geri dönüş yaklaşımı belirlenecektir.
+
+**6.5.1 Teknik risklerin belirlenmesi**
+
+Aşağıdaki tablo, modernizasyon kapsamında öngörülen başlıca riskleri ve bunlara yönelik önlemleri göstermektedir.
+
+| Risk | Olası etki | Önleyici yaklaşım |
+|---|---|---|
+| Mevcut iş kurallarının değişmesi | Kullanıcı iş akışlarının bozulması | WBS-1 gereksinimleri ve regresyon testleri |
+| Veri bütünlüğünün bozulması | Kullanıcı, ders veya kayıt verilerinin kaybı | Yedekleme, veri bütünlüğü testleri |
+| Yetkilendirme hataları | Yetkisiz kullanıcıların korunan işlemlere erişmesi | Sunucu tarafı capability kontrolleri |
+| Oturum yönetimi hataları | Geçersiz oturumlarla erişim veya beklenmeyen oturum sonlandırma | Oturum ve güvenlik testleri |
+| Modüller arası uyumsuzluk | AUTH, CRS ve diğer modüllerde işlev kaybı | Entegrasyon testleri |
+| API uyumsuzluğu | Mevcut istemcilerin veya eklentilerin etkilenmesi | Geriye dönük uyumluluk değerlendirmesi |
+| Veritabanı şema değişiklikleri | Mevcut sorguların veya veri ilişkilerinin bozulması | Kontrollü yükseltme ve şema doğrulama |
+| Hatalı yapılandırma | Hassas sistem bilgilerinin açığa çıkması | Güvenli yapılandırma ve hata mesajı kontrolleri |
+| Yetersiz test kapsamı | Hataların geç fark edilmesi | Gereksinim izlenebilirliği ve ek test senaryoları |
+
+Bu riskler, modernizasyon planlaması için öngörülen risklerdir; tamamının mevcut Moodle sisteminde gerçekleştiği anlamına gelmemektedir.
+
+**6.5.2 Risk değerlendirme yaklaşımı**
+
+Riskler, gerçekleşme olasılığı ve sistem üzerindeki etkileri dikkate alınarak değerlendirilecektir.
+
+Özellikle aşağıdaki durumlar yüksek öncelikli olarak ele alınacaktır:
+
+1. Yetkisiz erişime neden olabilecek güvenlik açıkları.
+2. Kullanıcı veya ders verilerinin kaybına yol açabilecek değişiklikler.
+3. Temel kimlik doğrulama ve oturum yönetimi işlevlerinin bozulması.
+4. Modüller arası kritik entegrasyonların çalışmaması.
+5. Geri dönüşü zor veritabanı değişiklikleri.
+
+Risk değerlendirmeleri geliştirme ve test aşamalarında güncellenecektir.
+
+**6.5.3 Geri dönüş planı**
+
+Modernizasyon değişikliklerinin beklenen davranışları karşılamaması veya kritik bir soruna neden olması durumunda kontrollü geri dönüş uygulanması planlanacaktır.
+
+Geri dönüş süreci aşağıdaki adımları içerecektir:
+
+1. Sorunun kapsamı ve etkilenen modüller belirlenir.
+2. İlgili değişikliğin sürüm kontrolündeki karşılığı tespit edilir.
+3. Değişikliğin veritabanı ve dosya depolama alanı üzerindeki etkileri değerlendirilir.
+4. Gerekirse etkilenen işlemler durdurularak yeni veri değişiklikleri engellenir.
+5. Önceden hazırlanmış ve doğrulanmış yedekler kullanılarak uygun geri yükleme işlemi gerçekleştirilir.
+6. Uygulama kodu, veritabanı ve dosya depolama alanı arasındaki uyumluluk kontrol edilir.
+7. Temel iş akışları ve güvenlik kontrolleri yeniden test edilir.
+8. Geri dönüş sonucu ve sorunun nedeni kayıt altına alınır.
+
+**6.5.4 Sürüm kontrolü ve değişiklik yönetimi**
+
+Geliştirme değişiklikleri Git üzerinden takip edilecek ve ayrı branch'lerde yürütülecektir.
+
+- Değişiklikler ilgili gereksinim veya geliştirme göreviyle ilişkilendirilecektir.
+- Commit mesajları yapılan değişikliğin kapsamını açıklayacaktır.
+- Pull Request üzerinden kod incelemesi ve birleştirme süreçleri uygulanacaktır.
+- Kritik değişiklikler birleştirilmeden önce ilgili testlerden geçirilecektir.
+- Gerektiğinde önceki kararlı sürüme dönüş için sürüm geçmişinden yararlanılacaktır.
+
+Git üzerinden kaynak kodunun geri alınması, veritabanı veya `moodledata` üzerinde gerçekleşmiş değişiklikleri otomatik olarak geri almaz. Bu nedenle geri dönüş planı tüm ilgili sistem bileşenlerini kapsayacaktır.
+
+**6.5.5 Risklerin izlenmesi ve raporlanması**
+
+Modernizasyon süresince tespit edilen riskler ve doğrulama eksiklikleri kayıt altına alınacaktır.
+
+Her risk için mümkün olduğunda riskin açıklaması, etkilenen modül, olası etkisi, önceliği, alınacak önlem ve güncel durumu belirtilecektir.
+
+WBS-1 kapsamında belirlenen ancak henüz tamamen doğrulanmamış davranışlar da ilgili risk değerlendirmelerinde dikkate alınacaktır.
+
+**Beklenen çıktı**
+
+Modernizasyon sürecine ait risk kayıtları, önleyici tedbirler, sürüm kontrolüyle izlenebilir değişiklikler ve gerektiğinde uygulanabilecek geri dönüş planı.
+### 6.6 Modernizasyon başarı ve kabul kriterleri
+
+Moodle 5.3.1 modernizasyon sürecinin başarısı, WBS-1 kapsamında belirlenen gereksinimlerin karşılanması, WBS-2 hedef tasarımına uygunluk, mevcut işlevlerin korunması ve gerçekleştirilen değişikliklerin testlerle doğrulanması üzerinden değerlendirilecektir.
+
+Başarı kriterleri yalnızca yeni işlevlerin geliştirilmesini değil, mevcut sistem davranışlarının güvenli ve sürdürülebilir biçimde korunmasını da kapsamaktadır.
+
+**6.6.1 Fonksiyonel kabul kriterleri**
+
+| Kriter | Kabul koşulu | Doğrulama yöntemi |
+|---|---|---|
+| Kimlik doğrulama | Geçerli kullanıcı bilgileriyle giriş yapılabilmeli, geçersiz girişler reddedilmelidir | AUTH fonksiyonel testleri |
+| Yetkilendirme | Kullanıcılar yalnızca yetkili oldukları bağlamlarda korunan işlemleri gerçekleştirebilmelidir | Rol ve capability testleri |
+| Oturum yönetimi | Çıkış ve oturum geçerliliği kontrolleri doğru çalışmalıdır | Oturum testleri |
+| Ders yönetimi | Ders oluşturma, güncelleme ve silme işlemleri mevcut iş kurallarına uygun olmalıdır | CRS fonksiyonel testleri |
+| Kullanıcı kayıtları | Derse kayıt, kayıt durumunu değiştirme ve kayıt sonlandırma işlemleri doğru çalışmalıdır | CRS kayıt testleri |
+| Modüller arası uyumluluk | AUTH, CRS ve diğer modüllerin temel entegrasyonları korunmalıdır | Entegrasyon testleri |
+
+Bu kriterler, modernizasyon kapsamında değiştirilen veya etkilenen bileşenler için uygulanacaktır.
+
+**6.6.2 Güvenlik ve veri bütünlüğü kriterleri**
+
+1. Test kapsamındaki yetkisiz erişim girişimlerinin tamamı reddedilmelidir.
+2. Kullanıcıların rol ve bağlam temelli yetkileri korunmalıdır.
+3. Askıya alınmış veya silinmiş hesaplara ilişkin erişim kuralları uygulanmalıdır.
+4. Hassas kimlik doğrulama bilgileri ve sistem hata ayıklama ayrıntıları kullanıcıya açıklanmamalıdır.
+5. Mevcut kullanıcı, ders, kayıt ve diğer modül verilerinde beklenmeyen veri kaybı oluşmamalıdır.
+6. Veritabanı değişiklikleri mevcut veri ilişkileri ve bütünlük kurallarıyla uyumlu olmalıdır.
+7. Kritik değişiklikler için yedekleme ve geri dönüş yaklaşımı belirlenmiş olmalıdır.
+
+**6.6.3 Test ve izlenebilirlik kriterleri**
+
+- Modernizasyon kapsamına alınan gereksinimler ilgili tasarım bileşenleriyle eşleştirilmelidir.
+- Her gereksinim için uygun kabul kriteri ve doğrulama yöntemi belirlenmelidir.
+- Değişikliklerden etkilenen mevcut iş akışları regresyon testleriyle doğrulanmalıdır.
+- Test sonuçları başarılı, başarısız, kısmen doğrulanmış veya uygulanmamış olarak açıkça raporlanmalıdır.
+- Kritik ve yüksek öncelikli hatalar kabul öncesinde değerlendirilmelidir.
+- Test kapsamı dışında kalan davranışlar doğrulanmış olarak gösterilmemelidir.
+
+**6.6.4 Sürdürülebilirlik ve bakım kriterleri**
+
+Modernizasyon kapsamında gerçekleştirilen geliştirmelerin bakımının yapılabilir ve izlenebilir olması hedeflenmektedir.
+
+Bu doğrultuda:
+
+1. Kod değişiklikleri sürüm kontrol sisteminde takip edilmelidir.
+2. Tasarım kararları ve önemli teknik değişiklikler belgelenmelidir.
+3. Mevcut Moodle eklenti ve modül yapısıyla uyumluluk değerlendirilmelidir.
+4. Gereksiz veri modeli değişikliklerinden kaçınılmalıdır.
+5. Yeni servis veya API arayüzleri geliştirilirse bunların kullanım ve güvenlik kuralları belgelenmelidir.
+6. Geliştirme değişiklikleri ilgili gereksinimlerle ilişkilendirilmelidir.
+
+**6.6.5 Mevcut durum ve hedeflenen kabul**
+
+WBS-1 kapsamında AUTH modülü için T-AUTH-01–T-AUTH-10, CRS modülü için CRS-TEST-01–CRS-TEST-07 senaryoları uygulanmış ve belirtilen temel davranışlar doğrulanmıştır.
+
+Bununla birlikte AUTH testlerinde belirlenen kapsam sınırlılıkları ve sonraki doğrulama ihtiyaçları devam etmektedir.
+
+WBS-2 kapsamında hazırlanan hedef tasarımlar, modernizasyonun uygulama aşaması için teknik referans niteliğindedir. Bu tasarımların belgelenmiş olması, önerilen API'lerin veya mimari değişikliklerin geliştirilip test edildiği anlamına gelmemektedir.
+
+**Nihai kabul yaklaşımı**
+
+Modernizasyon değişikliklerinin kabulü için ilgili gereksinimlerin karşılandığı, temel işlevlerin korunduğu, kritik güvenlik ve veri bütünlüğü kontrollerinin başarılı olduğu ve test sonuçlarının kayıt altına alındığı gösterilmelidir.
+
+Karşılanmayan kriterler ve tamamlanmamış doğrulamalar açıkça raporlanacak; kabul kararı bu bilgiler doğrultusunda verilecektir.
+
+**Beklenen çıktı**
+
+Gereksinimlerle ilişkilendirilmiş kabul kriterleri, test ve doğrulama sonuçları, açık kalan bulgular ve modernizasyonun kabul durumunu gösteren değerlendirme kaydı.

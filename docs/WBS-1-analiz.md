@@ -409,7 +409,343 @@ Moodle'ın bütün harici kimlik doğrulama eklentilerinin birebir yeniden geli�
 Yeni mimaride roller ve yetenekler merkezi bir yetkilendirme mekanizmasıyla değerlendirilmeli; ders, ödev, not ve dosya modülleri bu mekanizmayı ortak kullanmalıdır.
 
 ### 4.2 Ders ve kayıt (Sinem)
+#### 4.2.1 Moodle'daki karşılığı
+Moodle 5.3.1'de ders kayıt işlemleri `public/lib/enrollib.php`
+dosyasında yer alan `enrol_plugin` sınıfı üzerinden yönetilir.
 
+Kaynak kod incelemesinde aşağıdaki fonksiyonların varlığı doğrulanmıştır:
+
+| Fonksiyon | Kaynak satırı | Görevi |
+|---|---|---|
+| `enrol_user()` | 2113 | Kullanıcıyı derse kaydetme |
+| `update_user_enrol()` | 2215 | Mevcut ders kaydını güncelleme |
+| `unenrol_user()` | 2295 | Kullanıcının ders kaydını kaldırma |
+
+Bu fonksiyonlar, ders kayıt yönetiminin temel işlemlerini oluşturur.
+**Veritabanı tabloları**
+
+Moodle 5.3.1 kaynak kodundaki `public/lib/db/install.xml`
+dosyası incelenerek aşağıdaki tablolar doğrulanmıştır.
+
+| Tablo | Kaynak satırı | Açıklama |
+|---|---|---|
+| `course` | 70 | Derslerin temel bilgilerini saklar. |
+| `course_categories` | 123 | Ders kategorilerini tanımlar. |
+| `enrol` | 255 | Derslerde kullanılan kayıt eklentisi örneklerini saklar. |
+| `user_enrolments` | 302 | Öğrenci ve öğretmenlerin ders kayıtlarını saklar. |
+
+Kaynak: Moodle 5.3.1, `public/lib/db/install.xml`.
+#### 4.2.2 Veri Modeli ve İlişkiler
+
+Moodle 5.3.1 kaynak kodundaki `public/lib/db/install.xml` dosyası incelenerek CRS modülünün temel veri modeli belirlenmiştir.
+
+| Tablo | Önemli Alanlar | Görevi |
+|---|---|---|
+| `course` | `id`, `category`, `fullname`, `shortname`, `visible` | Ders bilgilerini tutar. |
+| `course_categories` | `id`, `name`, `parent`, `visible` | Ders kategorilerini ve kategori hiyerarşisini tutar. |
+| `enrol` | `id`, `courseid`, `enrol`, `status` | Dersin kayıt yöntemlerini tanımlar. |
+| `user_enrolments` | `id`, `enrolid`, `userid`, `status`, `timestart`, `timeend` | Kullanıcıların ders kayıtlarını tutar. |
+
+**ER Diyagramı**
+
+```mermaid
+erDiagram
+    COURSE_CATEGORIES ||--o{ COURSE : kategorilendirir
+    COURSE_CATEGORIES ||--o{ COURSE_CATEGORIES : alt_kategori
+    COURSE ||--o{ ENROL : kayit_yontemi
+    ENROL ||--o{ USER_ENROLMENTS : kayit_olusturur
+    USER ||--o{ USER_ENROLMENTS : derse_katilir
+```
+
+**Tablolar Arası İlişkiler**
+
+1. `course.category` → `course_categories.id`: Dersin bağlı olduğu kategoriyi belirtir.
+2. `course_categories.parent` → `course_categories.id`: Kategoriler arasındaki üst-alt kategori ilişkisini belirtir.
+3. `enrol.courseid` → `course.id`: Kayıt yönteminin bağlı olduğu dersi belirtir.
+4. `user_enrolments.enrolid` → `enrol.id`: Kullanıcı kaydının hangi kayıt yöntemi üzerinden oluşturulduğunu belirtir.
+5. `user_enrolments.userid` → `user.id`: Ders kaydının hangi kullanıcıya ait olduğunu belirtir.
+
+**Veri Bütünlüğü**
+
+- Her tablonun `id` alanı birincil anahtar olarak tanımlanmıştır.
+- `enrol.courseid`, `course.id` alanına yabancı anahtar ile bağlıdır.
+- `user_enrolments.enrolid`, `enrol.id` alanına yabancı anahtar ile bağlıdır.
+- `user_enrolments.userid`, `user.id` alanına yabancı anahtar ile bağlıdır.
+- `user_enrolments` tablosundaki `(enrolid, userid)` alanları üzerinde benzersiz indeks bulunmaktadır. Bu nedenle aynı kullanıcı, aynı kayıt yöntemi üzerinden birden fazla kez kaydedilemez.
+- `course.category` alanı indekslenmiştir ancak kaynak şemada açık bir yabancı anahtar olarak tanımlanmamıştır.
+- `course_categories.parent` alanı kaynak şemada yabancı anahtar olarak tanımlanmıştır; ancak şemadaki açıklamada bu özyinelemeli ilişkinin çalışması için alanın `NULL` kabul etmesi gerektiği belirtilmektedir.
+
+**Kaynak:** Moodle 5.3.1, `public/lib/db/install.xml`, satır 70–323.
+#### 4.2.3 Ders Oluşturma İş Akışı
+
+Moodle 5.3.1'de ders oluşturma işlemi `public/course/lib.php` dosyasındaki `create_course()` fonksiyonu üzerinden gerçekleştirilir.
+
+**İş Akışı**
+
+1. Dersin bağlı olacağı kategorinin `course_categories` tablosunda mevcut olduğu doğrulanır.
+2. Dersin kısa adının (`shortname`) daha önce kullanılmadığı kontrol edilir.
+3. Ders kimlik numarası (`idnumber`) belirtilmişse benzersizliği kontrol edilir.
+4. Ders başlangıç ve bitiş tarihleri `course_validate_dates()` fonksiyonuyla doğrulanır.
+5. Oluşturulma ve değiştirilme zamanları ile varsayılan ders ayarları hazırlanır.
+6. Ders bilgileri `course` tablosuna kaydedilir.
+7. Yeni ders için `context_course::instance()` ile ders bağlamı oluşturulur.
+8. Ders açıklaması, dosyaları ve format seçenekleri işlenir.
+9. Ders sıralaması ve ilgili önbellek güncellenir.
+10. `course_created` olayı tetiklenir ve ders oluşturma sonrası hook çalıştırılır.
+11. Varsayılan bloklar ve ders bölümleri oluşturulur.
+12. `enrol_course_updated()` ile dersin kayıt yöntemleri yapılandırılır.
+13. Ders etiketleri ve özel alanları varsa kaydedilir.
+14. Oluşturulan ders nesnesi döndürülür.
+
+**Hata Durumları**
+
+- Kategori bulunamazsa işlem hata ile sonlandırılır.
+- Kısa ad veya ders kimlik numarası daha önce kullanılmışsa `moodle_exception` fırlatılır.
+- Ders tarihleri geçersizse `course_validate_dates()` tarafından döndürülen hata koduyla işlem sonlandırılır.
+
+**Yetkilendirme Notu**
+
+`create_course()` fonksiyonunun incelenen gövdesinde doğrudan bir kullanıcı yetki kontrolü bulunmamaktadır. Bu nedenle ders oluşturma yetkisinin çağıran bileşenlerde ayrıca incelenmesi gerekmektedir.
+
+**Kaynak:** Moodle 5.3.1, `public/course/lib.php`, satır 1774–1908.
+
+#### 4.2.4 Ders Güncelleme İş Akışı
+
+Moodle 5.3.1'de ders güncelleme işlemi `public/course/lib.php` dosyasındaki `update_course()` fonksiyonu üzerinden gerçekleştirilir.
+
+**İş Akışı**
+
+1. Güncellenecek dersin sistem ana sayfası (`SITEID`) olmadığı kontrol edilir.
+2. Mevcut ders bilgileri ve ders bağlamı alınır.
+3. Eski ve yeni ders bilgileri karşılaştırılarak değiştirilen alanlar belirlenir.
+4. Dersin değiştirilme zamanı (`timemodified`) güncellenir.
+5. Ders açıklaması ve ilgili dosyalar işlenir.
+6. Kısa ad (`shortname`) ve ders kimlik numarası (`idnumber`) değiştirilmişse benzersizlikleri kontrol edilir.
+7. Başlangıç ve bitiş tarihleri `course_validate_dates()` ile doğrulanır.
+8. Kategori değişikliği ve ders görünürlüğü değerlendirilir. Ders gizli bir kategoriye taşınıyorsa görünürlüğü buna göre güncellenir.
+9. Dersin özel alanları kaydedilir ve form gönderimi sonrası hook çalıştırılır.
+10. Yeni ders bilgileri `course` tablosunda güncellenir.
+11. Ders ve ders görseli önbellekleri yenilenir.
+12. Ders formatı seçenekleri güncellenir.
+13. Kategori değişmişse ders bağlamı yeni kategoriye taşınır; gerektiğinde ders sıralaması güncellenir.
+14. İlgili önbellekler temizlenir ve artık uygun olmayan bloklar kaldırılır.
+15. Özel rol adları ve kayıt yöntemi ayarları güncellenir.
+16. Ders etiketleri varsa kaydedilir.
+17. `course_updated` olayı tetiklenir ve `after_course_updated` hook'u çalıştırılır.
+18. Ders formatı veya teması değişmişse önceki yapılandırmaya ait ilgili kayıtlar ve önbellekler temizlenir.
+
+**Hata Durumları**
+
+- Sistem ana sayfası dersinin güncellenmesi engellenir.
+- Başka bir derste kullanılan kısa ad veya kimlik numarası verilirse `moodle_exception` fırlatılır.
+- Ders tarihleri geçersizse işlem hata ile sonlandırılır.
+
+**Yetkilendirme Notu**
+
+`update_course()` fonksiyonunun incelenen gövdesinde doğrudan kullanıcı yetki kontrolü bulunmamaktadır. Yetkilendirme ve form doğrulamalarının çağıran bileşenlerde ayrıca incelenmesi gerekmektedir.
+
+**Kaynak:** Moodle 5.3.1, `public/course/lib.php`, satır 1925–2107.
+
+#### 4.2.5 Ders Silme İş Akışı
+
+Moodle 5.3.1'de ders silme işlemi `public/lib/moodlelib.php` dosyasındaki `delete_course()` fonksiyonu üzerinden gerçekleştirilir.
+
+**İş Akışı**
+
+1. Silinecek dersin kimliği belirlenir ve ders bilgileri alınır. Ders bulunamazsa işlem `false` döndürerek sonlandırılır.
+2. Ders bağlamı (`context_course`) alınır.
+3. Sistem ana sayfası dersinin (`SITEID`) silinmesi engellenir.
+4. Ders için bekleyen veya devam eden yedekleme/geri yükleme işlemleri kontrol edilir. Böyle bir işlem varsa silme gerçekleştirilmez.
+5. Daha önce çalıştırılmamışsa eklentilerin `pre_course_delete` callback'leri ve `before_course_deleted` hook'u çalıştırılır.
+6. Ders, silme işlemi devam ediyor olarak işaretlenir.
+7. Asenkron silme tercih edilmiş ve sistemde etkinleştirilmişse `course_async_deletion` görevi kuyruğa eklenir. Bu durumda fonksiyon `true` döndürür; gerçek silme işlemi daha sonra gerçekleştirilir.
+8. Eşzamanlı silmede arama indeksleme sistemine silme işleminin başladığı bildirilir.
+9. Derse ait özel alan verileri kaldırılır.
+10. `remove_course_contents()` ile dersin içeriği temizlenir. Bu fonksiyon varsayılan olarak kullanıcı kayıtlarını, kayıt yöntemi örneklerini ve rol atamalarını da kaldıracak şekilde tasarlanmıştır.
+11. Ders bağlamı silinir.
+12. `course` ve `course_format_options` tablolarındaki ilgili kayıtlar kaldırılır.
+13. Derse ait önbellek temizlenir ve arama indeksleme sistemine silme işleminin tamamlandığı bildirilir.
+14. `course_deleted` olayı tetiklenir.
+15. Fonksiyon `true` döndürerek tamamlanır.
+
+**Hata ve Engelleme Durumları**
+
+- Ders bulunamazsa `false` döndürülür.
+- Sistem ana sayfası dersi silinemez.
+- Bekleyen veya devam eden yedekleme/geri yükleme işlemi varsa ders silinmez.
+
+**Asenkron Silme Notu**
+
+Asenkron silme etkin olduğunda `true` sonucu, dersin fiziksel olarak tamamen silindiğini değil, silme görevinin kuyruğa alındığını ifade eder.
+
+**Kaynak:** Moodle 5.3.1, `public/lib/moodlelib.php`, satır 4470–4572. İçerik temizleme işlemi için aynı dosyadaki `remove_course_contents()` fonksiyonunun açıklaması incelenmiştir.
+#### 4.2.6 Kullanıcıyı Derse Kaydetme İş Akışı
+
+Moodle 5.3.1'de kullanıcıların derslere kaydedilmesi, `public/lib/enrollib.php` dosyasındaki `enrol_plugin::enrol_user()` fonksiyonu üzerinden gerçekleştirilir.
+
+**İş Akışı**
+
+1. Kayıt yapılacak dersin sistem ana sayfası (`SITEID`) olmadığı kontrol edilir.
+2. Kayıt yöntemi örneğinin (`enrol`) ilgili eklentiyle eşleştiği doğrulanır.
+3. Ders bağlamı `context_course::instance()` ile alınır.
+4. Kullanıcının aynı kayıt yöntemi üzerinden mevcut kaydı olup olmadığı `user_enrolments` tablosundan kontrol edilir.
+5. Kayıt mevcutsa başlangıç tarihi, bitiş tarihi veya durum değişmiş olduğunda `update_user_enrol()` çağrılır.
+6. Kayıt mevcut değilse kullanıcı kimliği, kayıt yöntemi, durum, başlangıç ve bitiş tarihleri ile işlem yapan kullanıcı bilgisi hazırlanır.
+7. Yeni kayıt `user_enrolments` tablosuna eklenir.
+8. Yeni kayıt oluşturulduysa `user_enrolment_created` olayı tetiklenir ve ilgili ders kategorisi önbelleği için güncelleme işlemi gerçekleştirilir.
+9. `after_user_enrolled` hook'u çalıştırılır.
+10. Rol kimliği (`roleid`) belirtilmişse kullanıcıya ders bağlamında ilgili rol atanır.
+11. Not geçmişinin geri yüklenmesi etkinse önceki notlar geri yüklenir.
+12. Kaydedilen kullanıcı mevcut oturumdaki kullanıcıysa ilgili kayıt ve geçici misafir erişimi önbellekleri temizlenir.
+
+**Hata ve Kontrol Durumları**
+
+- Sistem ana sayfası dersine kayıt yapılması engellenir.
+- Kayıt yöntemi ile eklenti adı uyuşmuyorsa `coding_exception` fırlatılır.
+- Ders bağlamı bulunamazsa işlem hata ile sonlandırılır.
+- Aynı kullanıcı için aynı kayıt yöntemi üzerinden gereksiz ikinci kayıt oluşturulmaz.
+
+**Veri Bütünlüğü**
+
+`user_enrolments` tablosundaki `(enrolid, userid)` benzersiz indeksi, aynı kullanıcının aynı kayıt yöntemi üzerinden birden fazla kayıt oluşturmasını engeller.
+
+**Kaynak:** Moodle 5.3.1, `public/lib/enrollib.php`, satır 2113–2200.
+
+#### 4.2.7 Ders Kaydı Güncelleme İş Akışı
+
+Moodle 5.3.1'de mevcut bir kullanıcı ders kaydının güncellenmesi, `public/lib/enrollib.php` dosyasındaki `enrol_plugin::update_user_enrol()` fonksiyonu üzerinden gerçekleştirilir.
+
+**İş Akışı**
+
+1. Kayıt yöntemi örneğinin (`enrol`) ilgili eklentiyle eşleştiği kontrol edilir.
+2. Kullanıcının mevcut kaydı `user_enrolments` tablosundan `enrolid` ve `userid` alanları kullanılarak sorgulanır.
+3. Kullanıcıya ait kayıt bulunamazsa işlem sonlandırılır.
+4. Kayıt durumu (`status`), başlangıç zamanı (`timestart`) ve bitiş zamanı (`timeend`) için belirtilen yeni değerler mevcut değerlerle karşılaştırılır.
+5. Herhangi bir değişiklik yoksa veritabanı güncellemesi yapılmadan işlem sonlandırılır.
+6. Değişiklik varsa `before_user_enrolment_updated` hook'u çalıştırılır. Durum ve bitiş zamanı değişiklikleri ilgili parametrelerle bildirilir.
+7. İşlemi gerçekleştiren kullanıcının kimliği (`modifierid`) ve güncelleme zamanı (`timemodified`) kaydedilir.
+8. `user_enrolments` tablosundaki mevcut kayıt güncellenir.
+9. `mark_user_dirty()` çağrılarak kullanıcıya ilişkin kayıt bilgilerinin değiştiği işaretlenir.
+10. `core_access` bileşenindeki `suspended_userids` önbelleği ilgili ders için geçersiz kılınır.
+11. `user_enrolment_updated` olayı tetiklenir.
+12. `core_course_category::user_enrolment_changed()` çağrılarak ders kategorisiyle ilişkili kayıt değişikliği işlenir.
+
+**Hata ve Kontrol Durumları**
+
+- Kayıt yöntemi ile eklenti adı uyuşmuyorsa `coding_exception` fırlatılır.
+- Kullanıcının mevcut kaydı bulunamazsa işlem gerçekleştirilmez.
+- Değişiklik içermeyen güncelleme taleplerinde gereksiz veritabanı işlemi yapılmaz.
+- `NULL` olarak bırakılan güncelleme parametreleri mevcut alan değerlerini değiştirmez.
+
+**Veri Bütünlüğü**
+
+Güncelleme işlemi yeni bir kullanıcı kaydı oluşturmaz. Mevcut `user_enrolments` kaydının yalnızca değişen alanları güncellenir. İşlemi yapan kullanıcı ve güncelleme zamanı kayıt üzerinde tutulur.
+
+**Kaynak:** Moodle 5.3.1, `public/lib/enrollib.php`, satır 2215–2284.
+
+#### 4.2.8 Dersten Kayıt Silme İş Akışı
+
+Moodle 5.3.1'de bir kullanıcının ders kaydının kaldırılması, `public/lib/enrollib.php` dosyasındaki `enrol_plugin::unenrol_user()` fonksiyonu üzerinden gerçekleştirilir.
+
+**İş Akışı**
+
+1. Kayıt yöntemi örneğinin (`enrol`) ilgili eklentiyle eşleştiği doğrulanır.
+2. Ders bağlamı `context_course::instance()` ile alınır.
+3. Kullanıcının ilgili kayıt yöntemi üzerinden mevcut kaydı `user_enrolments` tablosunda sorgulanır.
+4. Kayıt bulunamazsa işlem sonlandırılır.
+5. `before_user_enrolment_removed` hook'u çalıştırılır.
+6. Kullanıcının ilgili kayıt yöntemi üzerinden oluşturulmuş grup üyelikleri kaldırılır.
+7. İlgili kayıt yöntemine bağlı rol atamaları kaldırılır.
+8. Kullanıcının `user_enrolments` tablosundaki ilgili kaydı silinir.
+9. Kullanıcının aynı derste başka bir kayıt yöntemi üzerinden kaydının bulunup bulunmadığı kontrol edilir.
+10. Başka bir kayıt varsa `lastenrol` değeri `false` olarak belirlenir ve genel ders verileri korunur.
+11. Başka kayıt yoksa:
+    - Ders bağlamındaki kalan rol atamaları kaldırılır.
+    - Kullanıcının dersteki grup üyelikleri temizlenir.
+    - `grade_user_unenrol()` çağrılarak not sistemiyle ilişkili kayıt silme işlemleri yürütülür.
+    - `user_lastaccess` tablosundaki derse ait son erişim kaydı silinir.
+    - `lastenrol` değeri `true` olarak belirlenir.
+12. `user_enrolment_deleted` olayı tetiklenir.
+13. `mark_user_dirty()` ile kullanıcıya ait kayıt bilgilerinin değiştiği işaretlenir.
+14. `core_course_category::user_enrolment_changed()` çağrılarak ders kategorisiyle ilişkili kayıt değişikliği işlenir.
+15. İşlem mevcut oturumdaki kullanıcıyı etkiliyorsa ilgili kayıt ve geçici misafir erişimi önbellekleri temizlenir.
+
+**Hata ve Kontrol Durumları**
+
+- Kayıt yöntemi ile eklenti adı uyuşmuyorsa `coding_exception` fırlatılır.
+- Ders bağlamı bulunamazsa işlem hata ile sonlandırılır.
+- Kullanıcının ilgili kayıt yöntemi üzerinden kaydı bulunmuyorsa silme işlemi gerçekleştirilmez.
+
+**Veri Bütünlüğü**
+
+Bir kullanıcı aynı derse birden fazla kayıt yöntemi üzerinden kaydedilmiş olabilir. Bu nedenle yalnızca ilgili kayıt yönteminin silinmesi ile kullanıcının dersten tamamen çıkarılması birbirinden ayrılır.
+
+Kullanıcının dersteki son kaydı silindiğinde ek temizlik işlemleri gerçekleştirilir. Başka kayıtları bulunuyorsa bu genel temizlik adımları çalıştırılmaz.
+
+**Kaynak:** Moodle 5.3.1, `public/lib/enrollib.php`, satır 2295–2390.
+#### 4.2.9 İş Kuralları
+
+Moodle 5.3.1 kaynak kodunda ders yönetimi ve kullanıcı kayıt işlemleri için aşağıdaki kurallar doğrulanmıştır.
+
+| Kural ID | İş Kuralı | Kaynak |
+|---|---|---|
+| CRS-BR-01 | Ders oluşturulurken geçerli bir ders kategorisi bulunmalıdır. | `course/lib.php`, `create_course()` |
+| CRS-BR-02 | Dersin kısa adı (`shortname`) benzersiz olmalıdır. | `course/lib.php`, `create_course()`, `update_course()` |
+| CRS-BR-03 | Boş olmayan ders kimlik numarası (`idnumber`) başka bir ders tarafından kullanılamaz. | `course/lib.php`, `create_course()`, `update_course()` |
+| CRS-BR-04 | Ders başlangıç ve bitiş tarihleri Moodle'ın tarih doğrulama kurallarına uygun olmalıdır. | `course/lib.php`, `create_course()`, `update_course()` |
+| CRS-BR-05 | Sistem ana sayfası dersi (`SITEID`) normal ders güncelleme, silme ve kullanıcı kaydetme işlemlerine konu olamaz. | `course/lib.php`, `update_course()`; `lib/moodlelib.php`, `delete_course()`; `lib/enrollib.php`, `enrol_user()` |
+| CRS-BR-06 | Bekleyen veya devam eden yedekleme/geri yükleme işlemi bulunan ders silinemez. | `lib/moodlelib.php`, `delete_course()` |
+| CRS-BR-07 | Aynı kullanıcı, aynı kayıt yöntemi örneğine birden fazla kez kaydedilemez. | `lib/db/install.xml`, `user_enrolments` benzersiz indeksi |
+| CRS-BR-08 | Mevcut ders kaydı yalnızca ilgili alanlarda değişiklik varsa güncellenir. | `lib/enrollib.php`, `update_user_enrol()` |
+| CRS-BR-09 | Kullanıcının bir kayıt yöntemi üzerinden kaydı kaldırıldığında diğer kayıt yöntemleri üzerinden mevcut kayıtları korunur. | `lib/enrollib.php`, `unenrol_user()` |
+| CRS-BR-10 | Kullanıcının dersteki son kaydı kaldırıldığında kalan roller, grup üyelikleri ve ilgili ders verileri için ek temizlik yapılır. | `lib/enrollib.php`, `unenrol_user()` |
+| CRS-BR-11 | Asenkron ders silme etkinse silme işlemi arka plan görevine aktarılabilir. | `lib/moodlelib.php`, `delete_course()` |
+| CRS-BR-12 | Kullanıcı derse kaydedilirken rol kimliği belirtilmişse ilgili ders bağlamında rol ataması yapılır. | `lib/enrollib.php`, `enrol_user()` |
+| CRS-BR-13 | Ders oluşturma, güncelleme, silme ve kullanıcı kayıt değişikliklerinde ilgili sistem olayları tetiklenir. | `course/lib.php`, `lib/moodlelib.php`, `lib/enrollib.php` |
+#### 4.2.10 Fonksiyonel Gereksinimler
+
+Moodle 5.3.1 kaynak kodunda doğrulanan ders yönetimi ve kayıt işlemleri temel alınarak aşağıdaki fonksiyonel gereksinimler belirlenmiştir.
+
+| Gereksinim ID | Fonksiyonel Gereksinim | İlgili İş Kuralı |
+|---|---|---|
+| CRS-FR-01 | Sistem, geçerli bir kategori altında yeni ders oluşturulmasını sağlamalıdır. | CRS-BR-01 |
+| CRS-FR-02 | Sistem, ders oluşturma ve güncelleme sırasında kısa ad ve ders kimlik numarası benzersizliğini kontrol etmelidir. | CRS-BR-02, CRS-BR-03 |
+| CRS-FR-03 | Sistem, ders başlangıç ve bitiş tarihlerini doğrulamalıdır. | CRS-BR-04 |
+| CRS-FR-04 | Sistem, mevcut ders bilgilerinin güncellenmesini sağlamalıdır. | CRS-BR-02, CRS-BR-03, CRS-BR-04 |
+| CRS-FR-05 | Sistem, silinmesine izin verilen derslerin içerikleri ve ilişkili kayıtlarıyla birlikte kaldırılmasını sağlamalıdır. | CRS-BR-05, CRS-BR-06 |
+| CRS-FR-06 | Sistem, kullanıcıların geçerli kayıt yöntemleri üzerinden derslere kaydedilmesini sağlamalıdır. | CRS-BR-05, CRS-BR-07 |
+| CRS-FR-07 | Sistem, mevcut kullanıcı ders kayıtlarının durum, başlangıç ve bitiş zamanı bilgilerinin güncellenmesini sağlamalıdır. | CRS-BR-08 |
+| CRS-FR-08 | Sistem, kullanıcıların belirli bir kayıt yöntemi üzerinden ders kayıtlarının kaldırılmasını sağlamalıdır. | CRS-BR-09, CRS-BR-10 |
+| CRS-FR-09 | Sistem, ders kayıt işlemlerinde ilgili kullanıcı rollerini yönetebilmelidir. | CRS-BR-10, CRS-BR-12 |
+| CRS-FR-10 | Sistem, ders oluşturma, güncelleme, silme ve kullanıcı kayıt değişikliklerinde ilgili olayları tetiklemelidir. | CRS-BR-13 |
+| CRS-FR-11 | Sistem, etkinleştirilmişse ders silme işlemlerini asenkron görev olarak yürütebilmelidir. | CRS-BR-11 |
+
+**Kaynaklar:**
+- `public/course/lib.php`: `create_course()`, `update_course()`
+- `public/lib/moodlelib.php`: `delete_course()`
+- `public/lib/enrollib.php`: `enrol_user()`, `update_user_enrol()`, `unenrol_user()`
+- `public/lib/db/install.xml`: Ders ve kayıt tabloları
+
+**Not:** Bu gereksinimler mevcut Moodle 5.3.1 davranışlarından türetilmiştir. Modernizasyon kapsamında önerilecek değişiklikler ayrıca değerlendirilecektir.
+
+#### 4.2.11 Fonksiyonel Olmayan Gereksinimler
+
+Moodle 5.3.1 ders ve kayıt yönetimi kaynak kodu incelenerek aşağıdaki fonksiyonel olmayan gereksinimler türetilmiştir.
+
+| Gereksinim ID | Kategori | Fonksiyonel Olmayan Gereksinim | Kaynak |
+|---|---|---|---|
+| CRS-NFR-01 | Veri Bütünlüğü | Sistem, aynı kullanıcının aynı kayıt yöntemi örneğine mükerrer kaydedilmesini engellemelidir. | `lib/db/install.xml` |
+| CRS-NFR-02 | Veri Bütünlüğü | Sistem, ders silme sırasında ilişkili içeriklerin ve kayıtların temizlenmesini sağlamalıdır. | `lib/moodlelib.php`, `delete_course()` |
+| CRS-NFR-03 | Güvenilirlik | Sistem, devam eden veya bekleyen yedekleme/geri yükleme işlemleriyle çakışabilecek ders silme işlemlerini engellemelidir. | `lib/moodlelib.php`, `delete_course()` |
+| CRS-NFR-04 | Performans | Sistem, ders ve kullanıcı kayıt bilgilerindeki değişikliklerden sonra ilgili önbellekleri geçersiz kılmalıdır. | `course/lib.php`, `lib/enrollib.php` |
+| CRS-NFR-05 | Verimlilik | Sistem, kayıt bilgileri değişmediğinde gereksiz veritabanı güncellemesi yapmamalıdır. | `lib/enrollib.php`, `update_user_enrol()` |
+| CRS-NFR-06 | Ölçeklenebilirlik | Sistem, yapılandırmaya bağlı olarak ders silme işlemlerini arka plan görevleriyle gerçekleştirebilmelidir. | `lib/moodlelib.php`, `delete_course()` |
+| CRS-NFR-07 | İzlenebilirlik | Sistem, ders ve kullanıcı kayıt değişikliklerinde ilgili olayları oluşturmalıdır. | `course/lib.php`, `lib/moodlelib.php`, `lib/enrollib.php` |
+| CRS-NFR-08 | Genişletilebilirlik | Sistem, ders ve kayıt işlemlerinde eklentilerin ilgili hook mekanizmaları üzerinden işlem yapabilmesini desteklemelidir. | `course/lib.php`, `lib/moodlelib.php`, `lib/enrollib.php` |
+
+**Değerlendirme Sınırları**
+
+Bu gereksinimler kaynak kod incelemesinden türetilmiştir. Performans, eşzamanlı kullanıcı kapasitesi, işlem süreleri ve yük altındaki sistem davranışı için ölçüm yapılmamıştır. Dolayısıyla bu özelliklerin belirli bir performans seviyesini karşıladığı iddia edilmemektedir.
 ### 4.3 Danışmanlık (İrem)
 
 ### 4.4 Ödev ve teslim (Aslı Ceren)

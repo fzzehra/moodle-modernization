@@ -123,6 +123,46 @@ Her gereksinim aşağıdaki alanlarla yazılır:
 
 ## 3. Kullanıcı ihtiyaçları anketi (İrem)
 
+**Durum:** Anket tasarımı tamamlandı; yanıt toplama henüz yapılmadı. Bu bölüm anket formunu ve dağıtım planını tanımlar. Sonuçlar toplandıkça §3.3'teki özet doldurulacak ve ilgili modül analizlerindeki "Kullanıcı ihtiyaçları ve şikâyetler" alt başlıklarına (§4.1.3, §4.4.3, §4.5.3, §4.6.3 ve ADV §4.3.3) işlenecektir.
+
+### 3.1 Amaç ve yöntem
+
+Anketin amacı, modül analizlerinde koddan çıkarılan "araştırılacak kullanıcı ihtiyacı" adaylarını (bkz. §4.1.3 AUTH, §4.6.3 FILE) gerçek kullanıcı görüşüyle doğrulamak veya elemek; ayrıca otomatik eğitim planı (§5) modülü için beklenti toplamaktır. Anket kısa tutulur (5 dakikadan az), açık ve kapalı uçlu sorular karışık kullanılır, öğrenci ve öğretmen için ayrı form hazırlanır çünkü ihtiyaçları farklıdır (§2.4 roller).
+
+### 3.2 Dağıtım planı
+
+| | |
+| --- | --- |
+| Hedef kitle | Ortam ekibindeki örnek veri rolleriyle eşleşen gerçek kullanıcılar: öğrenciler ve öğretmenler (mümkünse danışmanlık yapan bir öğretim üyesi de ayrıca görüşülür) |
+| Yöntem | Çevrimiçi kısa form (Google Forms veya eşdeğeri); bağlantı sınıf/bölüm iletişim kanalından paylaşılır |
+| Gönüllülük ve anonimlik | Katılım gönüllüdür; yanıtlar isimsiz toplanır, yalnızca rol (öğrenci/öğretmen) ve kullandığı sistem (Moodle deneyimi var mı) sorulur |
+| Süre | Hedef: ekip toplantısına kadar (bkz. "Bekleme noktası") en az 10 öğrenci ve 3 öğretmen yanıtı |
+| Analiz | Kapalı uçlu sorular yüzde olarak, açık uçlu yanıtlar tema olarak (ör. "gezinme", "bildirim", "ödev durumu") özetlenir |
+
+### 3.3 Soru formu
+
+**A. Öğrenci formu**
+
+1. Moodle'ı en çok hangi işler için kullanıyorsunuz? (çoktan seçmeli: ödev teslimi, not görme, ders materyaline erişim, duyuru takibi, diğer)
+2. Moodle'da en çok zorlandığınız şey nedir? (açık uçlu)
+3. Ödev teslim ederken veya notunuzu kontrol ederken yaşadığınız bir sorun oldu mu? Anlatır mısınız? (açık uçlu)
+4. Aşağıdakilerden hangisi sizin için **çok önemli**? (çoktan seçmeli, birden fazla işaretlenebilir): teslim durumumu (taslak/gönderildi) net görmek · gecikme/kesim tarihine yaklaştığımda uyarı almak · notumu neden aldığımı anlamak · dosyalarımı kolayca bulmak
+5. Bir "otomatik ders/eğitim planı" özelliği olsa (önünüzdeki dönem hangi dersleri almanız gerektiğini, ön şartları ve "olsa iyi olur" tavsiyelerini gösteren), sizin için en faydalı olacak bilgi ne olurdu? (açık uçlu)
+6. (1-5 Likert) Moodle'ı kullanımı kolay buluyorum.
+
+**B. Öğretmen formu**
+
+1. Moodle'da en çok zaman kaybettiğiniz işlem hangisi? (açık uçlu)
+2. Ödev değerlendirirken veya not defterini kullanırken karşılaştığınız bir sorun var mı? (açık uçlu)
+3. Öğrencilerin ders seçimi için danışmanlık/ön şart kontrolü yaparken (manuel olarak) en çok neyle uğraşıyorsunuz? (açık uçlu) — bu soru doğrudan ADV modülü (§4.3) ve PLAN modülü (§5) için girdi sağlar
+4. Aşağıdakilerden hangisi sizin için **çok önemli**? (çoktan seçmeli, birden fazla işaretlenebilir): değerlendirme bekleyen teslimleri hızlı bulmak · ön şartı sağlamayan öğrenciyi otomatik engellemek · not defterinde kilitli/elle değiştirilmiş notları ayırt etmek · ders dosyalarını düzenlemek
+5. Bir öğrencinin bir sonraki dönem hangi dersleri alabileceğini/alması gerektiğini otomatik öneren bir özellik olsa, hangi kısıtların (zorunlu ön şart, kontenjan, danışman onayı, "olsa iyi olur" tavsiye) mutlaka dikkate alınması gerekir? (açık uçlu)
+6. (1-5 Likert) Moodle'ın ders ve kayıt yönetimi ihtiyaçlarımı karşılıyor.
+
+### 3.4 Sonuçların özeti
+
+**Bekleniyor.** Yanıtlar toplandığında burada: (a) yanıt sayısı ve rol dağılımı, (b) kapalı uçlu soruların yüzdeleri, (c) açık uçlu yanıtlardan çıkan 3-5 tema ve (d) her temanın hangi modülün hangi gereksinimine (XXX-FR/BR/BUG) bağlandığı listelenecektir.
+
 ## 4. Modül analizleri
 
 Her modül için alt başlıklar: Moodle'daki karşılığı · İş akışları · Kullanıcı ihtiyaçları · İş kuralları (korunacak) · Hatalar ve eksikler (düzeltilecek) · Veri modeli · Yetkilendirme · Bağımlılıklar ve entegrasyonlar · Gereksinimler · Test senaryoları · İlk sürüme alınsın mı?
@@ -411,6 +451,152 @@ Yeni mimaride roller ve yetenekler merkezi bir yetkilendirme mekanizmasıyla de�
 ### 4.2 Ders ve kayıt (Sinem)
 
 ### 4.3 Danışmanlık (İrem)
+
+#### 4.3.1 Moodle'daki karşılığı
+
+Bu analiz Moodle 5.3.1, revizyon `cfe123f2` temel alınarak hazırlanmıştır; dosya yolları `public/` dizinine görecelidir.
+
+**Ana bulgu: Moodle çekirdeğinde "danışmanlık" diye ayrı bir eklenti veya klasör yoktur.** §2.4'teki kullanıcı rolleri tablosunda da belirtildiği gibi "Danışman" için standart bir Moodle rolü tanımlı değildir; örnek veride `danisman1` özel olarak oluşturulmuş bir hesaptır, sistemde onu "danışman" yapan ayrı bir yetenek (capability) yoktur. Aşağıdaki üç altyapı parçası, istenen davranışın (danışman onayı, ön şartlar, ders seçim kısıtları) **yalnızca kısmi ve dolaylı** karşılığıdır:
+
+| Parça | Kaynak kodun yeri | Ne yapar | ADV'nin istediğine ne kadar karşılık gelir |
+| --- | --- | --- | --- |
+| Manuel kayıt (`enrol_manual`) | `enrol/manual/lib.php`; yetki: `enrol/manual/db/access.php:30-50` (`enrol/manual:enrol`, editingteacher/manager) | Yetkili biri öğrenciyi doğrudan derse ekler | Kısmi: "yetkili biri ekliyor" var, ama "danışman" diye ayrı bir rol/yetenek yok; onay nedeni veya hangi ön şartın kontrol edildiği hiçbir yerde tutulmaz |
+| Kayıt yazma çekirdek fonksiyonu | `lib/enrollib.php:2113` — `enrol_plugin::enrol_user()` | Kaydı `user_enrolments` tablosuna yazar | Alt yapı olarak yeniden kullanılabilir; onay/red durumu taşımaz |
+| Self-enrolment kısıtları | `enrol/self/lib.php:334-339` (kontenjan `customint3`); kayıt anahtarı ve kohort kısıtı (`enrol/self/lang/en/enrol_self.php`) | Kendi kendine kayıtta kontenjan, kayıt anahtarı veya kohort üyeliği şartı koyar | Kısmi: "ders seçim kısıtı"nın en yakın karşılığı budur, ama kısıt her zaman serttir (ya izin verir ya `maxenrolledreached` ile reddeder); "danışman onayı gerekir" seçeneği yoktur |
+| Etkinlik/bölüm ön şartı (Restrict access → Activity completion) | `availability/condition/completion/classes/condition.php:135` — `is_available()` | Bir etkinlik/bölümün görünürlüğünü **aynı ders içindeki** başka bir etkinliğin tamamlanma durumuna bağlar | Kısmi ve yanıltıcı olabilir: **ders içi** çalışır; "SENG201 için SENG101'in tamamlanmış olması" gibi **dersler arası** bir kontrol değildir |
+| Ders tamamlama kaydı | `course_completions` tablosu (`lib/db/install.xml:203-222`) | Kullanıcının bir dersi ne zaman tamamladığını tutar | Ders-arası ön şart kontrolü teorik olarak bu tablo üzerine kurulabilir, ama çekirdekte böyle bir kontrol **yazılmamıştır** |
+
+**Sonuç:** Danışmanlık, Moodle'da "üzerine inşa edilecek hazır bir modül" değil, **WBS-3/4'te sıfırdan yazılacak yeni bir modüldür.** Yukarıdaki parçalar yalnızca yeniden kullanılabilecek altyapı (kayıt yazma, kontenjan deseni, tamamlama verisi) olarak değerlendirilmelidir; iş mantığının kendisi (danışman ataması, onay/red akışı, derslerarası ön şart, "olsa iyi olur" kısıtlar) eksiktir.
+
+#### 4.3.2 İş akışları
+
+Moodle'da bugün gerçekte olan ve ADV'nin doldurması gereken boşlukları gösteren en yakın karşılık akışlar:
+
+**A. Öğrencinin bir derse kaydolması için bugünkü (dolaylı) yol**
+1. Öğrenci danışmanıyla Moodle **dışında** (e-posta, yüz yüze) görüşür; bu görüşmenin hiçbir kaydı sistemde tutulmaz.
+2. Yetkili biri `enrol/manual` üzerinden öğrenciyi derse ekler **veya** öğrenci kendisi self-enrolment ile (kayıt anahtarını biliyorsa) kaydolur.
+3. Ön şart kontrolü **yapılmaz**: Moodle, öğrencinin SENG101'i tamamlamadan SENG201'e kaydolmasını engelleyen hiçbir çekirdek mekanizmaya sahip değildir.
+4. Kontenjan doluysa (self-enrolment, `customint3`) öğrenciye yalnızca "maksimum kullanıcı sayısına ulaşıldı" mesajı gösterilir; alternatif ders önerisi yoktur.
+
+**B. Ders içi (yanıltıcı) "ön şart" örneği**
+1. Öğretmen bir etkinliğe "Restrict access" ekler ve bunu aynı dersteki başka bir etkinliğin tamamlanma durumuna bağlar.
+2. `availability/classes/info.php:175` (`is_available()`) her sayfa isteğinde bu koşulu değerlendirir.
+3. Bu akış yalnızca **aynı ders içinde** çalışır; ders-arası bir kullanım örneği için **kullanılamaz**.
+
+**C. Danışmanın öğrenciyi izlemesi**
+1. "Danışman" yetkisine sahip biri öğrencinin ders tamamlama durumunu (`course_completions`) ancak o öğrencinin kayıtlı olduğu derslerde yetkisi varsa görebilir.
+2. Bütün öğrencileri ve derslerini tek ekranda gösteren, "bu öğrenci şu dersi alabilir mi" diyen bir danışmanlık ekranı **yoktur**.
+
+#### 4.3.3 Kullanıcı ihtiyaçları ve şikâyetler
+
+§3'teki anket sonuçları henüz toplanmadı (bkz. §3.4). Öğretmen formunun 3. ve 5. soruları (§3.3 B) doğrudan bu modül için tasarlandı. Kod incelemesinden ve mevcut altyapının sınırlarından çıkan, ankette doğrulanacak aday ihtiyaçlar:
+
+- Danışmanın, öğrencinin hangi dersleri alabileceğini (ön şartları sağlıyor mu) elle, derse derse kontrol etmek zorunda kalması.
+- Kontenjanı dolu bir derse kayıt denendiğinde öğrencinin alternatif bir ders görmemesi.
+- "Zorunlu değil ama önerilir" türünden yumuşak kısıtların hiçbir şekilde sisteme girilememesi.
+- Danışman onayının nerede ve ne zaman verildiğinin kayıt altında olmaması; anlaşmazlık durumunda kanıt bulunamaması.
+
+#### 4.3.4 İş kuralları: korunacaklar (yeniden kullanılacak altyapı)
+
+ADV'ye özgü bir iş kuralı mevcut sistemde yoktur (modül yok). Aşağıdakiler, yeni modül tasarlanırken **bozulmaması gereken**, zaten çalışan genel Moodle davranışlarıdır:
+
+| Kimlik | Kural | Eski kod |
+| --- | --- | --- |
+| ADV-BR-01 | Kayıt yazma işlemi (`enrol_user()`), kaydı yapan kişiyi (`modifierid`) ve zamanı (`timecreated`) ayrı ayrı tutar. | `lib/enrollib.php:2113`; `lib/db/install.xml:302-323` |
+| ADV-BR-02 | Bir kullanıcı aynı kayıt örneğine (enrol instance) yalnızca bir kez kaydedilebilir (`enrolid, userid` benzersiz). | `lib/db/install.xml:321` |
+| ADV-BR-03 | Kontenjan dolunca yeni kayıt reddedilir; mevcut kayıtlı kullanıcılar etkilenmez. | `enrol/self/lib.php:334-339` |
+| ADV-BR-04 | Kayıt ve yetki kontrolü her zaman bağlam (context) ve yetenek (capability) üzerinden yapılır; AUTH'tan miras alınır. | `lib/accesslib.php:432` (bkz. §4.1.4) |
+
+#### 4.3.5 Hatalar ve eksikler: düzeltilecekler/eklenecekler (ADV-BUG)
+
+Bunlar klasik anlamda "düzeltilecek hata" değil, **Moodle çekirdeğinde var olmayan ve yeni modülde eklenmesi gereken davranışlardır**; ortak kuralımız eksikleri de `XXX-BUG` öneki ile kaydetmeyi öngördüğü için bu numaralandırma kullanıldı.
+
+| Kimlik | Gözlem | Kaynak/kanıt | Etkisi |
+| --- | --- | --- | --- |
+| ADV-BUG-01 | Ders-arası ön şart kontrolü yok: bir dersin ön şartı olan başka bir dersin tamamlanmış olması, kayıt sırasında **hiçbir şekilde** kontrol edilmez. | `availability/condition/completion/classes/condition.php:135` yalnızca aynı ders kapsamında çalışır; `course_completions` (`lib/db/install.xml:203`) var ama kayıt sırasında sorgulanmaz | Öğrenci ön şartı sağlamadan derse kaydolabilir |
+| ADV-BUG-02 | Danışman onayı iş akışı yok: kayıt (`enrol_user()`) onay/red durumu, gerekçe veya onaylayan danışman bilgisi taşımaz. | `lib/enrollib.php:2113`; `lib/db/install.xml:302-323` (`user_enrolments` tablosunda böyle bir alan yok) | Onay süreci sistem dışında (e-posta vb.) kalır, denetlenemez |
+| ADV-BUG-03 | "Danışman" diye bir rol/yetenek tanımlı değil. | §2.4; `role` tablosunun `archetype` listesinde danışman yok | Yetkilendirme tasarımı sıfırdan yapılmalı |
+| ADV-BUG-04 | Kontenjan dolduğunda alternatif öneri verilmez; hata mesajı yalnızca reddeder. | `enrol/self/lang/en/enrol_self.php:79` (`maxenrolledreached`) | Öğrenci için "ne yapmalıyım" sorusu yanıtsız kalır |
+| ADV-BUG-05 | "Olsa iyi olur" (yumuşak) kısıt kavramı yok; availability/enrolment kısıtları her zaman serttir (ya engeller ya hiç göstermez). | `availability/classes/info.php:175` (`is_available()` boole döner, ara durum yok) | Esnek danışmanlık tavsiyesi verilemez |
+
+#### 4.3.6 Veri modeli
+
+Yeni modülün kendi veri tasarımı WBS-2 §3.3'tedir (dilden bağımsız). Burada yalnızca **üzerine inşa edilecek mevcut Moodle tabloları** listelenir:
+
+| Tablo | Alanlar (ilgili) | Not |
+| --- | --- | --- |
+| `enrol` | `id, enrol, courseid, roleid, customint3 (kontenjan), password, status` | Kayıt yöntemi tanımı; `customint3` kontenjan desenidir |
+| `user_enrolments` | `id, enrolid, userid, status, modifierid, timecreated, timemodified` | Gerçek kayıt; onay/red alanı yok |
+| `course_completions` | `id, userid, course, timecompleted` | Ön şart kontrolü için kullanılabilecek ama şu an kullanılmayan veri |
+| `course_modules.availability` | JSON (`lib/db/install.xml:346`) | Ders içi görünürlük kısıtı; ders-arası değil |
+
+```mermaid
+erDiagram
+    course ||--o{ enrol : "courseid"
+    enrol ||--o{ user_enrolments : "enrolid"
+    user ||--o{ user_enrolments : "userid"
+    user ||--o{ course_completions : "userid"
+    course ||--o{ course_completions : "course"
+```
+
+Bu şema "danışman onayı" ve "ders-arası ön şart" kavramlarını **temsil edemez**; WBS-2 §3.3'teki yeni varlıklar (ön şart kuralı, danışman ataması, kayıt talebi) bu boşluğu kapatmak için tasarlanmıştır.
+
+#### 4.3.7 Yetkilendirme
+
+| İşlem | Öğrenci | Öğretmen | Danışman (yeni) | Yönetici |
+| --- | --- | --- | --- | --- |
+| Kendi ders seçimini/önerisini görme | Evet | — | — | Evet |
+| Manuel kayıt ekleme (mevcut `enrol/manual:enrol`) | Hayır | Evet | Mevcut Moodle'da **hayır** (yetki yok) | Evet |
+| Self-enrolment kontenjanını değiştirme | Hayır | Evet (ders düzenleme yetkisiyle) | Mevcut Moodle'da **hayır** | Evet |
+| Ön şart/danışman onayı tanımlama (yeni) | Hayır | WBS-2'de netleşir | Evet (yeni yetki, WBS-2 §3.3) | Evet |
+
+Mevcut sistemde "danışman" için ayrı bir satır **yazılamaz**, çünkü böyle bir yetenek yok; tablo bu boşluğu açıkça göstermek için eklendi.
+
+#### 4.3.8 Bağımlılıklar ve entegrasyonlar
+
+- **AUTH:** Yeni "danışman" rolü ve yetkisi AUTH'un bağlam/yetenek modeli üzerine kurulmalıdır (§4.1).
+- **CRS (ders ve kayıt):** ADV, CRS'nin kayıt (`enrol`, `user_enrolments`) altyapısını kullanır; CRS modül sahibi Sinem'in §4.2 analizini tamamlamasını bekler.
+- **Ders tamamlama:** Ön şart kontrolü için `course_completions` verisine bağımlıdır; bu veri bugün ayarlansa bile kayıt sırasında okunmaz.
+- **PLAN (otomatik eğitim planı, §5):** PLAN, ADV'nin tanımlayacağı ön şart ve danışman onayı kurallarını **girdi** olarak kullanır; ADV'nin kısıt modeli PLAN'ın "zorunlu" ve "olsa iyi olur" kısıt ayrımıyla aynı sözlüğü paylaşmalıdır (bkz. §5.4).
+- **Bildirim/e-posta:** Danışman onay isteği ve sonucu için bildirim altyapısı gerekir; Moodle'ın mesajlaşma API'si bu çalışmada incelenmemiştir, ilk sürüm kapsamı dışında tutulabilir.
+
+#### 4.3.9 Gereksinimler
+
+Sınıf: **K** korunacak · **D** düzeltilecek · **Y** yeni. Modülün neredeyse tamamı **Y** sınıfındadır çünkü Moodle'da karşılığı yoktur; yalnızca altyapı tekrar kullanımı **K** olarak işaretlenmiştir.
+
+| Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| ADV-FR-01 | Y | Yönetici/öğretmen bir derse bir veya daha fazla "zorunlu ön şart dersi" tanımlayabilmelidir. | ADV-BUG-01 | M | Ön şart tanımlandıktan sonra WBS-2 §3.3 API'sinde görünür. | T-ADV-01 |
+| ADV-FR-02 | Y | Öğrenci, zorunlu ön şartı sağlamadığı bir derse kayıt talep ettiğinde kayıt reddedilmeli ve nedeni gösterilmelidir. | ADV-BUG-01 | M | Ön şartı sağlamayan öğrencinin talebi "ön şart sağlanmadı" mesajıyla reddedilir. | T-ADV-02 |
+| ADV-FR-03 | Y | "Olsa iyi olur" (yumuşak) kısıt tanımlanabilmeli ve sağlanmadığında kayıt **engellenmeden** uyarı gösterilmelidir. | ADV-BUG-05 | S | Yumuşak kısıtı sağlamayan öğrenci uyarıyı görür ama kayıt tamamlanabilir. | T-ADV-03 |
+| ADV-FR-04 | Y | Danışman rolü tanımlanabilmeli ve danışmana atanan öğrencilerin kayıt taleplerini onaylama/reddetme yetkisi verilmelidir. | ADV-BUG-02, 03 | M | Danışman onayı olmadan "danışman onayı gerektiren" bir derse kayıt tamamlanmaz. | T-ADV-04 |
+| ADV-FR-05 | Y | Onay/red kararı, kararı veren danışman, zaman ve gerekçe ile birlikte kayıt altına alınmalıdır. | ADV-BUG-02 | M | Karar geçmişi sorgulanabilir. | T-ADV-05 |
+| ADV-FR-06 | K | Kontenjan dolunca yeni kayıt talebi reddedilmelidir (mevcut self-enrolment davranışı korunur). | ADV-BR-03 | M | Kontenjan dolu derse kayıt talebi reddedilir. | T-ADV-06 |
+| ADV-FR-07 | Y | Kontenjan dolu veya ön şartı sağlanmayan bir derse kayıt reddedildiğinde öğrenciye alternatif ders önerisi gösterilmelidir (PLAN ile ortak kısıt sözlüğü, §5.4). | ADV-BUG-04 | C | Reddedilen talebin yanında en az bir alternatif ders önerisi listelenir. | T-ADV-07 |
+| ADV-NFR-01 | Y | Yetkisiz kullanıcı (danışman olmayan biri) onay/red kararı veremez. | AUTH-BR-08, 12 | M | Yetkisiz onay denemesi reddedilir. | T-ADV-08 |
+
+#### 4.3.10 Test senaryoları
+
+Modülün kendisi Moodle'da olmadığı için aşağıdaki "eski sistem" testleri, **ADV'nin üzerine kurulacağı mevcut altyapının sınırlarını** doğrular; amaç bu sınırların doğru tespit edildiğini göstermektir. Yeni modülün kendi davranışı (ADV-FR-01–07) ancak WBS-3/4'te kod yazıldıktan sonra test edilebilir ve T-ADV-01–08 o aşamada çalıştırılacaktır.
+
+| Kimlik | Tür | Adımlar | Beklenen sonuç | Eski sistem sonucu |
+| --- | --- | --- | --- | --- |
+| T-ADV-E01 | Sınır (mevcut altyapı) | CENG301'de self-enrolment kontenjanı (`customint3`) 5 öğrenciyle sınırlanır; 6. öğrenci kayıt anahtarıyla kaydolmayı dener. | Kontenjan dolunca kayıt reddedilir, alternatif önerilmez. | Bekliyor |
+| T-ADV-E02 | Normal (mevcut altyapı) | SENG101 içinde bir etkinliğe "Restrict access → Activity completion" eklenir (başka bir SENG101 etkinliğinin tamamlanmasına bağlı). | Kısıt yalnızca aynı ders içinde çalışır; SENG201 için SENG101 tamamlama şartı **girilemez** (ADV-BUG-01 doğrulanır). | Bekliyor |
+| T-ADV-E03 | Yetkisiz | `danisman1` hesabıyla `enrol/manual` kayıt sayfasını açmayı dene. | `enrol/manual:enrol` yetkisi olmadığı için erişim reddedilir (ADV-BUG-03 doğrulanır). | Bekliyor |
+| T-ADV-E04 | Hatalı girdi (mevcut altyapı) | Self-enrolment'a geçersiz/boş kayıt anahtarıyla kaydolma denenir. | `passwordinvalid` hatası döner, kayıt oluşmaz. | Bekliyor |
+
+**Not:** E0x kimlikleri yalnızca mevcut altyapının davranışını doğrular (ADV-BUG tespitlerinin kanıtıdır); bu, FILE modülünün §4.6.10'da izlediği "aday → doğrulanana kadar beklemede" yaklaşımıyla tutarlıdır.
+
+#### 4.3.11 Öneri: ilk sürüme alınsın mı?
+
+**Kısmen evet — yalnızca çekirdek ön şart ve kontenjan kuralları.** Gerekçe: danışmanlık modülünün tamamı (ADV-FR-01–07) Moodle'da karşılığı olmayan, sıfırdan yazılacak bir modüldür; bu onu diğer **K** sınıfı ağırlıklı modüllerden (AUTH, ASG, GRD, FILE) daha yüksek riskli ve daha fazla tasarım kararı gerektiren bir aday yapar. Buna karşın CRS ve PLAN (§5) modülleri ADV'nin ön şart/kısıt modeline **bağımlıdır**; ADV olmadan PLAN anlamlı öneri üretemez.
+
+Önerilen kapsam daraltması: ilk sürümde yalnızca **zorunlu ön şart kontrolü** (ADV-FR-01, 02) ve **mevcut kontenjan davranışının korunması** (ADV-FR-06) alınsın; danışman onay akışı (ADV-FR-04, 05) ve yumuşak kısıt/öneri (ADV-FR-03, 07) ikinci aşamaya bırakılsın. Bu daraltma, PLAN modülünün en azından sert kısıtlara göre öneri üretebilmesini sağlar (bkz. §5.8).
+
+#### 4.3.12 Yapay zekâ ve efor kaydı
+
+Kullanılan model Claude Sonnet 5 (Claude Code). Bağlam: WBS-1 §2 (SRS girişi, gereksinim şablonu), §4.1 (AUTH analizi, yetkilendirme deseni için örnek), görev dağılım belgesi ve Moodle 5.3.1 kaynak kodunun ilgili kısımları (`enrol/`, `availability/`, `lib/enrollib.php`, `lib/db/install.xml`) — sabit revizyon `cfe123f26fc7071981fe949cb16cd5a08a8234f1`'den GitHub üzerinden tek tek dosya olarak indirilip incelendi (yerel Docker ortamı bu oturumda çalıştırılmadı). Yapılan iş: §4.3'ün tamamının ilk taslağı. İnsan (İrem) incelemesi, varsa düzeltmeler ve gerçek Moodle ortamında E0x test senaryolarının çalıştırılıp sonuç sütununun doldurulması henüz tamamlanmadı; bu nedenle test sonuçları §4.3.10'da "Bekliyor" olarak bırakıldı — gerçek test sonucu doğrulanmadan "Geçti" yazılmadı.
 
 ### 4.4 Ödev ve teslim (Aslı Ceren)
 
@@ -784,6 +970,74 @@ Senaryolar `ortam/ornek-veri.feature` verisiyle çalıştırılacaktır (kullan�
 **Dikkat:** Ödev modülü (§4.4) dosya teslimini kullanıyorsa bu iki modül aynı ilk sürümde birlikte seçilmelidir; bağımlılık haritası (§9) için not düşülmüştür.
 
 ## 5. Yeni modül: Otomatik eğitim planı (İrem)
+
+Bu, Moodle'da karşılığı olmayan **tamamen yeni** bir modüldür (bkz. §4.3.1); dolayısıyla §4'teki 11 alt başlık yerine görev dağılımında tanımlanan yapı (kullanıcı ihtiyaçları, girdiler, çıktılar, gereksinimler, kabul kriterleri) kullanılmıştır.
+
+### 5.1 Kullanıcı ihtiyaçları
+
+**Durum:** §3'teki anket sonuçları bekleniyor; öğrenci formu soru 5 ve öğretmen formu soru 5 (§3.3) doğrudan bu modül için tasarlandı. Kod/altyapı incelemesinden çıkan, ankette doğrulanacak aday ihtiyaçlar:
+
+- Öğrenci: önündeki dönem hangi dersleri alabileceğini ve hangi ön şartların eksik olduğunu tek ekranda görmek.
+- Öğrenci: zorunlu olmayan ama "alınması tavsiye edilen" dersleri (olsa iyi olur kısıtları) zorunlu olanlardan ayırt etmek.
+- Öğretmen/danışman: önerilen planın hangi kısıtlara göre üretildiğini görebilmek (şeffaflık).
+
+### 5.2 Girdiler
+
+| Girdi | Kaynak | Not |
+| --- | --- | --- |
+| Müfredat (dersler, kredi, dönem) | CRS'nin ders kataloğu (WBS-2 §3.2, Sinem) | Moodle'da ayrı bir "müfredat/program" kavramı yoktur; CRS'nin ders listesi ve kategori yapısı taban alınır |
+| Zorunlu ön şartlar | ADV-FR-01 kuralları (§4.3.9) | ADV'nin ürettiği `kind=hard` kayıtlar |
+| "Olsa iyi olur" kısıtlar | ADV-FR-03 kuralları | ADV'nin ürettiği `kind=soft` kayıtlar |
+| Öğrencinin tamamladığı dersler | `course_completions` (mevcut Moodle verisi, §4.3.6) | Doğrudan okunabilir, çekirdek değişikliği gerekmez |
+| Kontenjan ve dönem takvimi | CRS (WBS-2 §3.2) | Kontenjanı dolu dersler öneriden düşürülür veya "dolu" işaretlenir |
+| Kullanıcı ihtiyaçları/beklentiler | §3 anket sonuçları | Bekleniyor |
+
+### 5.3 Çıktılar
+
+- Öğrenci başına, önündeki dönem için **önerilen ders listesi**: zorunlu ön şartı sağlanan, kontenjanı uygun dersler.
+- Her önerilen/engellenen ders için **gerekçe** (hangi ön şart sağlandı/sağlanmadı, hangi "olsa iyi olur" kısıt dikkate alındı).
+- **Engellenen dersler** listesi: zorunlu ön şartı sağlanmayan dersler ve eksik ön şart bilgisi.
+- **Yumuşak uyarılar**: "olsa iyi olur" kısıtı sağlanmayan ama yine de seçilebilir dersler.
+
+### 5.4 Kısıtlar
+
+| Tür | Tanım | Örnek | Davranış |
+| --- | --- | --- | --- |
+| Zorunlu (hard) | Sağlanmazsa ders öneriden tamamen çıkarılır | "SENG201 için SENG101 tamamlanmış olmalı" | ADV-FR-02 ile aynı kural kümesi kullanılır |
+| Olsa iyi olur (soft) | Sağlanmazsa ders önerilir ama uyarıyla işaretlenir | "CENG301'den önce SENG201'i almış olmak önerilir" | ADV-FR-03 ile aynı kural kümesi kullanılır |
+
+PLAN kendi kısıt modelini tanımlamaz; ADV'nin ürettiği `kind=hard/soft` kayıtlarını **tüketir** (bkz. §4.3.8). Bu, iki modülün aynı kısıt sözlüğünü paylaşmasını ve çakışan tanım riskinin azalmasını sağlar.
+
+### 5.5 Gereksinimler (PLAN-FR)
+
+| Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| PLAN-FR-01 | Y | Sistem, bir öğrenci için zorunlu ön şartları sağlanan dersleri listeleyebilmelidir. | ADV-FR-01, 02 | M | Ön şartı sağlanmayan ders listede yer almaz. | T-PLAN-01 |
+| PLAN-FR-02 | Y | Sistem, "olsa iyi olur" kısıtı sağlanmayan dersleri ayrı bir uyarı etiketiyle listelemelidir. | ADV-FR-03 | S | Böyle bir ders listede "önerilir, dikkat" etiketiyle görünür. | T-PLAN-02 |
+| PLAN-FR-03 | Y | Kontenjanı dolu bir ders öneriden otomatik çıkarılmalı veya "dolu" olarak işaretlenmelidir. | ADV-FR-06 | S | Kontenjanı dolu ders ya listede yok ya da "dolu" etiketiyle görünür. | T-PLAN-03 |
+| PLAN-FR-04 | Y | Her önerilen/engellenen ders için gerekçe (hangi kural) gösterilmelidir. | §5.3 | M | Her ders satırında en az bir gerekçe metni vardır. | T-PLAN-04 |
+| PLAN-FR-05 | Y | Danışman/öğretmen, önerilen planı değiştirmeden önce görebilmelidir (salt okunur). | §5.1 | C | Danışman giriş yaptığında kendi öğrencisinin planını görebilir. | T-PLAN-05 |
+| PLAN-NFR-01 | Y | Yetkisiz kullanıcı başka bir öğrencinin plan verisini göremez. | AUTH-BR-08 | M | Yetkisiz istek reddedilir. | T-PLAN-06 |
+
+### 5.6 Kabul kriterleri
+
+- Zorunlu ön şartı sağlanmayan hiçbir ders "önerilen" listede görünmez (PLAN-FR-01).
+- Yumuşak kısıtı sağlanmayan dersler listeden çıkarılmaz, yalnızca işaretlenir (PLAN-FR-02).
+- Kontenjanı dolu ders ya listeden çıkar ya da açıkça "dolu" işaretlenir (PLAN-FR-03); iki davranıştan hangisinin seçileceği ADV ile birlikte WBS-2/3'te netleşir.
+- Her öneri/engelleme satırının en az bir okunabilir gerekçesi vardır (PLAN-FR-04).
+- Başka bir öğrencinin planına yetkisiz erişim denemesi reddedilir (PLAN-NFR-01).
+
+### 5.7 Bağımlılıklar
+
+PLAN, ADV'nin ön şart/kısıt verisine (§4.3, §5.4) ve CRS'nin ders kataloğu ile kontenjan verisine (WBS-2 §3.2) bağımlıdır. İkisi de henüz tasarım/geliştirme aşamasında olduğu için PLAN'ın kod geliştirmesi WBS-3/4'te bu iki modülden **sonra** planlanmalıdır; bu nedenle PLAN'ın veri ve arayüz (API) tasarımı WBS-2 §3'e değil, WBS-4'e (yeni fonksiyonların geliştirilmesi) bırakılmıştır.
+
+### 5.8 Öneri: ilk sürüme alınsın mı?
+
+**Hayır, ilk sürümde değil — ikinci dalgaya bırakılmalı.** Gerekçe: PLAN, kendisi de "ilk sürümde kısmi" önerilen ADV'nin (§4.3.11) ürettiği ön şart/kısıt verisine bağımlıdır; ADV'nin çekirdek ön şart kuralı tamamlanmadan PLAN'ın önerdiği liste anlamlı olmaz. Kullanıcı ihtiyaçları da henüz ankete bağlı (bekleniyor, §3.4). Önerilen sıra: ADV çekirdek kısıtları → PLAN çekirdek önerisi (PLAN-FR-01, 03, 04) → danışman onayı ve yumuşak kısıtlar (ADV-FR-03-05 + PLAN-FR-02, 05) ikinci dalga.
+
+### 5.9 Yapay zekâ ve efor kaydı
+
+Kullanılan model Claude Sonnet 5 (Claude Code). Bağlam: §4.3 (ADV) analizi, §3 anket tasarımı, WBS-1 §2.5 gereksinim şablonu. Yapılan iş: §5'in tamamının ilk taslağı; bağımlılıkları ADV ve CRS'ye açıkça bağlayan gerekçe ve "ilk sürüme alınmasın" önerisi YZ tarafından üretildi, İrem tarafından onaylanacak. Düzeltme: İlk taslakta PLAN'ın kendi API tasarımını WBS-2 §3'e koyma eğilimi vardı; görev dağılımında İrem'e yalnızca WBS-1 §5 atandığı ve §3 listesinde PLAN'a ayrı bir alt başlık olmadığı fark edilince tasarım WBS-4'e ertelendi (§5.7). İnsan incelemesi ve anket sonuçlarının işlenmesi henüz tamamlanmadı.
 
 ## 6. Ana performans göstergeleri ve kalite kriterleri (Fatma Zehra)
 

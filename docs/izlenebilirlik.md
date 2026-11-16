@@ -19,6 +19,16 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ADV-BR-01 | K | `public/lib/enrollib.php:2113` | [REST tasarımı](WBS-2-tasarim.md#331-veri-tasarımı) | T-ADV-E01 | Bekliyor | | YZ | |
+| ADV-BR-03 | K | `public/enrol/self/lib.php:334-339` | [REST tasarımı](WBS-2-tasarim.md#331-veri-tasarımı) | T-ADV-E01 | Bekliyor | | YZ | |
+| ADV-FR-01 | Y | Kaynak: ADV-BUG-01 (eski kod referansı yok, Moodle'da karşılığı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-01 | — (yeni fonksiyon) | | YZ | |
+| ADV-FR-02 | Y | Kaynak: ADV-BUG-01; `public/availability/condition/completion/classes/condition.php:135` (yalnızca ders içi) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-02, T-ADV-E02 | Bekliyor (E02) | | YZ | |
+| ADV-FR-03 | Y | Kaynak: ADV-BUG-05 (eski kod referansı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-03 | — (yeni fonksiyon) | | YZ | |
+| ADV-FR-04 | Y | Kaynak: ADV-BUG-02, 03 (eski kod referansı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-04, T-ADV-E03 | Bekliyor (E03) | | YZ | |
+| ADV-FR-05 | Y | Kaynak: ADV-BUG-02 (eski kod referansı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-05 | — (yeni fonksiyon) | | YZ | |
+| ADV-FR-06 | K | `public/enrol/self/lib.php:334-339` | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-06, T-ADV-E01 | Bekliyor (E01) | | YZ | |
+| ADV-FR-07 | Y | Kaynak: ADV-BUG-04; `public/enrol/self/lang/en/enrol_self.php:79` | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-07 | — (yeni fonksiyon) | | YZ | |
+| ADV-NFR-01 | Y | Kaynak: WBS-1 §4.1 AUTH-BR-08, 12 | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-08, T-ADV-E03 | Bekliyor (E03) | | YZ | |
 
 ## Ödev ve teslim – ASG (Aslı Ceren)
 
@@ -82,3 +92,9 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| PLAN-FR-01 | Y | Kaynak: ADV-FR-01, 02 (eski kod yok, yeni modül) | WBS-4'te tasarlanacak (WBS-1 §5.7) | T-PLAN-01 | — (yeni fonksiyon) | | YZ | |
+| PLAN-FR-02 | Y | Kaynak: ADV-FR-03 | WBS-4'te tasarlanacak | T-PLAN-02 | — (yeni fonksiyon) | | YZ | |
+| PLAN-FR-03 | Y | Kaynak: ADV-FR-06 | WBS-4'te tasarlanacak | T-PLAN-03 | — (yeni fonksiyon) | | YZ | |
+| PLAN-FR-04 | Y | Kaynak: WBS-1 §5.3 | WBS-4'te tasarlanacak | T-PLAN-04 | — (yeni fonksiyon) | | YZ | |
+| PLAN-FR-05 | Y | Kaynak: WBS-1 §5.1 | WBS-4'te tasarlanacak | T-PLAN-05 | — (yeni fonksiyon) | | YZ | |
+| PLAN-NFR-01 | Y | Kaynak: WBS-1 §4.1 AUTH-BR-08 | WBS-4'te tasarlanacak | T-PLAN-06 | — (yeni fonksiyon) | | YZ | |

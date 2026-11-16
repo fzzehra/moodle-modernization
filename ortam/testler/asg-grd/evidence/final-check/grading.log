@@ -1,0 +1,57 @@
+Running single behat site: with /var/www/html/vendor/bin/behat --config /var/www/behatdata/behatrun/behat/behat.yml --name="T-GRD-01" --format="pretty" --no-colors /var/www/html/public/mod/assign/tests/behat/wbs_asli_final.feature
+@mod @mod_assign
+Feature: Capstone assignment and grade characterization
+
+  Background:                                    # /var/www/html/public/mod/assign/tests/behat/wbs_asli_final.feature:3
+    Given the following "courses" exist:         # behat_data_generators::the_following_entities_exist()
+      | fullname   | shortname | format | numsections |
+      | WBS Course | WBS       | topics | 3           |
+    And the following "users" exist:             # behat_data_generators::the_following_entities_exist()
+      | username | firstname | lastname | email                |
+      | [test-hesabı] | Teacher   | One      | [e-posta] |
+      | [test-hesabı] | Student   | One      | [e-posta] |
+    And the following "course enrolments" exist: # behat_data_generators::the_following_entities_exist()
+      | user     | course | role           |
+      | [test-hesabı] | WBS    | editingteacher |
+      | [test-hesabı] | WBS    | student        |
+
+  @javascript
+  Scenario: T-GRD-01 and T-GRD-04 save a valid grade and reject a value above the maximum   # /var/www/html/public/mod/assign/tests/behat/wbs_asli_final.feature:69
+    Given the following "activities" exist:                                                 # behat_data_generators::the_following_entities_exist()
+      | activity | course | name               | grade | assignsubmission_onlinetext_enabled |
+      | assign   | WBS    | Numeric assignment | 100   | 1                                   |
+    And the following "mod_assign > submissions" exist:                                     # behat_data_generators::the_following_entities_exist()
+      | assign             | user     | onlinetext     |
+      | Numeric assignment | [test-hesabı] | Ready to grade |
+    And I am on the "Numeric assignment" Activity page logged in as [test-hesabı]                # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I change window size to "large"                                                     # behat_general::i_change_window_size_to()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    When I set the field "Grade out of 100" to "0"                                          # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                              # behat_forms::press_button()
+    And I am on the "Numeric assignment" Activity page                                      # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    Then the field "Grade out of 100" matches value "0.00"                                  # behat_forms::the_field_matches_value()
+    And I set the field "Grade out of 100" to "-1"                                          # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                              # behat_forms::press_button()
+    And I should see "Grade must be greater than or equal to zero."                         # behat_general::assert_page_contains_text()
+    And I am on the "Numeric assignment" Activity page                                      # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    And the field "Grade out of 100" matches value "0.00"                                   # behat_forms::the_field_matches_value()
+    And I set the field "Grade out of 100" to "100"                                         # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                              # behat_forms::press_button()
+    And I am on the "Numeric assignment" Activity page                                      # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    Then the field "Grade out of 100" matches value "100.00"                                # behat_forms::the_field_matches_value()
+    And I set the field "Grade out of 100" to "101"                                         # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                              # behat_forms::press_button()
+    And I should see "Grade must be less than or equal to 100."                             # behat_general::assert_page_contains_text()
+    And I am on the "Numeric assignment" Activity page                                      # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    And the field "Grade out of 100" matches value "100.00"                                 # behat_forms::the_field_matches_value()
+    And I log out                                                                           # behat_auth::i_log_out()
+    And I am on the "WBS Course" "grades > User report > View" page logged in as "[test-hesabı]" # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I should see "100.00" in the "Numeric assignment" "table_row"                       # behat_general::assert_element_contains_text()
+
+1 scenario (1 passed)
+33 steps (33 passed)
+0m38.37s (85.13Mb)

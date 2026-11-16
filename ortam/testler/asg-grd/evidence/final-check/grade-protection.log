@@ -1,0 +1,4 @@
+locked: before=85.00000 after=85.00000 grade_update=1
+overridden: before=72.00000 after=72.00000 grade_update=0
+unprotected: before=90.00000 after=88.00000 grade_update=0
+PASS: locked and overridden grades preserved; unprotected grade updated

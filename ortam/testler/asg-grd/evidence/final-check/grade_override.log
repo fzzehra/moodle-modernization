@@ -1,0 +1,53 @@
+Running single behat site: with /var/www/html/vendor/bin/behat --config /var/www/behatdata/behatrun/behat/behat.yml --format="pretty" --no-colors /var/www/html/public/grade/report/grader/tests/behat/grade_override.feature
+@gradereport @gradereport_grader @gradereport_grade_override
+Feature: As a teacher, I want to override a grade with a deduction and check the gradebook.
+  The deducted mark should not affect the overridden grade.
+
+  Background:                                    # /var/www/html/public/grade/report/grader/tests/behat/grade_override.feature:5
+    Given the following "courses" exist:         # behat_data_generators::the_following_entities_exist()
+      | fullname | shortname | format |
+      | Course 1 | C1        | topics |
+    And the following "users" exist:             # behat_data_generators::the_following_entities_exist()
+      | username | firstname | lastname | email                |
+      | [test-hesabı] | Teacher   | 1        | [e-posta] |
+      | [test-hesabı] | Student   | 1        | [e-posta] |
+    And the following "course enrolments" exist: # behat_data_generators::the_following_entities_exist()
+      | user     | course | role           |
+      | [test-hesabı] | C1     | editingteacher |
+      | [test-hesabı] | C1     | student        |
+    And the following "grade items" exist:       # behat_data_generators::the_following_entities_exist()
+      | itemname        | grademin | grademax | course |
+      | Manual grade 01 | 0        | 100      | C1     |
+      | Manual grade 02 | 0        | 100      | C1     |
+    When the following "grade grades" exist:     # behat_data_generators::the_following_entities_exist()
+      | gradeitem       | user     | grade | deductedmark |
+      | Manual grade 01 | [test-hesabı] | 60    | 10           |
+      | Manual grade 02 | [test-hesabı] | 80    | 20           |
+
+  @javascript
+  Scenario: Override a grade with a deduction and check the gradebook # /var/www/html/public/grade/report/grader/tests/behat/grade_override.feature:27
+    Given I am on the "Course 1" course page logged in as "[test-hesabı]"  # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I navigate to "View > Grader report" in the course gradebook  # behat_grade::i_navigate_to_in_the_course_gradebook()
+    And the following should exist in the "user-grades" table:        # behat_general::following_should_exist_in_the_table()
+      | -1-       | -2-                  | -3- | -4- | -5- |
+      | [test-hesabı] | [e-posta] | 60  | 80  | 140 |
+    And I turn editing mode on                                        # behat_theme_boost_behat_navigation::i_turn_editing_mode_on()
+    And I set the following fields to these values:                   # behat_forms::i_set_the_following_fields_to_these_values()
+      | [test-hesabı] Manual grade 01 grade | 80 |
+    And I click on "Save changes" "button"                            # behat_general::i_click_on()
+    When I turn editing mode off                                      # behat_theme_boost_behat_navigation::i_turn_editing_mode_off()
+    Then the following should exist in the "user-grades" table:       # behat_general::following_should_exist_in_the_table()
+      | -1-       | -2-                  | -3- | -4- | -5- |
+      | [test-hesabı] | [e-posta] | 80  | 80  | 160 |
+    When I turn editing mode on                                       # behat_theme_boost_behat_navigation::i_turn_editing_mode_on()
+    And I set the following fields to these values:                   # behat_forms::i_set_the_following_fields_to_these_values()
+      | [test-hesabı] Manual grade 02 grade | 100 |
+    And I click on "Save changes" "button"                            # behat_general::i_click_on()
+    And I turn editing mode off                                       # behat_theme_boost_behat_navigation::i_turn_editing_mode_off()
+    Then the following should exist in the "user-grades" table:       # behat_general::following_should_exist_in_the_table()
+      | -1-       | -2-                  | -3- | -4- | -5- |
+      | [test-hesabı] | [e-posta] | 80  | 100 | 180 |
+
+1 scenario (1 passed)
+18 steps (18 passed)
+0m21.52s (79.86Mb)

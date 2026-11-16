@@ -1,0 +1,572 @@
+{
+  "@programName": "ZAP",
+  "@version": "2.17.0",
+  "@generated": "Sun, 15 Nov 2026 22:28:50",
+  "site": [
+    {
+      "@name": "http://localhost:8000",
+      "alerts": [
+        {
+          "pluginid": "20020",
+          "name": "Apache HTTP Server Version with Known Vulnerabilities",
+          "riskcode": "3",
+          "confidence": "1",
+          "riskdesc": "High (Low)",
+          "count": "1",
+          "cweid": "1395",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": "/robots.txt"
+            }
+          ]
+        },
+        {
+          "pluginid": "20020",
+          "name": "PHP Version with Known Vulnerabilities",
+          "riskcode": "3",
+          "confidence": "1",
+          "riskdesc": "High (Low)",
+          "count": "1",
+          "cweid": "1395",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": "/sitemap.xml"
+            }
+          ]
+        },
+        {
+          "pluginid": "10202",
+          "name": "Absence of Anti-CSRF Tokens",
+          "riskcode": "2",
+          "confidence": "1",
+          "riskdesc": "Medium (Low)",
+          "count": "5",
+          "cweid": "352",
+          "wascid": "9",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/forgot_password.php"
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "POST",
+              "path": "/login/forgot_password.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10038",
+          "name": "Content Security Policy (CSP) Header Not Set",
+          "riskcode": "2",
+          "confidence": "3",
+          "riskdesc": "Medium (High)",
+          "count": "5",
+          "cweid": "693",
+          "wascid": "15",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/forgot_password.php"
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/robots.txt"
+            },
+            {
+              "method": "GET",
+              "path": "/sitemap.xml"
+            }
+          ]
+        },
+        {
+          "pluginid": "10044",
+          "name": "Big Redirect Detected (Potential Sensitive Information Leak)",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "count": "3",
+          "cweid": "201",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/"
+            },
+            {
+              "method": "POST",
+              "path": "/login/index.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "90004",
+          "name": "Cross-Origin-Embedder-Policy Header Missing or Invalid",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "count": "2",
+          "cweid": "693",
+          "wascid": "14",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "90004",
+          "name": "Cross-Origin-Opener-Policy Header Missing or Invalid",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "count": "2",
+          "cweid": "693",
+          "wascid": "14",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "90004",
+          "name": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "count": "5",
+          "cweid": "693",
+          "wascid": "14",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/r.php/core/esm/1794781465/@moodlehq/design-system/theme-boost/index.js"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/image.php/boost/theme/1794781465/favicon"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10110",
+          "name": "Dangerous JS Functions",
+          "riskcode": "1",
+          "confidence": "1",
+          "riskdesc": "Low (Low)",
+          "count": "2",
+          "cweid": "749",
+          "wascid": "-1",
+          "instances": [
+            {
+              "method": "GET",
+              "path": "/lib/javascript.php/1794781465/lib/requirejs/require.min.js"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10063",
+          "name": "Permissions Policy Header Not Set",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "count": "5",
+          "cweid": "693",
+          "wascid": "15",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/r.php/core/esm/1794781465/@moodlehq/design-system/theme-boost/index.js"
+            },
+            {
+              "method": "GET",
+              "path": "/robots.txt"
+            },
+            {
+              "method": "GET",
+              "path": "/sitemap.xml"
+            }
+          ]
+        },
+        {
+          "pluginid": "10037",
+          "name": "Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s)",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "count": "5",
+          "cweid": "497",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/robots.txt"
+            },
+            {
+              "method": "GET",
+              "path": "/sitemap.xml"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/image.php/boost/theme/1794781465/favicon"
+            }
+          ]
+        },
+        {
+          "pluginid": "10036",
+          "name": "Server Leaks Version Information via \"Server\" HTTP Response Header Field",
+          "riskcode": "1",
+          "confidence": "3",
+          "riskdesc": "Low (High)",
+          "count": "5",
+          "cweid": "497",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/robots.txt"
+            },
+            {
+              "method": "GET",
+              "path": "/sitemap.xml"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/image.php/boost/theme/1794781465/favicon"
+            }
+          ]
+        },
+        {
+          "pluginid": "10096",
+          "name": "Timestamp Disclosure - Unix",
+          "riskcode": "1",
+          "confidence": "1",
+          "riskdesc": "Low (Low)",
+          "count": "4",
+          "cweid": "497",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10021",
+          "name": "X-Content-Type-Options Header Missing",
+          "riskcode": "1",
+          "confidence": "2",
+          "riskdesc": "Low (Medium)",
+          "count": "5",
+          "cweid": "693",
+          "wascid": "15",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            },
+            {
+              "method": "GET",
+              "path": "/r.php/core/esm/1794781465/@moodlehq/design-system/theme-boost/index.js"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/image.php/boost/theme/1794781465/favicon"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10111",
+          "name": "Authentication Request Identified",
+          "riskcode": "0",
+          "confidence": "3",
+          "riskdesc": "Informational (High)",
+          "count": "2",
+          "cweid": "-1",
+          "wascid": "-1",
+          "instances": [
+            {
+              "method": "POST",
+              "path": "/login/forgot_password.php"
+            },
+            {
+              "method": "POST",
+              "path": "/login/index.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10027",
+          "name": "Information Disclosure - Suspicious Comments",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "count": "11",
+          "cweid": "615",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10109",
+          "name": "Modern Web Application",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "count": "2",
+          "cweid": "-1",
+          "wascid": "-1",
+          "instances": [
+            {
+              "method": "GET",
+              "path": "/robots.txt"
+            },
+            {
+              "method": "GET",
+              "path": "/sitemap.xml"
+            }
+          ]
+        },
+        {
+          "pluginid": "10049",
+          "name": "Non-Storable Content",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "count": "3",
+          "cweid": "524",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            },
+            {
+              "method": "GET",
+              "path": "/"
+            },
+            {
+              "method": "GET",
+              "path": "/login/index.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10112",
+          "name": "Session Management Response Identified",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "count": "1",
+          "cweid": "-1",
+          "wascid": "-1",
+          "instances": [
+            {
+              "method": "GET",
+              "path": ""
+            }
+          ]
+        },
+        {
+          "pluginid": "10049",
+          "name": "Storable and Cacheable Content",
+          "riskcode": "0",
+          "confidence": "2",
+          "riskdesc": "Informational (Medium)",
+          "count": "4",
+          "cweid": "524",
+          "wascid": "13",
+          "instances": [
+            {
+              "method": "GET",
+              "path": "/r.php/core/esm/1794781465/@moodlehq/design-system/theme-boost/index.js"
+            },
+            {
+              "method": "GET",
+              "path": "/sitemap.xml"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/image.php/boost/theme/1794781465/favicon"
+            },
+            {
+              "method": "GET",
+              "path": "/theme/yui_combo.php"
+            }
+          ]
+        },
+        {
+          "pluginid": "10031",
+          "name": "User Controllable HTML Element Attribute (Potential XSS)",
+          "riskcode": "0",
+          "confidence": "1",
+          "riskdesc": "Informational (Low)",
+          "count": "4",
+          "cweid": "20",
+          "wascid": "20",
+          "instances": [
+            {
+              "method": "POST",
+              "path": "/login/forgot_password.php"
+            },
+            {
+              "method": "POST",
+              "path": "/login/forgot_password.php"
+            },
+            {
+              "method": "POST",
+              "path": "/login/forgot_password.php"
+            },
+            {
+              "method": "POST",
+              "path": "/login/forgot_password.php"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

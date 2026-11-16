@@ -1,0 +1,98 @@
+Running single behat site: with /var/www/html/vendor/bin/behat --config /var/www/behatdata/behatrun/behat/behat.yml --format="pretty" --no-colors /var/www/html/public/mod/assign/tests/behat/wbs_asli_characterization.feature
+@mod @mod_assign
+Feature: Capstone assignment and grade characterization
+
+  Background:                                    # /var/www/html/public/mod/assign/tests/behat/wbs_asli_characterization.feature:3
+    Given the following "courses" exist:         # behat_data_generators::the_following_entities_exist()
+      | fullname   | shortname | format | numsections |
+      | WBS Course | WBS       | topics | 3           |
+    And the following "users" exist:             # behat_data_generators::the_following_entities_exist()
+      | username | firstname | lastname | email                |
+      | [test-hesabı] | Teacher   | One      | [e-posta] |
+      | [test-hesabı] | Student   | One      | [e-posta] |
+    And the following "course enrolments" exist: # behat_data_generators::the_following_entities_exist()
+      | user     | course | role           |
+      | [test-hesabı] | WBS    | editingteacher |
+      | [test-hesabı] | WBS    | student        |
+
+  Scenario: T-ASG-02 teacher creates an assignment visible to the student                      # /var/www/html/public/mod/assign/tests/behat/wbs_asli_characterization.feature:16
+    Given I log in as "[test-hesabı]"                                                               # behat_auth::i_log_in_as()
+    When I add an assign activity to course "WBS Course" section "1" and I fill the form with: # behat_course::i_add_to_course_section_and_i_fill_the_form_with()
+      | Assignment name | Created assignment |
+    Then I should see "Created assignment"                                                     # behat_general::assert_page_contains_text()
+    And I log out                                                                              # behat_auth::i_log_out()
+    And I log in as "[test-hesabı]"                                                                 # behat_auth::i_log_in_as()
+    And I am on "WBS Course" course homepage                                                   # behat_theme_boost_behat_navigation::i_am_on_course_homepage()
+    And I should see "Created assignment"                                                      # behat_general::assert_page_contains_text()
+
+  @javascript
+  Scenario: T-ASG-01 text persists and confirmation controls the submission state # /var/www/html/public/mod/assign/tests/behat/wbs_asli_characterization.feature:27
+    Given the following "activities" exist:                                       # behat_data_generators::the_following_entities_exist()
+      | activity | course | name             | assignsubmission_onlinetext_enabled | submissiondrafts |
+      | assign   | WBS    | Confirmation off | 1                                   | 0                |
+      | assign   | WBS    | Confirmation on  | 1                                   | 1                |
+    And I am on the "Confirmation off" Activity page logged in as [test-hesabı]        # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    When I press "Add submission"                                                 # behat_forms::press_button()
+    And I set the field "Online text" to "Stored capstone text"                   # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                    # behat_forms::press_button()
+    And I am on the "Confirmation off" Activity page                              # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    Then I should see "Submitted for grading"                                     # behat_general::assert_page_contains_text()
+    And I should see "Stored capstone text"                                       # behat_general::assert_page_contains_text()
+    And I am on the "Confirmation on" Activity page                               # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I press "Add submission"                                                  # behat_forms::press_button()
+    And I set the field "Online text" to "Stored capstone text"                   # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                    # behat_forms::press_button()
+    And I am on the "Confirmation on" Activity page                               # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I should see "Draft (not submitted)"                                      # behat_general::assert_page_contains_text()
+    And I should see "Stored capstone text"                                       # behat_general::assert_page_contains_text()
+    And I press "Submit assignment"                                               # behat_forms::press_button()
+    And I press "Continue"                                                        # behat_forms::press_button()
+    And I should see "Submitted for grading"                                      # behat_general::assert_page_contains_text()
+
+  @javascript
+  Scenario: T-ASG-04 cutoff closes the submission without an extension       # /var/www/html/public/mod/assign/tests/behat/wbs_asli_characterization.feature:51
+    Given the following "activity" exists:                                   # behat_data_generators::the_following_entity_exists()
+      | activity                            | assign            |
+      | course                              | WBS               |
+      | name                                | Closed assignment |
+      | assignsubmission_onlinetext_enabled | 1                 |
+    And I am on the "Closed assignment" Activity page logged in as [test-hesabı]  # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I navigate to "Settings" in current page administration              # behat_theme_boost_behat_navigation::i_navigate_to_in_current_page_administration()
+    And I click on "Expand all" "link" in the "region-main" "region"         # behat_general::i_click_on_in_the()
+    And I set the field "Allow submissions from" to "##3 days ago##"         # behat_forms::i_set_the_field_to()
+    And I set the field "Due date" to "##2 days ago##"                       # behat_forms::i_set_the_field_to()
+    And I set the field "Cut-off date" to "##yesterday noon##"               # behat_forms::i_set_the_field_to()
+    And I press "Save and return to course"                                  # behat_forms::press_button()
+    And I log out                                                            # behat_auth::i_log_out()
+    When I am on the "Closed assignment" Activity page logged in as [test-hesabı] # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    Then "Add submission" "button" should not exist                          # behat_general::should_not_exist()
+
+  @javascript
+  Scenario: T-GRD-01 and T-GRD-04 save a valid grade and reject a value above the maximum   # /var/www/html/public/mod/assign/tests/behat/wbs_asli_characterization.feature:69
+    Given the following "activities" exist:                                                 # behat_data_generators::the_following_entities_exist()
+      | activity | course | name               | grade | assignsubmission_onlinetext_enabled |
+      | assign   | WBS    | Numeric assignment | 100   | 1                                   |
+    And the following "mod_assign > submissions" exist:                                     # behat_data_generators::the_following_entities_exist()
+      | assign             | user     | onlinetext     |
+      | Numeric assignment | [test-hesabı] | Ready to grade |
+    And I am on the "Numeric assignment" Activity page logged in as [test-hesabı]                # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I change window size to "large"                                                     # behat_general::i_change_window_size_to()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    When I set the field "Grade out of 100" to "100"                                        # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                              # behat_forms::press_button()
+    And I am on the "Numeric assignment" Activity page                                      # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    Then the field "Grade out of 100" matches value "100.00"                                # behat_forms::the_field_matches_value()
+    And I set the field "Grade out of 100" to "101"                                         # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                              # behat_forms::press_button()
+    And I should see "Grade must be less than or equal to 100."                             # behat_general::assert_page_contains_text()
+    And I am on the "Numeric assignment" Activity page                                      # behat_theme_boost_behat_navigation::i_am_on_page_instance()
+    And I go to "[test-hesabı]" "Numeric assignment" activity advanced grading page           # behat_grading::i_go_to_activity_advanced_grading_page()
+    And the field "Grade out of 100" matches value "100.00"                                 # behat_forms::the_field_matches_value()
+    And I log out                                                                           # behat_auth::i_log_out()
+    And I am on the "WBS Course" "grades > User report > View" page logged in as "[test-hesabı]" # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I should see "100.00" in the "Numeric assignment" "table_row"                       # behat_general::assert_element_contains_text()
+
+4 scenarios (4 passed)
+67 steps (67 passed)
+1m21.24s (86.68Mb)

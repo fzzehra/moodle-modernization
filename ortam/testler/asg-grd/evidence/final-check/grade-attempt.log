@@ -1,0 +1,4 @@
+        name        | username | grade_attempt | submission_attempt |   grade
+--------------------+----------+---------------+--------------------+-----------
+ Numeric assignment | [test-hesabı] |             0 |                  0 | 100.00000
+(1 row)

@@ -1,0 +1,68 @@
+Running single behat site: with /var/www/html/vendor/bin/behat --config /var/www/behatdata/behatrun/behat/behat.yml --format="pretty" --no-colors /var/www/html/public/grade/report/grader/tests/behat/locking.feature
+Feature: Locking Grade Items and Categories in Gradebook
+  In order to ensure that grade items and categories can be securely locked in the gradebook,
+  As a teacher,
+  I need to perform locking actions and verify the locking status.
+
+  Background:                                    # /var/www/html/public/grade/report/grader/tests/behat/locking.feature:6
+    Given the following "courses" exist:         # behat_data_generators::the_following_entities_exist()
+      | fullname | shortname |
+      | Course 1 | C1        |
+    And the following "users" exist:             # behat_data_generators::the_following_entities_exist()
+      | username | firstname | lastname |
+      | [test-hesabı] | Teacher   | 1        |
+      | [test-hesabı] | Student   | 1        |
+      | [test-hesabı] | Student   | 2        |
+    And the following "course enrolments" exist: # behat_data_generators::the_following_entities_exist()
+      | user     | course | role           |
+      | [test-hesabı] | C1     | editingteacher |
+      | [test-hesabı] | C1     | student        |
+      | [test-hesabı] | C1     | student        |
+    And the following "grade categories" exist:  # behat_data_generators::the_following_entities_exist()
+      | fullname   | course |
+      | Category 1 | C1     |
+    And the following "grade items" exist:       # behat_data_generators::the_following_entities_exist()
+      | itemname       | course | gradecategory |
+      | Manual grade 1 | C1     | Category 1    |
+      | Manual grade 2 | C1     | Category 1    |
+    And the following "grade items" exist:       # behat_data_generators::the_following_entities_exist()
+      | itemname       | course |
+      | Manual grade 3 | C1     |
+
+  @javascript
+  Scenario: Locking and unlocking a grade item preserves individual student locks                 # /var/www/html/public/grade/report/grader/tests/behat/locking.feature:32
+    Given I am on the "Course 1" "grades > Grader report > View" page logged in as "[test-hesabı]"     # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I turn editing mode on                                                                    # behat_theme_boost_behat_navigation::i_turn_editing_mode_on()
+    And I change window size to "large"                                                           # behat_general::i_change_window_size_to()
+    When I click on "Manual grade 1" "core_grades > grade_actions" in the "[test-hesabı]" "table_row" # behat_general::i_click_on_in_the()
+    And I choose "Lock" in the open action menu                                                   # behat_action_menu::i_choose_in_the_open_action_menu()
+    And I click on grade item menu "Manual grade 1" of type "gradeitem" on "grader" page          # behat_grades::i_click_on_grade_item_menu()
+    And I choose "Lock" in the open action menu                                                   # behat_action_menu::i_choose_in_the_open_action_menu()
+    And I click on grade item menu "Manual grade 1" of type "gradeitem" on "grader" page          # behat_grades::i_click_on_grade_item_menu()
+    And I choose "Unlock" in the open action menu                                                 # behat_action_menu::i_choose_in_the_open_action_menu()
+    Then "Locked" "icon" should exist in the "[test-hesabı]" "table_row"                              # behat_general::should_exist_in_the()
+    And "Locked" "icon" should not exist in the "[test-hesabı]" "table_row"                           # behat_general::should_not_exist_in_the()
+
+  @javascript
+  Scenario: Locking and unlocking a grade item through editing form preserves individual student locks # /var/www/html/public/grade/report/grader/tests/behat/locking.feature:46
+    Given I am on the "Course 1" "grades > Grader report > View" page logged in as "[test-hesabı]"          # behat_theme_boost_behat_navigation::i_am_on_page_instance_logged_in_as()
+    And I turn editing mode on                                                                         # behat_theme_boost_behat_navigation::i_turn_editing_mode_on()
+    And I change window size to "large"                                                                # behat_general::i_change_window_size_to()
+    When I click on "Manual grade 1" "core_grades > grade_actions" in the "[test-hesabı]" "table_row"      # behat_general::i_click_on_in_the()
+    And I choose "Edit grade" in the open action menu                                                  # behat_action_menu::i_choose_in_the_open_action_menu()
+    And I set the field "Locked" to "1"                                                                # behat_forms::i_set_the_field_to()
+    And I press "Save changes"                                                                         # behat_forms::press_button()
+    And I click on grade item menu "Manual grade 1" of type "gradeitem" on "grader" page               # behat_grades::i_click_on_grade_item_menu()
+    And I choose "Edit grade item" in the open action menu                                             # behat_action_menu::i_choose_in_the_open_action_menu()
+    And I set the field "Locked" to "1"                                                                # behat_forms::i_set_the_field_to()
+    And I click on "Save" "button" in the "Edit grade item" "dialogue"                                 # behat_general::i_click_on_in_the()
+    And I click on grade item menu "Manual grade 1" of type "gradeitem" on "grader" page               # behat_grades::i_click_on_grade_item_menu()
+    And I choose "Edit grade item" in the open action menu                                             # behat_action_menu::i_choose_in_the_open_action_menu()
+    And I set the field "Locked" to "0"                                                                # behat_forms::i_set_the_field_to()
+    And I click on "Save" "button" in the "Edit grade item" "dialogue"                                 # behat_general::i_click_on_in_the()
+    Then "Locked" "icon" should exist in the "[test-hesabı]" "table_row"                                   # behat_general::should_exist_in_the()
+    And "Locked" "icon" should not exist in the "[test-hesabı]" "table_row"                                # behat_general::should_not_exist_in_the()
+
+2 scenarios (2 passed)
+40 steps (40 passed)
+0m54.94s (79.72Mb)

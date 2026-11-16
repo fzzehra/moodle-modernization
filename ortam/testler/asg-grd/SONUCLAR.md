@@ -38,4 +38,6 @@
 
 ZAP 2.17.0, imaj digest’i `sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af`. Tarama yalnızca yerel `http://localhost:8000` üzerinde kimlik doğrulamasız tamamlandı. Konsol 47 URL, 17 uyarı, 0 FAIL, 51 PASS ve çıkış kodu `2` gösterdi. Apache ve PHP sürüm eşleştirmeleri yüksek risk, düşük güven etiketi aldı. CSP ve CSRF belirteci uyarıları orta risk etiketi aldı. Bunlar pasif tarama bulgularıdır. Oturum gerektiren sayfalar kapsam dışındaydı.
 
+Temizlenmiş kaynaklar [k6 koşuları ve Docker örnekleri](evidence/k6/), [ZAP JSON özeti](evidence/zap/baseline.json), [Behat günlüğü](evidence/behat.log) ve [son doğrulama günlükleri](evidence/final-check/) altında yer alır. [Paylaşım denetimi](evidence/PAYLASIM-DENETIMI.md) ayıklama ve hariç bırakma kararlarını listeler. Orijinal ham çıktılar repo dışında `~/moodle-lab/evidence/` altında saklanır.
+
 Ayrıntılı yöntem ve ortam [WBS-1 §8](../../../docs/WBS-1-analiz.md#8-eski-sistemin-başlangıç-ölçümleri-aslı-ceren) bölümündedir.

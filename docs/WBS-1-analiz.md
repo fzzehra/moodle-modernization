@@ -1014,7 +1014,7 @@ Ders ve kayıt yetkileri hazırsa çevrimiçi metin, bireysel teslim ve temel du
 
 #### 4.5.1 Moodle’daki karşılığı
 
-Sabit revizyon `cfe123f2`. Ödev puanlama işlemi `public/mod/assign/locallib.php:10245` (`save_grade`), not defterine aktarım `public/mod/assign/lib.php:1011,1118` (`assign_grade_item_update`, `assign_update_grades)) üzerinden izlenir. Öğrencinin raporu `public/grade/report/user/index.php`, dersin değerlendirici görünümü `public/grade/report/grader/index.php` içindedir.
+Sabit revizyon `cfe123f2`. Ödev puanlama işlemi `public/mod/assign/locallib.php:10245` (`save_grade`), not defterine aktarım `public/mod/assign/lib.php:1011,1118` (`assign_grade_item_update`, `assign_update_grades`) üzerinden izlenir. Öğrencinin raporu `public/grade/report/user/index.php`, dersin değerlendirici görünümü `public/grade/report/grader/index.php` içindedir.
 
 #### 4.5.2 İş akışları
 
@@ -1534,6 +1534,8 @@ Bu süreler yalnızca Aslı Ceren Can’ın sorumluluğundaki ASG ve GRD modüll
 
 [ASG ve GRD test paketi](../ortam/testler/asg-grd/README.md) WSL Ubuntu’da ortak fixture ile testleri yeniden çalıştırma adımlarını içerir. `benchmark.sh`, `pages.js` ve `summarize.py` k6 koşularını ve kaynak ölçümü özetini üretir. `functional.sh`, geçici veritabanı kopyasında `verify_pages.py`, `cutoff.py` ve `grade-protection.php` kontrollerini yürütür. Ardından `characterization.feature`, Moodle Behat senaryoları ve SQL deneme doğrulaması çalışır. `common.sh` iki çalıştırıcı için ortam ve çıktı dizinini hazırlar. [SONUCLAR.md](../ortam/testler/asg-grd/SONUCLAR.md) mevcut performans ve ZAP özetini içerir.
 
-Çalıştırıcılar ham çıktıları repo dışındaki ayrı koşu dizinlerine yazar. Test kimlik bilgileri yerel olarak sağlanır. Ekip içi ham arşiv, erişimi kısıtlı bir klasörde tutulabilir. Paylaşım öncesi oturum bilgileri ve kişisel veriler ayıklanır.
+Temizlenmiş paylaşım kopyası [evidence/](../ortam/testler/asg-grd/evidence/) dizinindedir. İşlevsel test günlükleri dizin kökünde, k6 koşuları `k6/`, ZAP rapor özeti `zap/` ve son doğrulama günlükleri `final-check/` altındadır. [Paylaşım denetimi](../ortam/testler/asg-grd/evidence/PAYLASIM-DENETIMI.md) her kaynak dosya için uygulanan işlemi listeler.
+
+Orijinal ham kanıtlar repo dışında `~/moodle-lab/evidence/` altında saklanır. Yeni koşuların ham çıktıları da repo dışındaki ayrı koşu dizinlerine yazılır. Test kimlik bilgileri yerel olarak sağlanır.
 
 ## 9. Seçilen modüller, bağımlılık haritası ve kararlar (Fatma Zehra)

@@ -1,0 +1,2 @@
+T-ASG-04 HTTP POST: HTTP 404; cutoff message=False; stored state unchanged=True
+T-ASG-04 positive control after reopening: HTTP 200; text saved=True

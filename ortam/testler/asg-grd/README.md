@@ -31,6 +31,10 @@ Her çalıştırıcı isteğe bağlı olarak repo dışındaki çıktı üst diz
 - **Performans:** `benchmark.sh`, `pages.js` ile dört sayfada 5 ve 50 VU için 10 sn ısınma ve beşer 15 sn ölçüm yapar. Koşular arasında 5 sn ve hedef istekleri arasında VU başına 1 sn bekler. 50 VU, 10 öğrencinin beşer bağımsız oturumunu kullanır. Oturum açma ölçüm penceresinin dışındadır. Hedef URL ve HTML sayfa kimliği kontrol edilir. Ham noktalar, özetler ve Docker istatistikleri `k6/` altında üretilir. `summarize.py` bunlardan `results.md` ve `per-run.json` üretir.
 - **İşlevsel:** `functional.sh`, geçici PostgreSQL kopyasını kullanır ve yerel web uygulamasını kısa süre bu kopyaya yönlendirir. Bu sırada uygulamayı başka işler için kullanmayın. Yetki, kesim ve korumalı not kontrollerinden sonra yapılandırmayı geri yükler. Moodle’ın ayrı Behat tablolarında `characterization.feature` ve sabit revizyondaki gizleme, kilit ve not değiştirme senaryoları çalışır. Deneme bağlantısı SQL ile doğrulanır. Bir test başarısız olursa çıktı dizinindeki ilgili günlüğü inceleyin. İşlem zorla sonlandırılırsa lab kökündeki `.asg-grd-config.*` yedeğinden Moodle `config.php` dosyasını geri yükleyin.
 
-Ham çıktı, çerez, parola dosyası, veritabanı kopyası ve tam ZAP raporu ekip deposu dışında tutulur. Ekip içi paylaşımda ham arşivin erişimini sınırlandırın ve paylaşmadan önce oturum verisi ve kişisel bilgileri denetleyin.
+## Paylaşılan test kanıtları
+
+[Temizlenmiş kanıtlar](evidence/) içinde işlevsel test günlükleri, `k6/` ölçümleri ve Docker örnekleri, `zap/` kural özeti ve `final-check/` son doğrulama günlükleri bulunur. [Paylaşım denetimi](evidence/PAYLASIM-DENETIMI.md), temizlenen ve hariç bırakılan dosyaları listeler.
+
+Orijinal ham kanıtlar `~/moodle-lab/evidence/` altında repo dışında saklanır. Yeni koşuların ham çıktıları bu README’de belirtilen repo dışı koşu dizinlerine yazılır. Çerezler, parola dosyaları, veritabanı kopyaları ve tam ZAP HTML raporu da repo dışında tutulur.
 
 [Ölçüm ve güvenlik özeti](SONUCLAR.md) · [WBS-1 §8](../../../docs/WBS-1-analiz.md#8-eski-sistemin-başlangıç-ölçümleri-aslı-ceren)

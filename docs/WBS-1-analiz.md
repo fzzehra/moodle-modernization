@@ -927,7 +927,18 @@ Moodle’ın sabit revizyonundaki ek Behat paketleri de geçti. `hidden_grades.l
 
 ### 8.5 Yapay zekâ ve efor kaydı
 
-Aslı Ceren’in beyanına göre kullanılan model GPT-6.1 Sol, düşünme seviyesi Orta. Proje planı, gereksinimlerin belirlenmesi, geliştirme ortamının kurulumu, görev yönetimi ve teknik kararlar insan sorumluluğundaydı. Yapay zekâ dokümantasyon, test betikleri, performans ölçümleri ve teknik analizde yardımcı olarak kullanıldı. İnsan ve yapay zekâ katkı oranı ölçülmedi. Bağlam olarak ekip görev dağılımı, proje kapsamı, WBS belgeleri, ortak feature ve sabit Moodle kaynak kodu kullanıldı. Destek verilen işler kaynak incelemesi, ASG/GRD taslakları, REST ve izlenebilirlik, kurulum, k6/ZAP betikleri ve doğrulama. Revizyon ve kaynak satırları yerelde kontrol edildi. İlk k6 denemesinde PostgreSQL tablo öneki düzeltildi ve ders listesi için doğru hedef seçildi. Behat, test listesini güncelledikten sonra senaryoları buldu. Ham metrikler, 40 koşunun özetleri, işlevsel test kimlikleri ve ZAP tarama kapsamı çapraz kontrol edildi. Son kontrolde 12 gereksinimin sınıf ve öncelik gerekçeleri yeniden incelendi ve ek test kanıtları doğrulandı. Aslı Ceren’in çalışma süresi **doldurulacak**. Ortak süre tablosu repo dosyaları arasında bulunmadı. Aslı Ceren gerçek çalışma süresini ayrıca bildirecek.
+Aslı Ceren’in beyanına göre kullanılan model GPT-6.1 Sol, düşünme seviyesi Orta. Proje planı, gereksinimlerin belirlenmesi, geliştirme ortamının kurulumu, görev yönetimi ve teknik kararlar insan sorumluluğundaydı. Yapay zekâ dokümantasyon, test betikleri, performans ölçümleri ve teknik analizde yardımcı olarak kullanıldı. İnsan ve yapay zekâ katkı oranı ölçülmedi. Bağlam olarak ekip görev dağılımı, proje kapsamı, WBS belgeleri, ortak feature ve sabit Moodle kaynak kodu kullanıldı. Destek verilen işler kaynak incelemesi, ASG/GRD taslakları, REST ve izlenebilirlik, kurulum, k6/ZAP betikleri ve doğrulama. Revizyon ve kaynak satırları yerelde kontrol edildi. İlk k6 denemesinde PostgreSQL tablo öneki düzeltildi ve ders listesi için doğru hedef seçildi. Behat, test listesini güncelledikten sonra senaryoları buldu. Ham metrikler, 40 koşunun özetleri, işlevsel test kimlikleri ve ZAP tarama kapsamı çapraz kontrol edildi. Son kontrolde 12 gereksinimin sınıf ve öncelik gerekçeleri yeniden incelendi ve ek test kanıtları doğrulandı.
+
+**Sorumlu ekip üyesi** Aslı Ceren Can
+
+| Çalışma | Bildirilen süre |
+| --- | ---: |
+| Bireysel insan çalışması | Yaklaşık 3 saat |
+| Codex çalışması | Yaklaşık 2 saat |
+
+İnsan katkısı gereksinimlerin incelenmesini, yapay zekânın yönlendirilmesini, sonuçların kontrol edilmesini, GitHub işlemlerini ve test çıktılarının ekiple paylaşılmasını kapsar.
+
+Bu süreler yalnızca Aslı Ceren Can’ın sorumluluğundaki ASG ve GRD modüllerine aittir. Diğer ekip üyelerinin süreleri kapsam dışındadır. İnsan ve Codex süreleri ayrı kaydedilmiştir ve katkı yüzdesi olarak yorumlanmaz.
 
 ### 8.6 Ekip paylaşımı ve yeniden üretim
 

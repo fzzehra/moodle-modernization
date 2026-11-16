@@ -2,7 +2,7 @@
 
 ## 1. Hedef dil ve teknoloji seçimi (Seray)
 
-Seçim, SRS'teki "farklı bir programlama dili" şartına (WBS-1 §1) ve sürüm planına göre yapılmıştır: 1. sürümde AUTH, CRS, ASG, GRD; 2. sürümde FILE, ADV; 3. sürümde PLAN yazılacaktır. Puanlar 1 (zayıf) – 5 (çok iyi) arasındadır ve ekibin ilk değerlendirmesidir; grup toplantısında onaylanır.
+Seçim, SRS'teki "farklı bir programlama dili" şartına (WBS-1 §1) ve sürüm planına göre yapılmıştır: Moodle'da var olan işlevler (WBS-3) için 1. sürümde AUTH, CRS, ASG ve GRD (yalnızca öncelik M gereksinimleri), 2. sürümde FILE; yeni işlevler ve veri aktarımı (WBS-4) için ADV ve PLAN yazılacaktır. Puanlar 1 (zayıf) – 5 (çok iyi) arasındadır ve ekibin ilk değerlendirmesidir; grup toplantısında onaylanır.
 
 ### 1.1 Adaylar
 
@@ -64,7 +64,7 @@ Risk ve önlem: YZ araçlarının Blazor'daki başarısı React'ten düşük ola
 
 ### 2.1 Genel yaklaşım
 
-Sistem **modüler monolit**tir: tek dağıtım birimi, içinde modül sınırları açık. Gerekçe: 5 kişilik ekip ve 3 sürümlük plan için mikro hizmet işletmesi gereksiz maliyettir; ancak modüller (AUTH, CRS, ASG, GRD, FILE, ADV, PLAN) birbirine yalnızca arayüzlerle bağlandığı için sürüm sürüm eklenebilir ve gerekirse sonradan ayrılabilir.
+Sistem **modüler monolit**tir: tek dağıtım birimi, içinde modül sınırları açık. Gerekçe: 5 kişilik ekip ve aşamalı sürüm planı (WBS-3, WBS-4) için mikro hizmet işletmesi gereksiz maliyettir; ancak modüller (AUTH, CRS, ASG, GRD, FILE, ADV, PLAN) birbirine yalnızca arayüzlerle bağlandığı için sürüm sürüm eklenebilir ve gerekirse sonradan ayrılabilir.
 
 ### 2.2 Katmanlar
 
@@ -184,11 +184,11 @@ Yaklaşım **modül modül geçiş**tir (strangler fig): ters vekil, hangi yolun
 
 | Sürüm | Modüller | Geçişte bilinmesi gereken |
 | --- | --- | --- |
-| 1 | AUTH, CRS, ASG, GRD | Kimlik ilk taşınan modüldür; kullanıcı ve rol aktarımı tamamlanmadan diğerleri açılamaz. **Ödev teslimi dosya gerektirir** (aşağıya bakın). |
-| 2 | FILE (tam), ADV | FILE'ın 1. sürümde başlayan çekirdeği burada tamamlanır; ADV, AUTH ve CRS'ye bağlıdır. |
-| 3 | PLAN | Önceki modüllerin verisini okur. |
+| 1 (WBS-3) | AUTH, CRS, ASG, GRD (yalnızca M gereksinimleri) | Kimlik ilk taşınan modüldür; kullanıcı ve rol aktarımı tamamlanmadan diğerleri açılamaz. Ödev teslimi bireysel çevrimiçi metindir (aşağıya bakın). |
+| 2 (WBS-3) | FILE | Moodle'da var olan dosya işlevi eklenir; ASG bu sürümde dosyalı teslimi kazanır. |
+| WBS-4 | ADV, PLAN | Yeni işlevler ve veri aktarımı. ADV, AUTH ve CRS'ye bağlıdır; PLAN önceki modüllerin verisini okur. |
 
-4. **Dosya bağımlılığı.** ASG 1. sürümde, FILE ise 2. sürümde planlıdır; oysa ödev teslimi dosya yükleme, taslaktan kalıcıya geçiş ve yetkili indirme gerektirir. Bu yüzden `IFileService` 1. sürümde, **yalnızca ASG'nin ihtiyaç duyduğu çekirdek** (taslak, kaydet, indir, sil, boyut sınırı; WBS-1 §4.6.11) ile gerçeklenir; kota, çöp kutusu geri alma, yönetici ayarları ve temizlik görevi (FILE'ın kalanı) 2. sürümde eklenir. Aksi hâlde ASG metin teslimiyle sınırlı kalır.
+4. **Dosya bağımlılığı.** 1. sürümde ödev teslimi **yalnızca bireysel çevrimiçi metindir** (§3.4); bu yüzden 1. sürüm dosya servisi gerektirmez ve FILE 2. sürümde eklenir. Dosyalı teslim için gereken tasarım §3.6'da hazırdır: ASG, dosya için yalnızca `IFileService` arayüzünü çağıracağından 2. sürümde ASG kodu değişmeden dosyalı teslim açılabilir. Ekip dosyalı teslimi 1. sürüme almaya karar verirse, `IFileService` yalnızca ASG'nin ihtiyaç duyduğu çekirdekle (taslak, kaydet, indir, sil, boyut sınırı; WBS-1 §4.6.11) gerçeklenir; kota, çöp kutusu geri alma, yönetici ayarları ve temizlik görevi yine 2. sürümde kalır.
 5. **Kimlik paylaşımı.** Geçiş döneminde kullanıcı iki sistemde de oturum açar. Tek oturum açma (SSO) bu proje kapsamında **yoktur**; sınav ve karşılaştırma ortamında test kullanıcıları iki sistemde aynı kimlikle tanımlanır (`ornek-veri.feature`).
 6. **Geri dönüş.** Modül yönlendirmesi vekil ayarıyla geri alınabilir; aktarım betiği yeniden çalıştırılabilir (aynı veriyle kurulum 5 dakika, `ortam/README.md`).
 
@@ -196,7 +196,7 @@ Yaklaşım **modül modül geçiş**tir (strangler fig): ters vekil, hangi yolun
 
 - Ters vekil için nginx ve Caddy arasında seçim, kurulum denemesinden sonra yapılacaktır.
 - Ödev teslim dosyalarının yetkisi §3.4 ile birlikte kesinleşecektir.
-- Dil seçimi grup toplantısında onaylanmadıkça §1.3 "öneri"dir.
+- Dil seçimi (C# / .NET 10 + Blazor) ve 1. sürümde ödev teslimi türü (metin / dosyalı) grup oylamasına bağlıdır; §2.7 madde 4 oylama sonucuna göre kesinleşir.
 
 ## 3. Veri ve arayüz tasarımı
 

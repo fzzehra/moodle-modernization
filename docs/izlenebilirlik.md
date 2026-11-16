@@ -24,14 +24,23 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ASG-BR-01 (örnek) | K | `public/mod/assign/locallib.php:8701-8705` | | T-ASG-01 | | | | |
-
-> **Örnek satırın açıklaması:** Ödevde "öğrenci gönder butonuna basmalı" (`submissiondrafts`) ayarı açıksa kaydedilen teslim **taslak**, kapalıysa **gönderildi** durumuna geçer. Kural örnek veri hazırlanırken bulundu (WBS-1 §1). Aslı Ceren modül analizinde bu satırı kendi kimlik numarasıyla güncelleyebilir.
+| ASG-FR-01 | K | `public/mod/assign/locallib.php:787` | [REST tasarımı](WBS-2-tasarim.md#342-rest-api) | T-ASG-02 | Geçti | | | |
+| ASG-FR-02 | K | `public/mod/assign/locallib.php:8661` | [REST tasarımı](WBS-2-tasarim.md#342-rest-api) | T-ASG-01 | Geçti | | | |
+| ASG-FR-03 | K | `public/mod/assign/locallib.php:5010` | [REST tasarımı](WBS-2-tasarim.md#342-rest-api) | T-ASG-03 | Geçti | | | |
+| ASG-BR-01 | K | `public/mod/assign/locallib.php:8701-8705` | [REST tasarımı](WBS-2-tasarim.md#342-rest-api) | T-ASG-01 | Geçti | | | |
+| ASG-BR-02 | K | `public/mod/assign/locallib.php:6903,7014,8781-8790` | [REST tasarımı](WBS-2-tasarim.md#342-rest-api) | T-ASG-04 | Geçti | | | |
+| ASG-NFR-01 | K | `public/mod/assign/locallib.php:5572-5587` | [REST tasarımı](WBS-2-tasarim.md#342-rest-api) | T-ASG-05 | Geçti | | | |
 
 ## Değerlendirme – GRD (Aslı Ceren)
 
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GRD-FR-01 | K | `public/mod/assign/locallib.php:10245` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-01 | Geçti | | | |
+| GRD-FR-02 | K | `public/grade/report/user/index.php:52-55` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-02 | Geçti | | | |
+| GRD-FR-03 | K | `public/grade/report/grader/index.php:82-83` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-03 | Geçti | | | |
+| GRD-BR-01 | K | `public/mod/assign/lib.php:1011,1118`, `public/lib/gradelib.php:64` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-01 | Geçti | | | |
+| GRD-BR-02 | K | `public/mod/assign/gradeform.php:76-102` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-04 | Geçti | | | |
+| GRD-NFR-01 | K | `public/grade/report/user/index.php:52-73` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-05 | Geçti | | | |
 
 ## Dosya yönetimi – FILE (Seray)
 

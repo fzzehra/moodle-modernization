@@ -414,7 +414,155 @@ Yeni mimaride roller ve yetenekler merkezi bir yetkilendirme mekanizmasıyla de�
 
 ### 4.4 Ödev ve teslim (Aslı Ceren)
 
+#### 4.4.1 Moodle’daki karşılığı
+
+Sabit revizyon `cfe123f2`. `public/mod/assign` etkinliği ödev, teslim ve öğretmen değerlendirme ekranlarını yönetir. `locallib.php` içinde oluşturma (`add_instance`, 787), teslim kaydı (`save_submission`, 8661), açık teslim kontrolü (`submissions_open`, 6903), gönderme (`submit_for_grading`, 7502) ve teslim listesi (`view_grading_table`, 5010) bulunur. Çevrimiçi metin `submission/onlinetext`, dosya teslimi `submission/file` eklentisidir.
+
+#### 4.4.2 İş akışları
+
+Düzenleyen öğretmen derse ödev ekler, tarihleri ve teslim türünü seçer. Öğrenci ödevi açar, metin veya etkinleştirilen türde dosya ekler ve kaydeder. Gönderme onayı gerekiyorsa taslak üzerinden ayrıca gönderir. Yetkili değerlendirici teslim ve not durumlarını listeler, öğrencinin teslimini açar ve değerlendirmeye geçer (§4.5). [Moodle 5.3 ödev etkinliği](https://docs.moodle.org/503/en/Assignment_activity) · [Ödev ayarları ve teslim tarihleri](https://docs.moodle.org/503/en/Assignment_settings)
+
+#### 4.4.3 Kullanıcı ihtiyaçları ve şikâyetler
+
+§3’te yayımlanmış anket sonucu bulunmadığından şikâyet kaydı yok. Doğrulanacak ihtiyaçlar öğrencinin taslak ve gönderildi durumlarını ayırt edebilmesi ve öğretmenin değerlendirme bekleyen teslimleri bulabilmesidir.
+
+#### 4.4.4 Korunacak iş kuralları
+
+| Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| ASG-BR-01 | K | Kaydetmenin sonucu gönderme onayı ayarına bağlıdır. | `locallib.php:8701-8705` | M | Onay açıkken taslak, kapalıyken gönderildi olur. | T-ASG-01 |
+| ASG-BR-02 | K | Teslim erişimi işlem anında yetki ve teslim penceresine göre kontrol edilir. | `locallib.php:6903,7014,8781–8790` | M | Kesim tarihi geçince uzatması olmayan öğrenci kayıt yapamaz. | T-ASG-04 |
+
+#### 4.4.5 Hatalar ve eksikler
+
+Bu çalışma kapsamında doğrulanmış ASG hatası kayda alınmadı.
+
+#### 4.4.6 Veri modeli
+
+`course` 1—N `assign`. `course_modules.instance`, etkinlik türü `assign` olduğunda ödeve bağlanır ve etkinlik bağlamını belirler. `assign` tarihleri (`allowsubmissionsfromdate`, `duedate`, `cutoffdate`), gönderme onayı ve not ayarını taşır. `assign_submission` ödev, kullanıcı veya grup, deneme numarası, son deneme işareti ve durumu taşır. `(assignment, userid, groupid, attemptnumber)` benzersizdir. Metin `assignsubmission_onlinetext.submission` üzerinden bağlanır. Dosyalar File API alanında saklanır. Kullanıcıya özgü kilit ve uzatma bilgileri `assign_user_flags`, kullanıcı veya grup bazlı ayar değişiklikleri `assign_overrides` içindedir. Kaynaklar `public/mod/assign/db/install.xml:7-175` ve `submission/onlinetext/db/install.xml:7`.
+
+```mermaid
+erDiagram
+    COURSE ||--o{ ASSIGN : contains
+    ASSIGN ||--o{ ASSIGN_SUBMISSION : records
+    ASSIGN_SUBMISSION ||--o| ASSIGNSUBMISSION_ONLINETEXT : stores
+    ASSIGN ||--o{ ASSIGN_USER_FLAGS : configures
+    ASSIGN ||--o{ ASSIGN_OVERRIDES : overrides
+```
+
+#### 4.4.7 Yetkilendirme
+
+| Rol | İşlem ve kapsam |
+| --- | --- |
+| Öğrenci | Etkinlik bağlamında `mod/assign:view` ve `mod/assign:submit` ile teslim penceresi açıkken kendi teslimini veya grup teslimini yönetir. |
+| Düzenleyen öğretmen | Ders bağlamında `moodle/course:manageactivities` ve `mod/assign:addinstance` ile ödev oluşturur. `mod/assign:grade` ile değerlendirir. |
+| Düzenleme yetkisiz öğretmen | Etkin bağlamda `mod/assign:grade` ile grup kısıtları içinde değerlendirir. |
+| Yönetici | İzinleri atanan bağlam ve yetenekler belirler. |
+
+#### 4.4.8 Bağımlılıklar ve entegrasyonlar
+
+Ders, kayıt ve gruplar erişim kapsamını verir. Dosya işlemleri File API’ye, not aktarımı Gradebook API’ye bağlıdır. Tarihler takvimle, yapılandırmaya bağlı bildirimler mesajlaşma ile ilişkilidir.
+
+#### 4.4.9 Gereksinimler
+
+| Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| ASG-FR-01 | K | Düzenleyen öğretmen dersinde ödev oluşturabilir. | `locallib.php:787` | M | Ödev belirtilen derste ve bölümde görünür. | T-ASG-02 |
+| ASG-FR-02 | K | Öğrenci etkinleştirilmiş çevrimiçi metin teslimini kaydedebilir. | `locallib.php:8661` | M | Yeniden açıldığında kayıtlı metin görünür. | T-ASG-01 |
+| ASG-FR-03 | K | Yetkili değerlendirici teslim durumlarını listeler. | `locallib.php:5010` | M | Liste teslim eden ve etmeyen öğrencileri ayırt eder. | T-ASG-03 |
+| ASG-NFR-01 | K | Yetkisiz öğrenci başkasının teslim içeriğini okuyamaz. | `locallib.php:5572-5587`, §6 K4 | M | Yetkisiz erişim içeriği döndürmez. | T-ASG-05 |
+
+Bu çekirdek gereksinimler mevcut Moodle davranışını koruduğu için K sınıfındadır. Ödev oluşturma, bireysel metin teslimi, teslim durumları, kesim tarihi ve erişim denetimi uçtan uca ilk sürüm senaryosu için gerekli olduğundan M önceliğindedir. Doğrulanmış bir düzeltme veya onaylanmış yeni kullanıcı işlevi bulunmadığı için D ve Y kimliği açılmadı.
+
+#### 4.4.10 Test senaryoları
+
+| Test | Senaryo ve beklenen sonuç | Eski sistem sonucu |
+| --- | --- | --- |
+| T-ASG-01 | Ayrı test dersinde onay ayarları farklı iki ödevde aynı geçerli metni kaydet. Yeniden açıldığında metin vardır ve durum ayara göre taslak veya gönderildi olur. Taslak ayrıca gönderilebilir. | Geçti. Metin her iki ödevde kaldı. Onaylı akış önce taslak, ayrıca gönderilince gönderildi oldu. |
+| T-ASG-02 | Düzenleyen öğretmen test dersinin bir bölümüne geçerli ödev ekler. Öğrenci ders içinde ödevi görür. | Geçti. Öğretmenin oluşturduğu ödevi öğrenci ders bölümünde gördü. |
+| T-ASG-03 | SENG101 Ödev 1 teslim listesinde teslimli ve teslimsiz öğrencileri ayırt et. | Geçti. Öğretmen listesinde teslimli ve teslimsiz öğrenciler görüntülendi. |
+| T-ASG-04 | Ayrı test ödevinde kesim sonrasında teslim düğmesini kontrol et. Ödev açıkken alınan geçerli öğrenci formunu kesim sonrasında doğrudan POST et ve veritabanı durumunu karşılaştır. | Geçti. Düğme gizlendi. Geçerli POST kesim sonrasında HTTP 404 döndürdü ve teslim durumu değişmedi. Aynı istek ödev yeniden açılınca HTTP 200 ile metni kaydetti. |
+| T-ASG-05 | Öğrenci ile başka bir öğrencinin teslim içeriğine erişmeyi dene. Moodle izin hatası gösterir. | Geçti. Öğretmen teslim metnini gördü. Diğer öğrenci izin hatası aldı. Geliştirici ayarlarında HTTP 500, hata ayıklama kapalıyken HTTP 404 döndü. |
+
+#### 4.4.11 İlk sürüme alınma önerisi
+
+Ders ve kayıt yetkileri hazırsa çevrimiçi metin, bireysel teslim ve temel durum yönetimi ilk sürüme alınabilir. Bu akış ortak veride örnekleniyor ve notlandırma için uçtan uca giriş sağlıyor. Grup teslimi, yeniden açılan denemeler ve dosyalı teslim ilk sürüm çekirdeğinin dışında bırakıldı. Bunlar sırasıyla grup sahipliği, yeniden açma iş akışı ve dosya modülüyle bütünleşme kararları gerektirir. Deneme 0 bağlantısı çekirdek sayısal puanlama testinde veritabanından doğrulandı.
+
 ### 4.5 Değerlendirme (Aslı Ceren)
+
+#### 4.5.1 Moodle’daki karşılığı
+
+Sabit revizyon `cfe123f2`. Ödev puanlama işlemi `public/mod/assign/locallib.php:10245` (`save_grade`), not defterine aktarım `public/mod/assign/lib.php:1011,1118` (`assign_grade_item_update`, `assign_update_grades)) üzerinden izlenir. Öğrencinin raporu `public/grade/report/user/index.php`, dersin değerlendirici görünümü `public/grade/report/grader/index.php` içindedir.
+
+#### 4.5.2 İş akışları
+
+Öğretmen teslim listesinden öğrenciyi açar, etkinliğin yöntemine göre puan ve geri bildirim kaydeder. Ödev puanı not kalemiyle eşleşir. Not defteri kategori ve ders toplamlarını ilgili politikaya göre hesaplar. Öğrenci kendi kullanıcı raporunu açar ve görünür kalemleri inceler. Yetkili öğretmen ders not defterinde öğrencileri ve kalemleri birlikte görür. [Moodle 5.3 notlandırma](https://docs.moodle.org/503/en/Grades) · [Öğrenci not raporu](https://docs.moodle.org/503/en/User_report)
+
+#### 4.5.3 Kullanıcı ihtiyaçları ve şikâyetler
+
+§3’te yayımlanmış anket sonucu bulunmadığından şikâyet kaydı yok. Araştırılacak ihtiyaçlar öğrencinin bekleyen notu sıfırdan ayırt etmesi ve öğretmenin ödev puanının not defterine aktarımını görebilmesidir.
+
+#### 4.5.4 Korunacak iş kuralları
+
+| Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| GRD-BR-01 | K | Ödevin puanı ilişkili not kalemine iletilir. | `mod/assign/lib.php:1011,1118`, `lib/gradelib.php:64` | M | Puan güncellemesi korumasız notta deftere yansır. Kilitli veya elle değiştirilmiş nihai değer korunur. | T-GRD-01 |
+| GRD-BR-02 | K | Puan kaleminin alt ve üst sınırı uygulanır. | `mod/assign/gradeform.php:76-102`, `lib/db/install.xml:2020` | M | 0 ve 100 kabul edilir. −1 ve 101 reddedilir ve son geçerli değer korunur. | T-GRD-04 |
+
+#### 4.5.5 Hatalar ve eksikler
+
+Bu çalışma kapsamında doğrulanmış GRD hatası kayda alınmadı.
+
+#### 4.5.6 Veri modeli
+
+`assign_grades` ödev, öğrenci, değerlendirici, deneme ve puan bilgilerini tutar. `grade_items` dersin etkinlik, manuel veya toplam kalemini, kaynak etkinliği, puan sınırlarını, görünürlük ve kilit ayarlarını tanımlar. `grade_grades` satırı kalem ve kullanıcı çifti için ham ve nihai puan ile gizleme, kilit ve geçersiz kılma bilgilerini taşır. `grade_categories` dersin gruplama ve toplama yapısını kurar. `hidden` kalıcı gizleme veya bitiş tarihi taşıyabilir. `locktime` otomatik kilit zamanını belirtir. `(itemid, userid)` çifti benzersizdir. Notlandırılmamış değer boş kalabilir. Sıfır geçerli puandır. Şema kaynakları `public/mod/assign/db/install.xml:83` ve `public/lib/db/install.xml:1997-2107`. Ortak feature içindeki `grade grades` adımı not defterini besler. Öğretmenin ödev notu kaydetme akışı ayrı senaryoda sınanır.
+
+```mermaid
+erDiagram
+    COURSE ||--o{ GRADE_CATEGORIES : groups
+    GRADE_CATEGORIES o|--o{ GRADE_ITEMS : contains
+    GRADE_ITEMS ||--o{ GRADE_GRADES : records
+    USER ||--o{ GRADE_GRADES : receives
+    ASSIGN ||--o{ ASSIGN_GRADES : stores
+    ASSIGN o|--o{ GRADE_ITEMS : supplies
+```
+
+#### 4.5.7 Yetkilendirme
+
+| Rol | İşlem ve kapsam |
+| --- | --- |
+| Öğrenci | Ders bağlamında kullanıcı raporu ve kendi görünür değerleri. |
+| Öğretmen ve asistan | Puanlama için `mod/assign:grade`, ders defteri için `gradereport/grader:view` ve `moodle/grade:viewall` gerekir. Grup bağlamı geçerlidir. |
+| Yönetici | Atanan kapsamda rapor, not düzenleme ve yönetim yetkileri geçerlidir. Gizli değerleri görmek için ayrı izin gerekir. |
+
+#### 4.5.8 Bağımlılıklar ve entegrasyonlar
+
+Not defteri ders, kayıt ve yetenek bağlamına bağlıdır. Ödev kaynak puanı, not defteri nihai değeri ve görünürlük politikası ayrı veriler olarak ele alınır. Ölçek, rubrik ve kategori toplama yöntemleri ileride kapsamlandırılabilir.
+
+#### 4.5.9 Gereksinimler
+
+| Kimlik | Sınıf | Açıklama | Kaynak | Öncelik | Kabul kriteri | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| GRD-FR-01 | K | Yetkili öğretmen ödev için puan girebilir. | `mod/assign/locallib.php:10245` | M | Geçerli puan ilgili kullanıcı ve deneme için kaydedilir. | T-GRD-01 |
+| GRD-FR-02 | K | Öğrenci kendi görünür notlarını ders raporunda görür. | `grade/report/user/index.php:52-55` | M | Öğrenci SENG101 Ödev 1’de kendi puanını görür. Gizli puan görünmez ve kalem satırı ders politikasına uyar. | T-GRD-02 |
+| GRD-FR-03 | K | Yetkili öğretmen dersin not defterini açabilir. | `grade/report/grader/index.php:82-83` | M | İzinli öğrenciler ve dersin not kalemleri görüntülenir. | T-GRD-03 |
+| GRD-NFR-01 | K | Öğrencinin başka bir öğrencinin bireysel notlarına erişimi engellenir. | `grade/report/user/index.php:52-73` | M | Başka bir öğrencinin kimliğiyle istenen rapor not verisi döndürmez. | T-GRD-05 |
+
+Bu çekirdek gereksinimler mevcut sayısal notlandırmayı koruduğu için K sınıfındadır. Not kaydı, aktarım, puan sınırları, öğrenci ve öğretmen raporları ile gizlilik ilk sürüm senaryosu için gerekli olduğundan M önceliğindedir. Hata ayıklama kapalı tekrarında izin reddi 404 döndürdüğü için geliştirici ortamındaki 500 gözleminden D kimliği türetilmedi. Onaylanmış yeni kullanıcı işlevi bulunmadığından Y kimliği açılmadı.
+
+#### 4.5.10 Test senaryoları
+
+| Test | Senaryo ve beklenen sonuç | Eski sistem sonucu |
+| --- | --- | --- |
+| T-GRD-01 | Ayrı test ödevinde geçerli puan kaydet. Aynı öğrencinin değerlendirme ekranını yeniden aç ve puanı öğrenci not raporuyla karşılaştır. Veritabanında not ile teslim denemesini eşleştir. Ayrı kopyada not aktarımını kilitli, elle değiştirilmiş ve korumasız kayıtlarla karşılaştır. | Geçti. 100 puan yeniden açılan değerlendirici ekranında ve öğrenci raporunda göründü. SQL, not ve teslimin aynı ödev ve öğrenci için deneme 0 ile eşleştiğini doğruladı. Ödev aktarım testinde kilitli not 85 ve elle değiştirilmiş not 72 olarak kaldı. Korumasız not 90’dan 88’e güncellendi. |
+| T-GRD-02 | ogrenci1 SENG101 kullanıcı raporunda Ödev 1 için 85 puanı görür. | Geçti. Öğrenci Ödev 1 satırında 85 puanı gördü. Moodle’ın gizli not Behat paketindeki 4 senaryo, rol ve görünüm ayarlarına bağlı boş puan ve gizli satır davranışını doğruladı. |
+| T-GRD-03 | ogretmen1 SENG101 defterinde Ödev 1 kalemini ve izinli öğrenci satırlarını görür. | Geçti. Öğretmen izinli öğrenci satırını ve not kalemini gördü. |
+| T-GRD-04 | Ayrı 0–100 test ödevinde 0 ve 100’ü kaydet. Her geçerli değerden sonra sırasıyla −1 ve 101’i gönder ve yeniden açılan formdaki puanı kontrol et. | Geçti. 0 ve 100 kaydedildi. −1 ve 101 sınır hatası verdi. Form yeniden açıldığında sırasıyla 0.00 ve 100.00 korundu. |
+| T-GRD-05 | Öğrenciyle başka bir öğrencinin raporunu iste. Moodle izin hatası gösterir. | Geçti. Moodle izin hatası ve geliştirici ayarlarında HTTP 500, hata ayıklama kapalıyken HTTP 404 döndürdü. Not tablosu gösterilmedi. |
+
+#### 4.5.11 İlk sürüme alınma önerisi
+
+Ödevle birlikte sayısal puanlama ve kişisel rapor ilk sürüme alınabilir. Bu kapsam öğrencinin teslimden sonuca kadar akışını tamamlar. Rubrik, ölçek, elle not değiştirme yönetimi ve gelişmiş toplam politikaları çekirdek sayısal yazma akışının dışındadır. Puan aktarımı tasarımı, mevcut kilitli veya elle değiştirilmiş değerlere saygı gösterir. Gizlemeyi görünür not raporu kapsamında ele alır.
 
 ### 4.6 Dosya yönetimi (Seray)
 
@@ -697,5 +845,94 @@ Projenin başarısını özetleyen göstergeler; ara ve son raporlarda bu sıray
 ## 7. Literatür, mevcut araçlar ve özgünlük hedefi (Seray)
 
 ## 8. Eski sistemin başlangıç ölçümleri (Aslı Ceren)
+
+### 8.1 Ortam ve veri doğrulaması
+
+16 Kasım 2026, Europe/Istanbul. Ubuntu WSL 2 (Linux `6.18.58.1-microsoft-standard-WSL2`), Intel Core i7-1165G7 (4 çekirdek, 8 mantıksal işlemci), Docker’a ayrılmış 8 mantıksal işlemci ve yaklaşık 7.65 GiB RAM. Docker Desktop 4.99.0, Engine 29.9.3, Moodle 5.3.1 (`cfe123f26fc7071981fe949cb16cd5a08a8234f1`), resmî moodle-docker (`f0583ec8`), PHP 8.3.36 ve PostgreSQL 17.12. Resmî Docker şablonunun geliştirici hata ayarları (`E_ALL`, `debugdisplay=1`) etkin kaldı. Moodle kaynakları Ubuntu dosya sisteminde `~/moodle-lab/moodle`. Uygulama `http://localhost:8000` üzerinde çalıştı. Oturum açma ekranı HTTP 200 döndürdü.
+
+Ekip feature dosyası 14/14 adımda yüklendi. Veritabanı sayımları 15 örnek kullanıcı, 3 örnek ders, 4 ödev, 10 teslim ve 5 dolu ödev notu gösterdi. Feature SHA-256 `e79ec1e26605e0257783193d9fed45b22ec03ff0caf4132b1fdb517340ce8523`. Yükleme günlüğü `~/moodle-lab/evidence/fixture.log`. Son kontrolde 10 metinli teslim ve 5 dolu not vardı. Moodle, Ödev 1’in 50 VU ısınmasında henüz teslimi olmayan dört öğrenci için içeriksiz `new` satırları oluşturdu. Fiziksel `assign_submission` satır sayısı bu nedenle 14 oldu. `fixture-submission-status.txt` durumları ve zamanları gösterir.
+
+### 8.2 Performans
+
+k6 2.4.0 Ubuntu içinde çalıştırıldı. Senaryolar ders kataloğu (`/course/index.php`), SENG101 ders sayfası, SENG101 Ödev 1 ve öğrencinin SENG101 not raporudur. `/my/courses.php` bu kurulumda kontrol koşusunda panele yönlendirdiği için ders listesi olarak Moodle ders kataloğu seçildi.
+
+§6.3 tekrar ve yük seviyelerini belirler. Süreler için her senaryo × yük seviyesi başında 10 sn ısınma, ardından 15 sn süren 5 ölçüm ve koşular arasında 5 sn ara kullanıldı. VU başına her sayfa isteğinden sonra 1 sn bekleme uygulandı. [Grafana k6 sabit VU modeli](https://grafana.com/docs/k6/latest/using-k6/scenarios/executors/constant-vus/) k6, giriş sayfasındaki `logintoken` ile her VU için ayrı Moodle oturumu açtı. Yükte 5 VU ilk beş öğrenci hesabını, 50 VU on öğrenci hesabını döngüsel olarak kullandı. İkinci durumda her hesap beş bağımsız oturum taşıdı. Bu düzen eşzamanlı oturum yükünü temsil eder. Örnek kullanıcılar ve kurs kayıtları aynı kaldı. Ödevin 50 VU ölçüm tekrarları, ısınmada Moodle’ın açtığı dört boş teslim satırı oluştuktan sonra başladı.
+
+Hedef istekleri için HTTP 200, aynı son URL ve beklenen HTML gövde kimliği arandı. Yönlendirmeler başarısız hedef isteği sayıldı. Giriş ve ısınma metrikleri tabloya dahil edilmedi. Ölçüm sayfanın HTML yanıtını kapsar. Sayfa kaynaklarının tarayıcıda yüklenmesi veya etkileşim süreleri ayrı bir ölçümdür. Her hedefin ortalama yanıt süresi, koşu ortalamalarının ortalamasıdır. Medyan ve p95, beş ayrı koşunun ilgili istatistiğinin medyanıdır. İstek/sn, 15 sn ölçüm penceresi başına tamamlanan hedef isteklerinin ortalamasıdır. Hata oranı tüm koşuların hedef istek sayısıyla ağırlıklandırılır. Web ve veritabanı için CPU ve RAM, hedef yanıtlarının zaman aralığındaki `docker stats` örneklerinden hesaplanır.
+
+Ham k6 metrik noktaları, koşu özetleri ve Docker örnekleri `~/moodle-lab/evidence/k6/` dizinindedir. Betikler `~/moodle-lab/evidence/` dizinindedir. Mann–Whitney U karşılaştırması hedef sistem ölçümleriyle yapılacaktır.
+
+Ölçüm 01:31–01:57 arasında tamamlandı. 40 ölçüm koşusu, 8 ısınma ve 1 kısa doğrulama koşusu kaydedildi. Ölçüm tekrarlarında 9.770 hedef sayfa yanıtı işlendi.
+
+**K8 yanıt süreleri ve K9 hata oranı**
+
+| Sayfa | VU | Ort. ms | Medyan ms | p95 ms | İstek/sn | Hata % |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Ders kataloğu | 5 | 129.61 | 127.85 | 143.16 | 4.67 | 0.00 |
+| Ders kataloğu | 50 | 678.80 | 653.01 | 1249.16 | 31.64 | 0.00 |
+| SENG101 ders sayfası | 5 | 204.99 | 213.82 | 237.54 | 4.33 | 0.00 |
+| SENG101 ders sayfası | 50 | 974.79 | 938.56 | 1523.29 | 27.05 | 0.00 |
+| SENG101 Ödev 1 | 5 | 276.58 | 287.14 | 341.27 | 4.00 | 0.00 |
+| SENG101 Ödev 1 | 50 | 1079.36 | 880.97 | 1615.23 | 25.57 | 0.00 |
+| SENG101 öğrenci not raporu | 5 | 213.00 | 212.73 | 252.95 | 4.33 | 0.00 |
+| SENG101 öğrenci not raporu | 50 | 865.81 | 848.88 | 1469.89 | 28.67 | 0.00 |
+
+**K10 kaynak kullanımı**
+
+| Sayfa | VU | Container | CPU ort. % | CPU tepe % | RAM ort. MiB | RAM tepe MiB | Örnek |
+| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| SENG101 Ödev 1 | 5 | PostgreSQL | 20.95 | 34.83 | 152.48 | 167.60 | 25 |
+| SENG101 Ödev 1 | 5 | Moodle web | 60.14 | 86.78 | 400.60 | 603.60 | 25 |
+| SENG101 Ödev 1 | 50 | PostgreSQL | 173.21 | 195.50 | 191.60 | 225.40 | 25 |
+| SENG101 Ödev 1 | 50 | Moodle web | 551.39 | 626.75 | 750.58 | 793.80 | 25 |
+| SENG101 ders sayfası | 5 | PostgreSQL | 12.73 | 17.08 | 149.09 | 164.70 | 25 |
+| SENG101 ders sayfası | 5 | Moodle web | 64.16 | 80.83 | 389.96 | 549.40 | 25 |
+| SENG101 ders sayfası | 50 | PostgreSQL | 104.58 | 124.32 | 180.35 | 211.60 | 24 |
+| SENG101 ders sayfası | 50 | Moodle web | 589.44 | 679.27 | 757.33 | 798.10 | 24 |
+| SENG101 öğrenci not raporu | 5 | PostgreSQL | 17.73 | 21.27 | 152.10 | 152.80 | 25 |
+| SENG101 öğrenci not raporu | 5 | Moodle web | 58.56 | 74.62 | 399.13 | 597.20 | 25 |
+| SENG101 öğrenci not raporu | 50 | PostgreSQL | 141.07 | 200.82 | 182.12 | 205.60 | 25 |
+| SENG101 öğrenci not raporu | 50 | Moodle web | 573.70 | 697.29 | 743.26 | 779.80 | 25 |
+| Ders kataloğu | 5 | PostgreSQL | 7.91 | 11.23 | 146.90 | 152.90 | 25 |
+| Ders kataloğu | 5 | Moodle web | 46.19 | 53.76 | 347.65 | 349.10 | 25 |
+| Ders kataloğu | 50 | PostgreSQL | 99.23 | 148.77 | 169.60 | 205.80 | 22 |
+| Ders kataloğu | 50 | Moodle web | 560.41 | 726.62 | 726.42 | 742.10 | 22 |
+
+İlk tablo K8/K9, ikinci tablo K10 başlangıç değerlerini gösterir. Docker CPU yüzdesi bir mantıksal işlemciyi %100 kabul eder. 50 VU’da dört sayfanın p95 medyanı da hedef sistem için belirlenen 1.000 ms eşiğini aştı. Bu yükte en yüksek p95 medyanı Ödev 1’de ölçüldü. Hedef sayfa hata oranı tüm koşularda %0 oldu. Küçük ortak veri seti ve sabit 15 sn ölçüm penceresi sonuçların kapsamını belirler.
+
+### 8.3 OWASP ZAP baseline
+
+ZAP 2.17.0, resmî `ghcr.io/zaproxy/zaproxy` imajı (digest `sha256:9624669db72f54d86c4b46a7064518bd9bf79d8c61a4c31befa9923489f328af`). Container uygulamanın ağ ad alanında çalıştı. Yerel TCP yönlendirmesi container içinde Moodle’ın kanonik `localhost:8000` adresini web sunucusuna bağladı. Yalnızca yerel Moodle hedeflendi. Komut `zap-baseline.py -t http://localhost:8000 -m 1 -r baseline.html -J baseline.json`. Kimlik doğrulaması kullanılmadığı için oturum gerektiren öğrenci ve öğretmen ekranları kapsam dışındaydı. [ZAP baseline belgeleri](https://www.zaproxy.org/docs/docker/baseline-scan/)
+
+47 URL keşfedildi. Konsol özeti 0 fail, 17 warn ve 51 pass gösterdi. İşlem uyarı koduyla (`2`) tamamlandı. JSON raporu bazı kural kimliklerini alt uyarılara ayırır.
+
+| ZAP risk etiketi | Başlıca uyarılar |
+| --- | --- |
+| Yüksek | Apache ve PHP sürüm eşleştirmesi (`20020`, düşük güven). |
+| Orta | CSP başlığı eksik (`10038`). Bazı formlarda ZAP’ın tanıdığı CSRF belirteci bulunmadı (`10202`, düşük güven). |
+| Düşük | Büyük yönlendirme, COEP/COOP/CORP ve Permissions-Policy başlıkları, JavaScript işlevleri, Server/X-Powered-By başlıklarında sürüm bilgisi, zaman damgası, X-Content-Type-Options eksikliği. |
+| Bilgilendirme | Kimlik doğrulama ve oturum tanıma, yorumlar, önbellekleme, modern uygulama işareti ve denetlenebilir HTML özniteliği. |
+
+Bulgular pasif tarama uyarısıdır. Özellikle sürüm ve CSRF eşleştirmesi ayrıca doğrulama gerektirir. Ham HTML, JSON, komut ve konsol günlüğü `~/moodle-lab/evidence/zap/` dizinindedir.
+
+### 8.4 İşlevsel doğrulama
+
+SENG101’in ortak örnek verisinde öğretmen teslim listesi, kişisel not raporu, ders not defteri ve erişim izinleri doğrulandı. `T-ASG-05` ve `T-GRD-05` beklenen izin reddini gösterdi. Geliştirici yapılandırmasında her iki ret HTTP 500 olarak döndü. Bu testler yalnızca korunan içeriğin erişime kapalı olduğunu doğrular. Hedef API, izin durumları için WBS-2 §3.4.2 ve §3.5.2’deki 4xx sözleşmesini kullanır.
+
+Ödev oluşturma, çevrimiçi metin ve taslak onayı, kesim sonrası form erişimi ve 0–100 puan sınırı için Behat 4 senaryo ve 67 adım çalıştırdı. Hepsi geçti. Yazma senaryoları ortak veriden ayrılmış `b_` test tablolarını kullandı. Toplam 10 test kimliği, 5 HTTP kontrolü ve 4 Behat senaryosuyla doğrulandı. Kanıtlar `~/moodle-lab/evidence/functional-pages.log`, `characterization.feature` ve `behat.log`.
+
+Son kontrolde, `debug=0` ve `debugdisplay=0` olan geçici veritabanı kopyasında iki izin reddi HTTP 404 döndürdü. Yanıtlarda görünür yığın izi yoktu. Behat puan sınırı kontrolü 33/33 adımda geçti. SQL not ve teslimin deneme 0’da eşleştiğini doğruladı. Kesim tarihinden sonra geçerli teslim formuyla gönderilen POST HTTP 404 döndürdü ve veritabanı durumu değişmedi. Aynı form ödev yeniden açılınca HTTP 200 ile metni kaydetti. Bu karşılaştırma ortak veritabanının geçici kopyasında yapıldı. Yeni kanıtlar `~/moodle-lab/evidence/final-check/` dizinindeki `production-permissions.log`, `grading.log`, `grade-attempt.log`, `cutoff.log` ve `grade-protection.log` dosyalarında. 40 k6 koşusu ve CPU/RAM tabloları mevcut çıktılardan yeniden hesaplandı. ZAP JSON kapsamı ve konsol uyarı sayısı doğrulandı.
+
+Moodle’ın sabit revizyonundaki ek Behat paketleri de geçti. `hidden_grades.log` 4 senaryo ve 140 adımda rol ve görünüme bağlı gizlemeyi, `locking.log` 2 senaryo ve 40 adımda kalem kilidi kaldırıldığında bireysel kilidin korunmasını, `grade_override.log` 1 senaryo ve 18 adımda elle değiştirilen notun deftere yansımasını doğruladı. Süreli gizleme ve otomatik kilit zamanının sınır anı ayrıca çalıştırılmadı.
+
+### 8.5 Yapay zekâ ve efor kaydı
+
+Aslı Ceren’in beyanına göre kullanılan model GPT-6.1 Sol, düşünme seviyesi Orta. Proje planı, gereksinimlerin belirlenmesi, geliştirme ortamının kurulumu, görev yönetimi ve teknik kararlar insan sorumluluğundaydı. Yapay zekâ dokümantasyon, test betikleri, performans ölçümleri ve teknik analizde yardımcı olarak kullanıldı. İnsan ve yapay zekâ katkı oranı ölçülmedi. Bağlam olarak ekip görev dağılımı, proje kapsamı, WBS belgeleri, ortak feature ve sabit Moodle kaynak kodu kullanıldı. Destek verilen işler kaynak incelemesi, ASG/GRD taslakları, REST ve izlenebilirlik, kurulum, k6/ZAP betikleri ve doğrulama. Revizyon ve kaynak satırları yerelde kontrol edildi. İlk k6 denemesinde PostgreSQL tablo öneki düzeltildi ve ders listesi için doğru hedef seçildi. Behat, test listesini güncelledikten sonra senaryoları buldu. Ham metrikler, 40 koşunun özetleri, işlevsel test kimlikleri ve ZAP tarama kapsamı çapraz kontrol edildi. Son kontrolde 12 gereksinimin sınıf ve öncelik gerekçeleri yeniden incelendi ve ek test kanıtları doğrulandı. Aslı Ceren’in çalışma süresi **doldurulacak**. Ortak süre tablosu repo dosyaları arasında bulunmadı. Aslı Ceren gerçek çalışma süresini ayrıca bildirecek.
+
+### 8.6 Ekip paylaşımı ve yeniden üretim
+
+[ASG ve GRD test paketi](../ortam/testler/asg-grd/README.md) WSL Ubuntu’da ortak fixture ile testleri yeniden çalıştırma adımlarını içerir. `benchmark.sh`, `pages.js` ve `summarize.py` k6 koşularını ve kaynak ölçümü özetini üretir. `functional.sh`, geçici veritabanı kopyasında `verify_pages.py`, `cutoff.py` ve `grade-protection.php` kontrollerini yürütür. Ardından `characterization.feature`, Moodle Behat senaryoları ve SQL deneme doğrulaması çalışır. `common.sh` iki çalıştırıcı için ortam ve çıktı dizinini hazırlar. [SONUCLAR.md](../ortam/testler/asg-grd/SONUCLAR.md) mevcut performans ve ZAP özetini içerir.
+
+Çalıştırıcılar ham çıktıları repo dışındaki ayrı koşu dizinlerine yazar. Test kimlik bilgileri yerel olarak sağlanır. Ekip içi ham arşiv, erişimi kısıtlı bir klasörde tutulabilir. Paylaşım öncesi oturum bilgileri ve kişisel veriler ayıklanır.
 
 ## 9. Seçilen modüller, bağımlılık haritası ve kararlar (Fatma Zehra)

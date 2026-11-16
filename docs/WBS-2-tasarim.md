@@ -9,6 +9,353 @@
 API tabloları: Metot · Yol · İstek · Yanıt · Hangi rol çağırabilir
 
 ### 3.1 Kimlik ve yetkilendirme (Sinem)
+#### 3.1.1 Tasarım yaklaşımı
+
+Kimlik ve yetkilendirme (AUTH) modülünün modernizasyonunda Moodle 5.3.1'in mevcut kimlik doğrulama, oturum yönetimi ve rol-bağlam tabanlı yetkilendirme mekanizmalarının korunması esas alınacaktır. Amaç, mevcut güvenlik kurallarını ve diğer modüllerle entegrasyonu koruyarak daha sürdürülebilir, güvenli ve yönetilebilir bir hedef tasarım oluşturmaktır.
+
+Hedef tasarımda kimlik doğrulama, oturum yönetimi ve yetkilendirme sorumlulukları mantıksal olarak ayrılacaktır. Bu sorumluluklar, mevcut Moodle altyapısıyla uyumlu servis arayüzleri üzerinden yönetilecektir.
+
+**Temel tasarım ilkeleri**
+
+1. Kullanıcıların geçerli kimlik bilgileriyle sisteme giriş yapması sağlanacaktır.
+2. Askıya alınmış, silinmiş veya geçerli hesap kilitleme kuralları nedeniyle erişimi engellenmiş kullanıcıların oturum açması önlenecektir.
+3. Geçersiz parola girişleri reddedilecek ve başarısız giriş olayları izlenebilir olacaktır.
+4. Kullanıcı yetkileri yalnızca rol adına göre değil, ilgili bağlam ve capability tanımları üzerinden değerlendirilecektir.
+5. Oturum sonlandırma ve zaman aşımı kontrolleri korunacaktır.
+6. Zorunlu parola değiştirme akışı desteklenecektir.
+7. Mevcut Moodle kimlik doğrulama eklentileriyle uyumluluk gözetilecektir.
+8. AUTH modülünün CRS, ASG, GRD ve FILE modülleriyle olan yetkilendirme bağımlılıkları korunacaktır.
+
+**Hedef mimari yaklaşımı**
+
+Kimlik doğrulama, oturum yönetimi ve yetkilendirme işlemleri aşağıdaki mantıksal bileşenlerle temsil edilecektir:
+
+| Bileşen | Sorumluluk |
+|---|---|
+| Authentication Service | Kullanıcı kimlik bilgilerinin doğrulanması ve hesap durumunun kontrol edilmesi |
+| Session Management | Oturum oluşturma, sonlandırma ve geçerlilik kontrolü |
+| Authorization Service | Rol, bağlam ve capability üzerinden erişim kararlarının verilmesi |
+| User Repository | Kullanıcı hesap bilgilerinin mevcut veri modeli üzerinden yönetilmesi |
+| Role and Context Repository | Rol atamaları, bağlam hiyerarşisi ve yetki tanımlarının yönetilmesi |
+
+Bu bileşenler hedef tasarım için önerilen mantıksal sorumluluk ayrımlarıdır. Ayrı mikroservisler olarak uygulanmaları zorunlu değildir.
+
+Mevcut Moodle 5.3.1 veri modeli ve eklenti mekanizmalarıyla uyumluluk korunacak; modernizasyon kapsamında önerilen API ve servis arayüzleri mevcut Moodle bileşenlerinden açıkça ayrıştırılacaktır.
+
+**Gereksinim ilişkisi:** AUTH-FR-01–AUTH-FR-09.
+
+#### 3.1.2 Veri modeli ve bütünlük kuralları
+
+AUTH modülünün hedef veri modeli, Moodle 5.3.1'in mevcut kullanıcı, rol, bağlam ve yetenek (capability) tablolarını temel alacaktır. Modernizasyon kapsamında mevcut veri ilişkilerinin korunması, yetkilendirme davranışlarının değişmemesi ve diğer Moodle modülleriyle uyumluluğun sürdürülmesi amaçlanmaktadır.
+
+**Temel veri yapıları**
+
+| Tablo | Tasarımdaki sorumluluğu |
+|---|---|
+| `user` | Kullanıcı kimlik bilgileri, hesap durumu ve kimlik doğrulama yöntemi |
+| `role` | Sistemde tanımlanan roller |
+| `context` | Yetkilendirme işlemlerinde kullanılan bağlam hiyerarşisi |
+| `role_assignments` | Kullanıcı, rol ve bağlam arasındaki atama ilişkileri |
+| `role_capabilities` | Roller için bağlama bağlı yetenek ve izin tanımları |
+| `capabilities` | Sistemde kullanılabilen yeteneklerin tanımları |
+
+**Korunacak veri bütünlüğü kuralları**
+
+1. Kullanıcı adı benzersizliği `user` tablosunda `mnethostid` ve `username` alanları birlikte değerlendirilerek korunacaktır.
+2. Rol atamaları `role_assignments` tablosunda kullanıcı, rol ve bağlam ilişkisi üzerinden saklanacaktır.
+3. `role_capabilities` tablosunda `(roleid, contextid, capability)` alanları için mevcut benzersizlik kısıtı korunacaktır.
+4. `context` tablosunda `(contextlevel, instanceid)` alanlarının benzersizliği korunacaktır.
+5. Bağlam hiyerarşisi ve `context.path` üzerinden gerçekleştirilen yetki değerlendirmeleri desteklenecektir.
+6. `role_capabilities.permission` değerleri mevcut Moodle yetkilendirme mantığına uygun biçimde değerlendirilecektir.
+7. `context.locked` alanının bağlam ve alt bağlamlar üzerindeki etkisi korunacaktır.
+8. Kullanıcıların askıya alınma ve silinme durumları kimlik doğrulama sırasında dikkate alınacaktır.
+
+**Veri erişim yaklaşımı**
+
+Hedef tasarımda kullanıcı ve yetkilendirme verilerine erişim, Moodle'ın mevcut veri erişim altyapısıyla uyumlu biçimde gerçekleştirilecektir.
+
+Yetkilendirme kararlarında doğrudan rol adı karşılaştırması yapmak yerine Moodle'ın `has_capability()` mekanizmasının kullanılması esas alınacaktır. Böylece rol atamaları, bağlam hiyerarşisi ve capability izinleri birlikte değerlendirilecektir.
+
+Modernizasyon kapsamında yeni servis arayüzleri geliştirilmesi durumunda bu arayüzler mevcut veri bütünlüğü kurallarını ihlal etmeyecek ve yetkilendirme kontrollerini atlamayacaktır.
+
+**Kaynak:** `public/lib/db/install.xml`, `public/lib/accesslib.php`.
+
+**Gereksinim ilişkisi:** AUTH-FR-02, AUTH-FR-03, AUTH-FR-04, AUTH-FR-07.
+
+#### 3.1.3 Önerilen REST API tasarımı
+
+AUTH modülünün modernizasyonunda kimlik doğrulama, oturum yönetimi ve yetkilendirme işlemlerinin standart ve yönetilebilir servis arayüzleri üzerinden sunulması hedeflenmektedir.
+
+Moodle 5.3.1'in mevcut kimlik doğrulama eklentileri, oturum mekanizmaları ve `has_capability()` tabanlı yetkilendirme altyapısı korunacaktır.
+
+Aşağıdaki REST uç noktaları **modernizasyon kapsamında önerilen hedef tasarımı** temsil etmektedir. Bunların Moodle 5.3.1'de aynı URL ve HTTP yöntemleriyle hazır olarak bulunduğu iddia edilmemektedir.
+
+**Önerilen API uç noktaları**
+
+| HTTP | Uç nokta | İşlem | İlgili gereksinim |
+|---|---|---|---|
+| POST | `/api/auth/login` | Kullanıcı kimlik bilgilerinin doğrulanması ve oturum açılması | AUTH-FR-01, 04, 05, 06 |
+| POST | `/api/auth/logout` | Mevcut oturumun sonlandırılması | AUTH-FR-08 |
+| GET | `/api/auth/session` | Mevcut oturumun geçerliliğinin sorgulanması | AUTH-FR-08 |
+| POST | `/api/auth/change-password` | Kullanıcının parola değiştirme işleminin gerçekleştirilmesi | AUTH-FR-09 |
+| GET | `/api/auth/permissions` | Kullanıcının belirli bir bağlamdaki yetkisinin sorgulanması | AUTH-FR-02, 03, 07 |
+
+**API güvenlik ve doğrulama kuralları**
+
+1. Kimlik doğrulama işlemleri mevcut Moodle kimlik doğrulama altyapısı üzerinden yürütülecektir.
+2. Giriş sırasında kullanıcı hesabının askıya alınma, silinme ve geçerli kilitlenme durumları kontrol edilecektir.
+3. Geçersiz kimlik bilgileriyle oturum oluşturulmayacaktır.
+4. Başarısız giriş denemeleri, mevcut olay ve kayıt mekanizmalarıyla uyumlu biçimde izlenecektir.
+5. Oturum gerektiren API işlemlerinde geçerli oturum kontrolü yapılacaktır.
+6. Yetkilendirme kararlarında rol adı yerine ilgili bağlam ve capability bilgileri esas alınacaktır.
+7. Yetki sorgulama uç noktası, çağrıyı yapan kullanıcının yetkilerini aşacak biçimde başka kullanıcıların izin bilgilerini açığa çıkarmayacaktır.
+8. Parola ve oturum kimlikleri uygulama kayıtlarında veya API yanıtlarında açık biçimde paylaşılmayacaktır.
+9. Durum değiştiren işlemlerde uygun CSRF koruması veya kullanılan kimlik doğrulama yöntemine karşılık gelen güvenlik kontrolleri uygulanacaktır.
+
+**Önerilen hata durumları**
+
+| HTTP durum kodu | Açıklama |
+|---|---|
+| 400 Bad Request | Eksik veya geçersiz istek parametreleri |
+| 401 Unauthorized | Kimlik doğrulaması başarısız veya geçerli oturum bulunmuyor |
+| 403 Forbidden | Kullanıcının ilgili işlem için yetkisi bulunmuyor |
+| 429 Too Many Requests | Yapılandırılmış istek sınırlama kuralının aşılması |
+| 500 Internal Server Error | Beklenmeyen sunucu hatası |
+
+HTTP durum kodları ve uç nokta sözleşmeleri hedef tasarım önerisidir. Özellikle `429` yanıtı, modernizasyon sırasında istek sınırlama mekanizmasının uygulanmasına bağlıdır.
+
+**Mevcut Moodle altyapısıyla entegrasyon**
+
+Önerilen API katmanı, mevcut Moodle oturum ve kimlik doğrulama mekanizmalarını devre dışı bırakmayacaktır. Yetkilendirme kontrolleri Moodle'ın rol, bağlam ve capability altyapısıyla uyumlu yürütülecektir.
+
+Bu yaklaşım, mevcut AUTH davranışlarının korunmasını ve gelecekte farklı istemcilerin kontrollü servis arayüzleri üzerinden sisteme erişebilmesini hedeflemektedir.
+
+**Gereksinim ilişkisi:** AUTH-FR-01–AUTH-FR-09.
+#### 3.1.4 Rol ve bağlam tabanlı yetkilendirme tasarımı
+
+AUTH modülünün hedef yetkilendirme tasarımı, Moodle 5.3.1'in mevcut rol, bağlam (context) ve yetenek (capability) mekanizmalarını temel alacaktır.
+
+Yetkilendirme kararları yalnızca kullanıcının sahip olduğu rol adına göre değil, işlemin gerçekleştirileceği bağlam ve ilgili capability üzerinden verilecektir.
+
+**Yetkilendirme iş akışı**
+
+1. Kullanıcının geçerli bir oturuma sahip olduğu doğrulanır.
+2. Gerçekleştirilmek istenen işlem ve ilgili Moodle capability belirlenir.
+3. İşlemin gerçekleştirileceği bağlam tespit edilir.
+4. Moodle'ın `has_capability()` mekanizması üzerinden kullanıcının ilgili bağlamdaki yetkisi değerlendirilir.
+5. Yetki bulunuyorsa işleme izin verilir.
+6. Yetki bulunmuyorsa işlem reddedilir ve korunan kaynak üzerinde değişiklik yapılmaz.
+
+**Örnek yetkilendirme matrisi**
+
+| İşlem | Öğrenci | Düzenleyen öğretmen | Site yöneticisi |
+|---|---|---|---|
+| Kendi hesabıyla giriş yapma | İzinli | İzinli | İzinli |
+| Kayıtlı olduğu dersi görüntüleme | İzinli | İzinli | İzinli |
+| Yetkili olduğu dersin ayarlarını düzenleme | Reddedilir | İzinli | İzinli |
+| Site yapılandırmasını yönetme | Reddedilir | Reddedilir | İzinli |
+
+Bu tablo WBS-1 analizinde incelenen örnek rol davranışlarını temsil etmektedir. Gerçek yetkilendirme kararları Moodle'ın rol yapılandırması, bağlam hiyerarşisi ve capability izinleri üzerinden belirlenecektir.
+
+**Bağlam duyarlılığı**
+
+Aynı kullanıcı farklı derslerde farklı rollere sahip olabilir. Bu nedenle bir derste verilen yetki, başka bir ders için otomatik olarak geçerli kabul edilmeyecektir.
+
+Rol atamaları `role_assignments`, capability izinleri `role_capabilities` ve bağlam bilgileri `context` tablolarıyla ilişkili biçimde değerlendirilecektir.
+
+Mevcut Moodle yetkilendirme altyapısındaki bağlam hiyerarşisi, izin değerlendirme kuralları ve kilitli bağlam davranışları korunacaktır.
+
+**Güvenlik ilkeleri**
+
+- Yetkilendirme kontrolleri yalnızca kullanıcı arayüzünde değil, korunan işlemin gerçekleştirildiği sunucu tarafında da uygulanacaktır.
+- İstemciden gönderilen rol veya yetki bilgileri tek başına güvenilir kabul edilmeyecektir.
+- Kullanıcının yetkili olmadığı bağlamlarda işlem gerçekleştirmesi engellenecektir.
+- CRS, ASG, GRD ve FILE modülleri AUTH yetkilendirme mekanizmasıyla uyumlu çalışacaktır.
+- Yetki bulunmadığında işlem reddedilecek ve ilgili veriler değiştirilmeden bırakılacaktır.
+
+**Gereksinim ilişkisi:** AUTH-FR-02, AUTH-FR-03, AUTH-FR-07.
+
+**Kaynak:** WBS-1 §4.1.7 Yetkilendirme; `public/lib/accesslib.php`.
+
+#### 3.1.5 İş akışları ve hata yönetimi
+
+AUTH modülünün hedef tasarımında kimlik doğrulama, oturum yönetimi, parola değiştirme ve yetkilendirme işlemleri mevcut Moodle mekanizmalarıyla uyumlu biçimde yürütülecektir.
+
+Aşağıdaki akışlar modernizasyon kapsamında hedeflenen davranışları tanımlamaktadır.
+
+**1. Kullanıcı girişi**
+
+1. Kullanıcı giriş ekranından kimlik bilgilerini gönderir.
+2. Sistem ilgili kimlik doğrulama yöntemini belirler.
+3. Kullanıcının hesap durumu ve geçerli erişim kısıtları kontrol edilir.
+4. Kimlik bilgileri Moodle'ın kimlik doğrulama mekanizması üzerinden doğrulanır.
+5. Doğrulama başarılıysa geçerli oturum oluşturulur.
+6. Zorunlu parola değişikliği gerekiyorsa kullanıcı ilgili akışa yönlendirilir.
+7. Doğrulama başarısızsa oturum oluşturulmaz.
+
+**Hata durumları:** Geçersiz kullanıcı bilgileri, yanlış parola, askıya alınmış veya silinmiş hesap, etkin hesap kilitleme kuralı.
+
+**2. Kullanıcı çıkışı ve oturum geçerliliği**
+
+1. Kullanıcı çıkış işlemini başlatır.
+2. Sistem mevcut oturumu sonlandırır.
+3. Kullanıcı korunan bir sayfaya yeniden erişmeye çalışır.
+4. Geçerli oturum bulunmadığında yeniden kimlik doğrulaması istenir.
+
+Oturum zaman aşımı durumunda da geçerli oturum kontrolü uygulanacaktır.
+
+**Hata durumları:** Geçersiz veya süresi dolmuş oturum, kimlik doğrulaması gerektiren kaynağa oturumsuz erişim.
+
+**3. Zorunlu parola değiştirme**
+
+1. Kullanıcı geçerli kimlik bilgileriyle giriş yapar.
+2. Sistem hesap için zorunlu parola değiştirme koşulunu değerlendirir.
+3. Koşul etkinse kullanıcı parola değiştirme akışına yönlendirilir.
+4. Yeni parola, geçerli parola politikalarına göre doğrulanır.
+5. İşlem başarılı olduğunda kullanıcı hesabının ilgili durumu güncellenir.
+6. Kullanıcı normal erişim akışına devam eder.
+
+**Hata durumları:** Parola politikası ihlali, geçersiz parola değiştirme isteği, işlem sırasında oluşan sistem hatası.
+
+**4. Yetkilendirme kontrolü**
+
+1. Kullanıcı korunan bir işlem başlatır.
+2. Sistem kullanıcının oturum geçerliliğini kontrol eder.
+3. İlgili işlem için gerekli capability ve bağlam belirlenir.
+4. `has_capability()` mekanizması üzerinden erişim yetkisi değerlendirilir.
+5. Yetki varsa işlem gerçekleştirilir.
+6. Yetki yoksa işlem reddedilir ve korunan veri değiştirilmez.
+
+**Hata durumları:** Geçersiz oturum, yetersiz yetki, uygun olmayan bağlam veya geçersiz kaynak.
+
+**5. Başarısız giriş ve hesap kilitleme**
+
+1. Kullanıcı geçersiz kimlik bilgileriyle giriş yapmayı dener.
+2. Sistem kimlik doğrulama işlemini reddeder.
+3. Başarısız giriş olayı, yapılandırılmış kayıt mekanizması üzerinden izlenir.
+4. Etkin hesap kilitleme politikası bulunuyorsa ilgili kurallar değerlendirilir.
+5. Kilitleme koşulları oluştuğunda hesabın giriş yapması engellenir.
+
+Hesap kilitleme davranışı, kullanılan kimlik doğrulama eklentisinin ve sistem yapılandırmasının desteklediği kurallara bağlıdır. Modernizasyon kapsamında sabit bir deneme sayısı veya kilitleme süresi varsayılmamaktadır.
+
+**Hata yönetimi ilkeleri**
+
+- Başarısız kimlik doğrulama işlemleri oturum oluşturmamalıdır.
+- Yetkisiz işlemler sunucu tarafında engellenmelidir.
+- Kullanıcıya gösterilen hata mesajları parola veya hassas hesap bilgilerini açığa çıkarmamalıdır.
+- Güvenlikle ilgili olaylar, mevcut Moodle kayıt ve olay altyapısıyla uyumlu biçimde izlenmelidir.
+- Beklenmeyen sistem hatalarında korunan işlemler güvenli biçimde sonlandırılmalıdır.
+- Hatalı istekler mevcut veri bütünlüğünü bozmamalıdır.
+
+**Gereksinim ilişkisi**
+
+| İş akışı | İlgili gereksinimler |
+|---|---|
+| Kullanıcı girişi | AUTH-FR-01, AUTH-FR-04, AUTH-FR-05 |
+| Kullanıcı çıkışı ve oturum geçerliliği | AUTH-FR-08 |
+| Zorunlu parola değiştirme | AUTH-FR-09 |
+| Yetkilendirme kontrolü | AUTH-FR-02, AUTH-FR-03, AUTH-FR-07 |
+| Başarısız giriş ve hesap kilitleme | AUTH-FR-05, AUTH-FR-06 |
+
+Bu iş akışları hedef tasarım davranışlarını göstermektedir. WBS-1'de ayrıca doğrulanması gerektiği belirtilen başarısız giriş kayıtları, hesap kilitleme, silinmiş hesap davranışı ve oturum zaman aşımı, tamamlanmış testler olarak değerlendirilmemelidir.
+
+#### 3.1.6 Gereksinim izlenebilirliği
+
+AUTH modülünün hedef tasarımında WBS-1 kapsamında tanımlanan fonksiyonel gereksinimler, ilgili tasarım bileşenleri ve test senaryolarıyla eşleştirilmiştir.
+
+Bu eşleştirme, modernizasyon sürecinde gereksinimlerin tasarım tarafından karşılanmasını ve doğrulama faaliyetlerinin izlenebilir olmasını amaçlamaktadır.
+
+**Gereksinim–tasarım–test eşleştirmesi**
+
+| Gereksinim | Tasarım karşılığı | Test senaryosu |
+|---|---|---|
+| AUTH-FR-01 | Authentication Service; kullanıcı girişi | T-AUTH-01 |
+| AUTH-FR-02 | Authorization Service; sunucu tarafı yetki kontrolü | T-AUTH-02 |
+| AUTH-FR-03 | Rol ve bağlam tabanlı yetkilendirme; ders ayarlarına erişim | T-AUTH-03 |
+| AUTH-FR-04 | Authentication Service; hesap durumu kontrolü | T-AUTH-04 |
+| AUTH-FR-05 | Kimlik doğrulama; başarısız giriş olaylarının izlenmesi | T-AUTH-05 |
+| AUTH-FR-06 | Authentication Service; etkin hesap kilitleme kuralları | T-AUTH-06 |
+| AUTH-FR-07 | Authorization Service; rol, bağlam ve capability değerlendirmesi | T-AUTH-07 |
+| AUTH-FR-08 | Session Management; oturum sonlandırma ve geçerlilik kontrolü | T-AUTH-08 |
+| AUTH-FR-09 | Authentication Service; zorunlu parola değiştirme akışı | T-AUTH-09 |
+
+**Tasarım bölümleriyle ilişki**
+
+- **§3.1.1:** Genel mimari yaklaşım ve bileşen sorumlulukları.
+- **§3.1.2:** Veri modeli ve bütünlük kuralları.
+- **§3.1.3:** Önerilen REST API arayüzleri.
+- **§3.1.4:** Rol ve bağlam tabanlı yetkilendirme.
+- **§3.1.5:** Kimlik doğrulama, oturum yönetimi ve hata işleme akışları.
+
+**Doğrulama yaklaşımı**
+
+Gereksinimlerin doğrulanmasında Moodle 5.3.1 üzerinde gerçekleştirilen kullanıcı arayüzü testleri ve gerektiğinde veritabanı kontrolleri temel alınacaktır.
+
+WBS-1'de tamamlanmış olarak raporlanan testlerle henüz doğrulanmamış davranışlar birbirinden ayrılacaktır.
+
+Özellikle aşağıdaki kontrollerin doğrulama durumu ayrıca takip edilecektir:
+
+- Silinmiş hesapla giriş davranışı.
+- Başarısız giriş olaylarının kaydedilmesi.
+- Etkin hesap kilitleme kurallarının uygulanması.
+- Farklı bağlamlarda rol atama davranışı.
+- Oturum zaman aşımı.
+- Zorunlu parola değiştirme akışı.
+
+Bu kontrollerin test senaryolarında tanımlanmış olması, başarıyla tamamlandıkları anlamına gelmemektedir.
+
+**Kaynak:** WBS-1 §4.1.9 Gereksinimler ve §4.1.10 Test senaryoları.
+
+**Kapsam:** AUTH-FR-01–AUTH-FR-09, T-AUTH-01–T-AUTH-09.
+
+#### 3.1.7 Test sonuçları ve doğrulama durumu
+
+AUTH modülünün mevcut davranışları, WBS-1 kapsamında yerel Moodle 5.3.1 ortamında gerçekleştirilen kullanıcı arayüzü ve güvenlik testleriyle incelenmiştir.
+
+T-AUTH-01–T-AUTH-10 arasındaki 10 test senaryosu uygulanmış ve her senaryoda beklenen temel davranış gözlemlenmiştir. Bununla birlikte bazı senaryolarda ek doğrulama gerektiren kapsam sınırlılıkları bulunmaktadır.
+
+**Mevcut test sonuçları**
+
+| Test | Doğrulanan davranış | Sonuç |
+|---|---|---|
+| T-AUTH-01 | Geçerli kullanıcı bilgileriyle giriş | Başarılı |
+| T-AUTH-02 | Öğrencinin ders ayarlarına yetkisiz erişiminin engellenmesi | Başarılı |
+| T-AUTH-03 | Öğretmenin yetkili olduğu dersin ayarlar formuna erişimi | Başarılı; kaydetme denenmedi |
+| T-AUTH-04 | Askıya alınmış hesabın girişinin engellenmesi | Başarılı; silinmiş hesap denenmedi |
+| T-AUTH-05 | Yanlış parola ile girişin reddedilmesi | Başarılı; başarısız giriş kaydı doğrulanmadı |
+| T-AUTH-06 | Üç başarısız giriş sonrası hesap kilitleme | Başarılı; kilit açma e-postası doğrulanmadı |
+| T-AUTH-07 | Farklı derslerde erişim davranışının değişmesi | Başarılı; farklı rol atamaları oluşturulmadı |
+| T-AUTH-08 | Çıkış sonrası korunan ders sayfasına erişimin engellenmesi | Başarılı; zaman aşımı denenmedi |
+| T-AUTH-09 | Zorunlu parola değiştirme ekranına yönlendirme | Başarılı; parola değişikliği tamamlanmadı |
+| T-AUTH-10 | Hata ayıklama kapalıyken hassas hata bilgilerinin gizlenmesi | Başarılı; yerel ortamda doğrulandı |
+
+**Güvenlik bulguları**
+
+WBS-1 analizinde iki güvenlik değerlendirme kaydı bulunmaktadır:
+
+- **AUTH-BUG-01:** Geliştirme ortamında yetkisiz erişim hatasıyla birlikte çağrı yığını görüntülenmiştir. `debug=0` ve `debugdisplay=0` ayarlarıyla yapılan tekrarda çağrı yığını görüntülenmemiştir. Bu durum doğrulanmış bir Moodle yazılım hatası değil, yapılandırmaya bağlı bir gözlem olarak değerlendirilmiştir.
+- **AUTH-BUG-02:** Yanlış parola ve hesap kilitleme durumlarındaki hata mesajlarının kullanıcı deneyimi ve bilgi ifşası açısından incelenmesi önerilmiştir. Doğrulanmış bir yazılım hatası bulunmamaktadır.
+
+**Sonraki doğrulama aşamasında tamamlanacak kontroller**
+
+1. Silinmiş kullanıcı hesabıyla giriş denemesinin reddedilmesi.
+2. Başarısız giriş olaylarının kayıt mekanizmasında doğrulanması.
+3. Hesap kilidi açma e-postasının tesliminin kontrol edilmesi.
+4. Farklı ders bağlamlarında farklı rol atamaları oluşturularak yetkilendirme davranışının test edilmesi.
+5. Oturum zaman aşımı sonrasında korunan kaynaklara erişimin kontrol edilmesi.
+6. Zorunlu parola değiştirme işleminin uçtan uca tamamlanması.
+7. Öğretmenin yetkili olduğu dersin ayarlarını kaydetme işleminin doğrulanması.
+8. Güvenlik hata mesajlarının üretim benzeri yapılandırmalarda yeniden değerlendirilmesi.
+
+**Tasarım değerlendirmesi**
+
+Gerçekleştirilen testler, mevcut Moodle 5.3.1 altyapısının temel kimlik doğrulama, oturum yönetimi ve bağlama duyarlı yetkilendirme davranışlarını desteklediğini göstermektedir.
+
+Modernizasyon kapsamında bu davranışlar korunacak; önerilen servis ve API tasarımları uygulanırsa aynı senaryolar regresyon testleriyle yeniden doğrulanacaktır.
+
+**Kaynak:** WBS-1 §4.1.9 Gereksinimler, §4.1.10 Test senaryoları ve AUTH-BUG-01–02 bulguları.
+
+**Gereksinim ilişkisi:** AUTH-FR-01–AUTH-FR-09, AUTH-NFR-01–AUTH-NFR-02.
 
 ### 3.2 Ders ve kayıt (Sinem)
 

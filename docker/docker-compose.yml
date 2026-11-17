@@ -1,0 +1,36 @@
+# Yeni sistem: uygulama + PostgreSQL 17.
+#   docker compose -f docker/docker-compose.yml up --build
+# Uygulama: http://localhost:8080   Sağlık: http://localhost:8080/api/v1/health
+# Not: Moodle (eski sistem) ayrı çalışır, bkz. ortam/README.md (http://localhost:8000).
+services:
+  modern-db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: moodle
+      POSTGRES_PASSWORD: "${MODERN_DB_PASSWORD:-local_dev_only}"
+      POSTGRES_DB: moodle_modern
+    volumes:
+      - modern-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moodle -d moodle_modern"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  modern:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    depends_on:
+      modern-db:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=modern-db;Port=5432;Database=moodle_modern;Username=moodle;Password=${MODERN_DB_PASSWORD:-local_dev_only}"
+    volumes:
+      - modern-files:/var/moodle-files
+    ports:
+      - "8080:8080"
+
+volumes:
+  modern-db-data:
+  modern-files:

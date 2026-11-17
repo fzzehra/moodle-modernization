@@ -29,6 +29,11 @@ public sealed class ApiErrorMiddleware(RequestDelegate next, ILogger<ApiErrorMid
             await WriteAsync(context, ex.StatusCode, ex.Code, ex.Message);
             return;
         }
+        catch (BadHttpRequestException ex)
+        {
+            await WriteAsync(context, ex.StatusCode, CodeFor(ex.StatusCode), MessageFor(ex.StatusCode));
+            return;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "İstek işlenirken beklenmeyen hata: {Path}", context.Request.Path);

@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Moodle.Api/Moodle.Api.csproj" />
+    <Project Path="src/Moodle.Application/Moodle.Application.csproj" />
+    <Project Path="src/Moodle.Domain/Moodle.Domain.csproj" />
+    <Project Path="src/Moodle.Infrastructure/Moodle.Infrastructure.csproj" />
+    <Project Path="src/Moodle.Web/Moodle.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Moodle.IntegrationTests/Moodle.IntegrationTests.csproj" />
+    <Project Path="tests/Moodle.UnitTests/Moodle.UnitTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Geri yükle
+        run: dotnet restore Moodle.slnx
+      - name: Derle
+        run: dotnet build Moodle.slnx --no-restore -c Release
+      - name: Birim ve entegrasyon testi (Testcontainers) + kapsam
+        run: >
+          dotnet test Moodle.slnx --no-build -c Release
+          --collect:"XPlat Code Coverage" --results-directory ./coverage
+      - name: Kapsam raporu
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/**/coverage.cobertura.xml
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: İmajı derle
+        run: docker build -f docker/Dockerfile -t moodle-modern .

@@ -1,0 +1,15 @@
+:root { --fg:#1f2937; --bg:#f8fafc; --card:#ffffff; --accent:#0f6cbf; --muted:#6b7280; --line:#e5e7eb; }
+@media (prefers-color-scheme: dark) {
+  :root { --fg:#e5e7eb; --bg:#111827; --card:#1f2937; --accent:#60a5fa; --muted:#9ca3af; --line:#374151; }
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--fg); background:var(--bg); }
+.app-shell { min-height:100vh; display:flex; flex-direction:column; }
+.app-header { display:flex; align-items:center; gap:1.5rem; padding:.75rem 1.25rem; background:var(--card); border-bottom:1px solid var(--line); }
+.app-brand { font-weight:700; color:var(--accent); text-decoration:none; }
+.app-brand span { color:var(--muted); font-weight:400; }
+.app-nav { display:flex; gap:1rem; }
+.app-nav a { color:var(--fg); text-decoration:none; padding:.25rem .5rem; border-radius:.375rem; }
+.app-nav a.active { background:var(--accent); color:#fff; }
+.app-main { flex:1; width:100%; max-width:72rem; margin:0 auto; padding:1.5rem 1.25rem; }
+.app-footer { padding:.75rem 1.25rem; color:var(--muted); font-size:.85rem; border-top:1px solid var(--line); }

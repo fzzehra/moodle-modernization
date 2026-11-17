@@ -1,5 +1,8 @@
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moodle.Application.Abstractions;
+using Moodle.Infrastructure.Courses;
 using Moodle.Infrastructure.Fakes;
 
 namespace Moodle.Infrastructure;
@@ -7,16 +10,31 @@ namespace Moodle.Infrastructure;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Altyapı kayıtları. Her modül gerçek gerçeklemesini bitirince ilgili sahte satırı buradan siler
-    /// ve kendi gerçeklemesini kaydeder.
+    /// Altyapı kayıtları. Her modül kendi gerçek servisini
+    /// tamamladığında ilgili sahte servis kaydını değiştirir.
     /// </summary>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services)
     {
-        services.AddScoped<ICurrentUser, FakeCurrentUser>();           // AUTH: İrem
-        services.AddScoped<IAccessPolicy, FakeAccessPolicy>();         // AUTH: İrem
-        services.AddScoped<ICourseDirectory, FakeCourseDirectory>();   // CRS: Sinem
-        services.AddScoped<IEnrolmentQuery, FakeEnrolmentQuery>();     // CRS: Sinem
-        services.AddScoped<IAssignmentQuery, FakeAssignmentQuery>();   // ASG: Aslı Ceren
+        // AUTH: İrem
+        services.AddScoped<ICurrentUser, FakeCurrentUser>();
+        services.AddScoped<IAccessPolicy, FakeAccessPolicy>();
+
+        // CRS: Sinem
+        services.AddDbContext<CrsDbContext>(options =>
+            options.UseNpgsql(CrsDatabaseConfiguration.ConnectionString));
+
+        services.AddScoped<CrsService>();
+
+        services.AddScoped<ICourseDirectory>(
+            sp => sp.GetRequiredService<CrsService>());
+
+        services.AddScoped<IEnrolmentQuery>(
+            sp => sp.GetRequiredService<CrsService>());
+
+        // ASG: Aslı Ceren
+        services.AddScoped<IAssignmentQuery, FakeAssignmentQuery>();
+
         return services;
     }
 }

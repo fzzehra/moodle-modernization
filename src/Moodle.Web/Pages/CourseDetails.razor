@@ -1,0 +1,71 @@
+@page "/courses/{CourseId:int}"
+@rendermode InteractiveServer
+@inherits CrsPageBase
+
+<PageTitle>Ders detayı · Moodle</PageTitle>
+<nav class="crs-breadcrumb" aria-label="Ders gezinme"><a href="courses">Dersler</a><span>/ Ders detayı</span></nav>
+<div class="crs-heading"><h1>Ders detayı</h1>
+    <button type="button" disabled="@(!CanAct)" @onclick="Edit">Dersi düzenle</button>
+</div>
+<CrsNotice Loading="Loading" Busy="Busy" Error="Error" Success="@Success" OnRetry="RefreshAsync" />
+<noscript><p>Ders işlemleri için JavaScript'i etkinleştirin.</p></noscript>
+
+@if (HasData && _course is not null)
+{
+    <section class="crs-panel" aria-label="Ders bilgileri">
+        <h2>@_course.FullName</h2>
+        <dl class="crs-details">
+            <dt>Kısa ad</dt><dd>@_course.ShortName</dd>
+            <dt>Kategori</dt><dd>@(_categories.FirstOrDefault(x => x.Id == _course.CategoryId)?.Name ?? $"Kategori #{_course.CategoryId}")</dd>
+            <dt>Kimlik numarası</dt><dd>@(_course.IdNumber ?? "Belirtilmedi")</dd>
+            <dt>Görünürlük</dt><dd>@(_course.Visible ? "Görünür" : "Gizli")</dd>
+            <dt>Başlangıç</dt><dd>@CrsDisplay.Date(_course.StartDate)</dd>
+            <dt>Bitiş</dt><dd>@CrsDisplay.Date(_course.EndDate)</dd>
+        </dl>
+        <a href="@($"courses/{CourseId}/participants")">Katılımcıları yönet</a>
+    </section>
+    @if (_editor is not null)
+    {
+        <CourseEditor @key="_editor" Model="_editor" Categories="_categories" Title="Dersi düzenle" Disabled="@(!CanAct)" OnSave="SaveAsync" OnCancel="CancelEdit" />
+    }
+}
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    private int? _requestedId;
+    private CrsCourse? _course;
+    private List<CrsCategory> _categories = [];
+    private CourseEditModel? _editor;
+
+    protected override void OnParametersSet()
+    {
+        if (_requestedId == CourseId) return;
+        _requestedId = CourseId;
+        _editor = null;
+        RequestLoad();
+    }
+
+    protected override async Task LoadAsync()
+    {
+        var id = CourseId;
+        var course = Api.CourseAsync(id, Token);
+        var categories = Api.CategoriesAsync(Token);
+        await Task.WhenAll(course, categories);
+        _course = await course;
+        _categories = await categories;
+    }
+
+    private void Edit() { if (CanAct && _course is not null) _editor = CourseEditModel.From(_course); }
+    private void CancelEdit() => _editor = null;
+    private Task SaveAsync(CourseEditModel model)
+    {
+        if (!CanAct || _course is null) return Task.CompletedTask;
+        var id = _course.Id;
+        return ExecuteAsync(async () =>
+        {
+            _course = await Api.UpdateCourseAsync(id, model.ToRequest(), Token);
+            _editor = null;
+            Success = "Ders bilgileri güncellendi.";
+        });
+    }
+}

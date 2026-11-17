@@ -1,0 +1,35 @@
+<EditForm Model="Model" OnValidSubmit="SubmitAsync" FormName="crs-enrolment-editor" class="crs-panel">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <fieldset disabled="@Disabled">
+        <legend>@(Existing ? "Kaydı düzenle" : "Kullanıcı kaydet")</legend>
+        <div class="crs-form-grid">
+            <div>
+                <label for="enrolment-user">Kullanıcı kimliği</label>
+                <InputNumber id="enrolment-user" @bind-Value="Model.UserId" disabled="@Existing" min="1" />
+                <ValidationMessage For="() => Model.UserId" />
+            </div>
+            <div><label for="enrolment-role">Rol adı</label><InputText id="enrolment-role" @bind-Value="Model.Role" maxlength="50" /><ValidationMessage For="() => Model.Role" /></div>
+            @if (!Existing)
+            {
+                <div><label for="enrolment-start">Başlangıç (UTC, isteğe bağlı)</label><InputDate id="enrolment-start" Type="InputDateType.DateTimeLocal" @bind-Value="Model.StartsAtUtc" /><ValidationMessage For="() => Model.StartsAtUtc" /></div>
+                <div><label for="enrolment-end">Bitiş (UTC, isteğe bağlı)</label><InputDate id="enrolment-end" Type="InputDateType.DateTimeLocal" @bind-Value="Model.EndsAtUtc" /><ValidationMessage For="() => Model.EndsAtUtc" /></div>
+            }
+        </div>
+        <p class="crs-muted">Kullanıcı ve rol seçicileri henüz hazır değil. Kullanıcı kimliğini ve atanmasına yetkiniz olan rolün adını girin.</p>
+        <label class="crs-check"><InputCheckbox @bind-Value="Model.Suspended" /> Kayıt askıda</label>
+        <div class="crs-actions">
+            <button type="submit" class="crs-primary">Kaydet</button>
+            <button type="button" @onclick="OnCancel">Vazgeç</button>
+        </div>
+    </fieldset>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired] public EnrolmentEditModel Model { get; set; } = default!;
+    [Parameter] public bool Existing { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<EnrolmentEditModel> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    private Task SubmitAsync() => Disabled ? Task.CompletedTask : OnSave.InvokeAsync(Model);
+}

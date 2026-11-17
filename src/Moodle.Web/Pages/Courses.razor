@@ -1,0 +1,107 @@
+@page "/courses"
+@rendermode InteractiveServer
+@inherits CrsPageBase
+
+<PageTitle>Dersler · Moodle</PageTitle>
+<div class="crs-heading"><div><h1>Dersler</h1><p>Dersleri görüntüleyin ve yönetin.</p></div>
+    <button type="button" class="crs-primary" disabled="@(!CanAct)" @onclick="Create">Ders oluştur</button>
+</div>
+<CrsNotice Loading="Loading" Busy="Busy" Error="Error" Success="@Success" OnRetry="RefreshAsync" />
+<noscript><p>Ders işlemleri için JavaScript'i etkinleştirin.</p></noscript>
+
+@if (HasData)
+{
+    <div class="crs-toolbar"><label for="category-filter">Kategoriye göre filtrele</label>
+        <select id="category-filter" @bind="_categoryId" disabled="@Busy">
+            <option value="0">Tüm kategoriler</option>
+            @foreach (var category in _categories) { <option value="@category.Id">@category.Name</option> }
+        </select>
+        <span role="status">@Filtered.Count() ders</span>
+    </div>
+    @if (_editor is not null)
+    {
+        <CourseEditor @key="_editor" Model="_editor" Categories="_categories" Disabled="@(!CanAct)"
+                      Title="@(_editingId.HasValue ? "Dersi düzenle" : "Ders oluştur")" OnSave="SaveAsync" OnCancel="CancelEdit" />
+    }
+    @if (_delete is not null)
+    {
+        <CrsConfirm Title="Dersi sil" Description="@($"“{_delete.FullName}” dersi ve bu derse ait kayıtlar silinecek. Bu işlemi onaylıyor musunuz?")"
+                    Busy="@(!CanAct)" OnConfirm="DeleteAsync" OnCancel="CancelDelete" />
+    }
+    @if (!Filtered.Any())
+    {
+        <p class="crs-panel">Bu filtreye uygun, görüntüleme yetkiniz olan bir ders bulunamadı.</p>
+    }
+    else
+    {
+        <div class="crs-table-wrap"><table>
+            <caption>Ders listesi</caption>
+            <thead><tr><th scope="col">Ders</th><th scope="col">Kategori</th><th scope="col">Görünürlük</th><th scope="col">İşlemler</th></tr></thead>
+            <tbody>
+                @foreach (var course in Filtered)
+                {
+                    <tr @key="course.Id" data-course-id="@course.Id">
+                        <td><a href="@($"courses/{course.Id}")">@course.FullName</a><span class="crs-secondary">@course.ShortName</span></td>
+                        <td>@CategoryName(course.CategoryId)</td><td>@(course.Visible ? "Görünür" : "Gizli")</td>
+                        <td><div class="crs-actions">
+                            <a href="@($"courses/{course.Id}/participants")">Katılımcılar</a>
+                            <button type="button" disabled="@(!CanAct)" aria-label="@($"{course.FullName} dersini düzenle")" @onclick="() => Edit(course)">Düzenle</button>
+                            <button type="button" class="crs-danger" disabled="@(!CanAct)" aria-label="@($"{course.FullName} dersini sil")" @onclick="() => ConfirmDelete(course)">Sil</button>
+                        </div></td>
+                    </tr>
+                }
+            </tbody>
+        </table></div>
+    }
+}
+
+@code {
+    private List<CrsCourse> _courses = [];
+    private List<CrsCategory> _categories = [];
+    private int _categoryId;
+    private int? _editingId;
+    private CourseEditModel? _editor;
+    private CrsCourse? _delete;
+    private IEnumerable<CrsCourse> Filtered => _courses.Where(x => _categoryId == 0 || x.CategoryId == _categoryId);
+    private string CategoryName(int id) => _categories.FirstOrDefault(x => x.Id == id)?.Name ?? $"Kategori #{id}";
+
+    protected override async Task LoadAsync()
+    {
+        var courses = Api.CoursesAsync(Token);
+        var categories = Api.CategoriesAsync(Token);
+        await Task.WhenAll(courses, categories);
+        _courses = await courses;
+        _categories = await categories;
+    }
+
+    private void Create() { if (!CanAct) return; _delete = null; _editingId = null; _editor = new() { CategoryId = _categoryId }; }
+    private void Edit(CrsCourse course) { if (!CanAct) return; _delete = null; _editingId = course.Id; _editor = CourseEditModel.From(course); }
+    private void CancelEdit() { _editor = null; _editingId = null; }
+    private void ConfirmDelete(CrsCourse course) { if (!CanAct) return; CancelEdit(); _delete = course; }
+    private void CancelDelete() => _delete = null;
+
+    private Task SaveAsync(CourseEditModel model)
+    {
+        if (!CanAct) return Task.CompletedTask;
+        return ExecuteAsync(async () =>
+        {
+            if (_editingId.HasValue) await Api.UpdateCourseAsync(_editingId.Value, model.ToRequest(), Token);
+            else await Api.CreateCourseAsync(model.ToRequest(), Token);
+            CancelEdit();
+            await LoadAsync();
+            Success = "Ders kaydedildi.";
+        });
+    }
+
+    private Task DeleteAsync()
+    {
+        if (!CanAct || _delete is null) return Task.CompletedTask;
+        return ExecuteAsync(async () =>
+        {
+            await Api.DeleteCourseAsync(_delete.Id, Token);
+            _delete = null;
+            await LoadAsync();
+            Success = "Ders silindi.";
+        });
+    }
+}

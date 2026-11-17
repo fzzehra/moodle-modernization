@@ -1,0 +1,119 @@
+@page "/courses/{CourseId:int}/participants"
+@rendermode InteractiveServer
+@inherits CrsPageBase
+
+<PageTitle>Katılımcılar · Moodle</PageTitle>
+<nav class="crs-breadcrumb" aria-label="Ders gezinme"><a href="courses">Dersler</a><a href="@($"courses/{CourseId}")">Ders detayı</a><span>/ Katılımcılar</span></nav>
+<div class="crs-heading"><div><h1>Katılımcılar</h1>@if (HasData) { <p>@_course?.FullName</p> }</div>
+    <button type="button" class="crs-primary" disabled="@(!CanAct)" @onclick="Create">Kullanıcı kaydet</button>
+</div>
+<CrsNotice Loading="Loading" Busy="Busy" Error="Error" Success="@Success" OnRetry="RefreshAsync" />
+<noscript><p>Katılımcı işlemleri için JavaScript'i etkinleştirin.</p></noscript>
+
+@if (HasData)
+{
+    @if (_editor is not null)
+    {
+        <EnrolmentEditor @key="_editor" Model="_editor" Existing="@(_editing is not null)" Disabled="@(!CanAct)" OnSave="SaveAsync" OnCancel="CancelEdit" />
+    }
+    @if (_remove is not null)
+    {
+        <CrsConfirm Title="Kullanıcıyı dersten çıkar" Description="@($"Kullanıcı #{_remove.UserId} bu dersten çıkarılacak. Onaylıyor musunuz?")"
+                    ConfirmLabel="Kayıttan çıkar" Busy="@(!CanAct)" OnConfirm="RemoveAsync" OnCancel="CancelRemove" />
+    }
+    @if (_enrolments.Count == 0)
+    {
+        <p class="crs-panel">Bu derse henüz kullanıcı kaydedilmedi.</p>
+    }
+    else
+    {
+        <p class="crs-muted">Kullanıcı adları kimlik sistemi tamamlandığında gösterilebilecek. Şimdilik kullanıcı kimlikleri listelenir.</p>
+        <div class="crs-table-wrap"><table>
+            <caption>Derse kayıtlı @_enrolments.Count kullanıcı</caption>
+            <thead><tr><th scope="col">Kullanıcı</th><th scope="col">Rol</th><th scope="col">Durum</th><th scope="col">Başlangıç</th><th scope="col">Bitiş</th><th scope="col">İşlemler</th></tr></thead>
+            <tbody>
+                @foreach (var enrolment in _enrolments)
+                {
+                    <tr @key="enrolment.Id" data-enrolment-id="@enrolment.Id">
+                        <td>Kullanıcı #@enrolment.UserId</td><td>@enrolment.Role</td><td>@CrsDisplay.Status(enrolment)</td>
+                        <td>@CrsDisplay.Date(enrolment.StartsAt)</td><td>@CrsDisplay.Date(enrolment.EndsAt)</td>
+                        <td><div class="crs-actions">
+                            <button type="button" disabled="@(!CanAct)" aria-label="@($"Kullanıcı {enrolment.UserId} kaydını düzenle")" @onclick="() => Edit(enrolment)">Düzenle</button>
+                            <button type="button" class="crs-danger" disabled="@(!CanAct)" aria-label="@($"Kullanıcı {enrolment.UserId} kaydını kaldır")" @onclick="() => ConfirmRemove(enrolment)">Kayıttan çıkar</button>
+                        </div></td>
+                    </tr>
+                }
+            </tbody>
+        </table></div>
+    }
+}
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    private int? _requestedId;
+    private CrsCourse? _course;
+    private List<CrsEnrolment> _enrolments = [];
+    private EnrolmentEditModel? _editor;
+    private CrsEnrolment? _editing;
+    private CrsEnrolment? _remove;
+
+    protected override void OnParametersSet()
+    {
+        if (_requestedId == CourseId) return;
+        _requestedId = CourseId;
+        CancelEdit();
+        _remove = null;
+        RequestLoad();
+    }
+
+    protected override async Task LoadAsync()
+    {
+        var id = CourseId;
+        var course = Api.CourseAsync(id, Token);
+        var enrolments = Api.EnrolmentsAsync(id, Token);
+        await Task.WhenAll(course, enrolments);
+        _course = await course;
+        _enrolments = await enrolments;
+    }
+
+    private void Create() { if (!CanAct) return; _remove = null; _editing = null; _editor = new(); }
+    private void Edit(CrsEnrolment enrolment) { if (!CanAct) return; _remove = null; _editing = enrolment; _editor = EnrolmentEditModel.From(enrolment); }
+    private void CancelEdit() { _editor = null; _editing = null; }
+    private void ConfirmRemove(CrsEnrolment enrolment) { if (!CanAct) return; CancelEdit(); _remove = enrolment; }
+    private void CancelRemove() => _remove = null;
+
+    private Task SaveAsync(EnrolmentEditModel model)
+    {
+        if (!CanAct || _course is null) return Task.CompletedTask;
+        var courseId = _course.Id;
+        var editing = _editing;
+        return ExecuteAsync(async () =>
+        {
+            if (editing is null) await Api.EnrolAsync(courseId, model.ToRequest(), Token);
+            else
+            {
+                var update = new EnrolmentUpdateRequest(model.Suspended != editing.Suspended ? model.Suspended : null,
+                    model.Role != editing.Role ? model.Role : null);
+                if (update.Suspended is null && update.Role is null) { Success = "Değişiklik bulunmuyor."; CancelEdit(); return; }
+                await Api.UpdateEnrolmentAsync(courseId, editing.Id, update, Token);
+            }
+            CancelEdit();
+            await LoadAsync();
+            Success = "Kayıt bilgileri kaydedildi.";
+        });
+    }
+
+    private Task RemoveAsync()
+    {
+        if (!CanAct || _remove is null || _course is null) return Task.CompletedTask;
+        var courseId = _course.Id;
+        var id = _remove.Id;
+        return ExecuteAsync(async () =>
+        {
+            await Api.UnenrolAsync(courseId, id, Token);
+            _remove = null;
+            await LoadAsync();
+            Success = "Kullanıcı dersten çıkarıldı.";
+        });
+    }
+}

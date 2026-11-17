@@ -19,16 +19,16 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ADV-BR-01 | K | `public/lib/enrollib.php:2113` | [REST tasarımı](WBS-2-tasarim.md#331-veri-tasarımı) | T-ADV-E01 | Bekliyor | | YZ | |
-| ADV-BR-03 | K | `public/enrol/self/lib.php:334-339` | [REST tasarımı](WBS-2-tasarim.md#331-veri-tasarımı) | T-ADV-E01 | Bekliyor | | YZ | |
+| ADV-BR-01 | K | `public/lib/enrollib.php:2113` | [REST tasarımı](WBS-2-tasarim.md#331-veri-tasarımı) | T-ADV-E01 | Geçti | | YZ | |
+| ADV-BR-03 | K | `public/enrol/self/lib.php:334-339` | [REST tasarımı](WBS-2-tasarim.md#331-veri-tasarımı) | T-ADV-E01 | Geçti | | YZ | |
 | ADV-FR-01 | Y | Kaynak: ADV-BUG-01 (eski kod referansı yok, Moodle'da karşılığı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-01 | — (yeni fonksiyon) | | YZ | |
-| ADV-FR-02 | Y | Kaynak: ADV-BUG-01; `public/availability/condition/completion/classes/condition.php:135` (yalnızca ders içi) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-02, T-ADV-E02 | Bekliyor (E02) | | YZ | |
+| ADV-FR-02 | Y | Kaynak: ADV-BUG-01; `public/availability/condition/completion/classes/condition.php:135` (yalnızca ders içi) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-02, T-ADV-E02 | Geçti (E02) | | YZ | |
 | ADV-FR-03 | Y | Kaynak: ADV-BUG-05 (eski kod referansı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-03 | — (yeni fonksiyon) | | YZ | |
-| ADV-FR-04 | Y | Kaynak: ADV-BUG-02, 03 (eski kod referansı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-04, T-ADV-E03 | Bekliyor (E03) | | YZ | |
+| ADV-FR-04 | Y | Kaynak: ADV-BUG-02, 03 (eski kod referansı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-04, T-ADV-E03 | Geçti (E03) | | YZ | |
 | ADV-FR-05 | Y | Kaynak: ADV-BUG-02 (eski kod referansı yok) | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-05 | — (yeni fonksiyon) | | YZ | |
-| ADV-FR-06 | K | `public/enrol/self/lib.php:334-339` | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-06, T-ADV-E01 | Bekliyor (E01) | | YZ | |
+| ADV-FR-06 | K | `public/enrol/self/lib.php:334-339` | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-06, T-ADV-E01 | Geçti (E01) | | YZ | |
 | ADV-FR-07 | Y | Kaynak: ADV-BUG-04; `public/enrol/self/lang/en/enrol_self.php:79` | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-07 | — (yeni fonksiyon) | | YZ | |
-| ADV-NFR-01 | Y | Kaynak: WBS-1 §4.1 AUTH-BR-08, 12 | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-08, T-ADV-E03 | Bekliyor (E03) | | YZ | |
+| ADV-NFR-01 | Y | Kaynak: WBS-1 §4.1 AUTH-BR-08, 12 | [REST tasarımı](WBS-2-tasarim.md#332-rest-api) | T-ADV-08, T-ADV-E03 | Geçti (E03) | | YZ | |
 
 ## Ödev ve teslim – ASG (Aslı Ceren)
 

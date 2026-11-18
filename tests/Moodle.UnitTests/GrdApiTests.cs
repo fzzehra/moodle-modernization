@@ -44,6 +44,19 @@ public sealed class GrdApiTests
     }
 
     [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void GRD_FR_01_unavailable_AUTH_defaults_are_reported_as_not_ready(bool unavailableUser, bool unavailablePolicy)
+    {
+        var auth = new GrdAuthorization(unavailableUser ? new UnavailableIdentity() : new User(),
+            unavailablePolicy ? new UnavailableIdentity() : new Policy());
+        var error = Assert.Throws<AppException>(auth.RequireIdentity);
+        Assert.Equal(503, error.StatusCode);
+        Assert.Equal("auth_not_ready", error.Code);
+    }
+
+    [Theory]
     [InlineData(false, 42)]
     [InlineData(true, null)]
     [InlineData(true, 0)]

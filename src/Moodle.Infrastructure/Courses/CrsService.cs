@@ -7,7 +7,7 @@ using Moodle.Domain.Courses;
 namespace Moodle.Infrastructure.Courses;
 
 public sealed class CrsService(CrsDbContext db)
-    : ICourseDirectory, IEnrolmentQuery
+    : ICourseDirectory, IEnrolmentQuery, IAssignmentLearnerQuery
 {
     public Task<CourseCategory?> FindCategoryAsync(int id, CancellationToken ct = default) =>
         db.Categories.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
@@ -55,6 +55,17 @@ public sealed class CrsService(CrsDbContext db)
                 (!x.EndsAt.HasValue || x.EndsAt > now))
             .Select(x => x.UserId)
             .ToListAsync(ct);
+    }
+
+    // ASG individual submissions: active Student enrolments only, never all enrolled roles.
+    public async Task<IReadOnlyList<int>> ListRequiredLearnerIdsAsync(int courseId, CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return await db.Enrolments.AsNoTracking()
+            .Where(x => x.CourseId == courseId && x.Role == "Student" && !x.Suspended
+                && (!x.StartsAt.HasValue || x.StartsAt <= now)
+                && (!x.EndsAt.HasValue || x.EndsAt > now))
+            .Select(x => x.UserId).Distinct().OrderBy(id => id).ToListAsync(ct);
     }
 
     public Task<List<Course>> ListCoursesAsync(

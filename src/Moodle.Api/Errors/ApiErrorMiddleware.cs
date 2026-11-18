@@ -57,7 +57,7 @@ public sealed class ApiErrorMiddleware(RequestDelegate next, ILogger<ApiErrorMid
         context.Response.Clear();
         context.Response.StatusCode = status;
         context.Response.ContentType = "application/json; charset=utf-8";
-        await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = new { code, message } }, Json));
+        await context.Response.WriteAsync(JsonSerializer.Serialize(new ApiErrorResponse(new ApiError(code, message)), Json));
     }
 
     private static string CodeFor(int status) => status switch

@@ -1,0 +1,19 @@
+@page "/assignments/{Id:int}/submissions/{SubmissionId:int}"
+@using Moodle.Web.Assignments
+@inject AsgClient Api
+<h1>Teslim içeriği</h1>
+@if (error is not null) { <p role="alert">@error</p> }
+else if (data is null) { <p>Yükleniyor…</p> }
+else { <p>@Labels.Status(data.Status)</p><pre style="white-space: pre-wrap">@data.Text</pre> }
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int SubmissionId { get; set; }
+    private SubmissionData? data;
+    private string? error;
+    protected override async Task OnParametersSetAsync()
+    {
+        try { data = await Api.SendAsync<SubmissionData>(HttpMethod.Get, $"/api/v1/assignments/{Id}/submissions/{SubmissionId}"); }
+        catch (Exception ex) when (ex is AsgClientException or HttpRequestException)
+        { error = ex is AsgClientException ? ex.Message : "Sunucuya ulaşılamadı."; }
+    }
+}

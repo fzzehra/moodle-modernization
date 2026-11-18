@@ -19,7 +19,8 @@ public sealed class GrdAuthorization(ICurrentUser user, IAccessPolicy policy)
     public void RequireIdentity()
     {
         // Depodaki AUTH sahteleri yönetici gibi davranır; GRD bu sahtelerle hiçbir ortamda açılmaz.
-        if (user is FakeCurrentUser || policy is FakeAccessPolicy)
+        // UnavailableIdentity, AUTH bağlanmadığında kullanılan kapalı varsayılandır; o da "AUTH hazır değil" sayılır.
+        if (user is FakeCurrentUser or UnavailableIdentity || policy is FakeAccessPolicy or UnavailableIdentity)
             throw new AppException("auth_not_ready",
                 "GRD API için gerçek AUTH kimlik ve yetki servisleri henüz bağlı değil.", 503);
 

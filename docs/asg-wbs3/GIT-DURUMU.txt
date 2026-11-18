@@ -1,0 +1,142 @@
+18.11.2026 PR #21 yerel merge incelemesi
+HEAD: 317ceb1f4f3195ba3b97a822661deb6b945dbd2c
+MERGE_HEAD: c7a2b66c1cf39679a6a95ce8406eee8ee0d06f5c
+Başlangıç ağacı temiz. Çakışmalar çözüldü; index hazır, merge commit oluşturulmadı.
+Bu turda push/force push/rebase/PR merge yok.
+266 .NET + 7 Node testi geçti; önceki 117 ASG testinden eksik yok.
+Whitespace/conflict/çıktı taraması temiz; gerçek token/anahtar deseni saptanmadı.
+Envanter alınırken bu belge ve DOGRULAMA.json son durumları index'e tekrar alınır.
+
+## codex/asg-wbs3-implementation...origin/codex/asg-wbs3-implementation
+A  .config/dotnet-tools.json
+M  docker/docker-compose.yml
+A  docs/asg-wbs3/BIRLESME-RAPORU.md
+MM docs/asg-wbs3/DOGRULAMA.json
+M  docs/asg-wbs3/ORTAK-SOZLESMELER.md
+M  docs/asg-wbs3/TESLIM-RAPORU.md
+M  docs/asg-wbs3/YZ-KAYDI.md
+A  docs/crs-api.md
+A  docs/crs-arayuz.md
+A  docs/crs-veritabani.md
+M  docs/izlenebilirlik.md
+A  src/Moodle.Api/Courses/CrsAuthorization.cs
+A  src/Moodle.Api/Courses/CrsEndpointFilter.cs
+A  src/Moodle.Api/Courses/CrsEndpoints.cs
+A  src/Moodle.Api/Courses/CrsRequests.cs
+M  src/Moodle.Api/Errors/ApiErrorMiddleware.cs
+M  src/Moodle.Api/Moodle.Api.csproj
+M  src/Moodle.Api/Program.cs
+M  src/Moodle.Api/Properties/launchSettings.json
+A  src/Moodle.Application/Courses/CourseValidation.cs
+A  src/Moodle.Application/Courses/CrsConflictException.cs
+A  src/Moodle.Domain/Courses/CourseEntities.cs
+A  src/Moodle.Infrastructure/Courses/CrsDatabaseConfiguration.cs
+A  src/Moodle.Infrastructure/Courses/CrsDbContext.cs
+A  src/Moodle.Infrastructure/Courses/CrsDbContextFactory.cs
+A  src/Moodle.Infrastructure/Courses/CrsService.cs
+A  src/Moodle.Infrastructure/Courses/Migrations/20261117094833_InitialCrs.Designer.cs
+A  src/Moodle.Infrastructure/Courses/Migrations/20261117094833_InitialCrs.cs
+A  src/Moodle.Infrastructure/Courses/Migrations/CrsDbContextModelSnapshot.cs
+M  src/Moodle.Infrastructure/DependencyInjection.cs
+A  src/Moodle.Infrastructure/Fakes/UnavailableCourseSectionQuery.cs
+M  src/Moodle.Infrastructure/Moodle.Infrastructure.csproj
+M  src/Moodle.Web/App.razor
+A  src/Moodle.Web/Crs/CourseEditor.razor
+A  src/Moodle.Web/Crs/CrsApiClient.cs
+A  src/Moodle.Web/Crs/CrsBrowserHttpHandler.cs
+A  src/Moodle.Web/Crs/CrsConfirm.razor
+A  src/Moodle.Web/Crs/CrsModels.cs
+A  src/Moodle.Web/Crs/CrsNotice.razor
+A  src/Moodle.Web/Crs/CrsPageBase.cs
+A  src/Moodle.Web/Crs/EnrolmentEditor.razor
+M  src/Moodle.Web/Layout/NavMenu.razor
+A  src/Moodle.Web/Pages/CourseDetails.razor
+A  src/Moodle.Web/Pages/CourseParticipants.razor
+A  src/Moodle.Web/Pages/Courses.razor
+M  src/Moodle.Web/_Imports.razor
+M  src/Moodle.Web/wwwroot/app.css
+A  src/Moodle.Web/wwwroot/crs-api.js
+A  tests/Moodle.IntegrationTests/AsgCrsMergeTests.cs
+M  tests/Moodle.IntegrationTests/AssignmentApiTests.cs
+A  tests/Moodle.IntegrationTests/CrsApiFixture.cs
+A  tests/Moodle.IntegrationTests/CrsBlazorHostingTests.cs
+A  tests/Moodle.IntegrationTests/CrsEndpointTests.cs
+A  tests/Moodle.IntegrationTests/CrsPostgresTests.cs
+A  tests/Moodle.IntegrationTests/CrsUnavailableAuthTests.cs
+A  tests/Moodle.IntegrationTests/CrsWebApiContractTests.cs
+M  tests/Moodle.UnitTests/AssignmentServiceTests.cs
+A  tests/Moodle.UnitTests/CrsApiTests.cs
+A  tests/Moodle.UnitTests/CrsBlazorTests.cs
+A  tests/Moodle.UnitTests/CrsValidationTests.cs
+A  tests/Moodle.UnitTests/CrsWebClientTests.cs
+A  tests/Moodle.UnitTests/CrsWebTestSupport.cs
+M  tests/Moodle.UnitTests/Moodle.UnitTests.csproj
+A  tests/web/crs-api.test.mjs
+A  tests/web/crs-browser-smoke.mjs
+
+ .config/dotnet-tools.json                          |  10 +
+ docker/docker-compose.yml                          |   4 +-
+ docs/asg-wbs3/BIRLESME-RAPORU.md                   |  59 ++++
+ docs/asg-wbs3/DOGRULAMA.json                       | 143 +++++++-
+ docs/asg-wbs3/ORTAK-SOZLESMELER.md                 |   9 +
+ docs/asg-wbs3/TESLIM-RAPORU.md                     |   9 +
+ docs/asg-wbs3/YZ-KAYDI.md                          |   8 +
+ docs/crs-api.md                                    | 142 ++++++++
+ docs/crs-arayuz.md                                 | 135 ++++++++
+ docs/crs-veritabani.md                             |  69 ++++
+ docs/izlenebilirlik.md                             |  12 +-
+ src/Moodle.Api/Courses/CrsAuthorization.cs         |  41 +++
+ src/Moodle.Api/Courses/CrsEndpointFilter.cs        |  41 +++
+ src/Moodle.Api/Courses/CrsEndpoints.cs             | 179 ++++++++++
+ src/Moodle.Api/Courses/CrsRequests.cs              | 103 ++++++
+ src/Moodle.Api/Errors/ApiErrorMiddleware.cs        |   2 +-
+ src/Moodle.Api/Moodle.Api.csproj                   |   1 +
+ src/Moodle.Api/Program.cs                          |  12 +-
+ src/Moodle.Api/Properties/launchSettings.json      |   4 +-
+ src/Moodle.Application/Courses/CourseValidation.cs |  37 +++
+ .../Courses/CrsConflictException.cs                |   6 +
+ src/Moodle.Domain/Courses/CourseEntities.cs        |  32 ++
+ .../Courses/CrsDatabaseConfiguration.cs            |   9 +
+ src/Moodle.Infrastructure/Courses/CrsDbContext.cs  |  54 +++
+ .../Courses/CrsDbContextFactory.cs                 |  16 +
+ src/Moodle.Infrastructure/Courses/CrsService.cs    | 261 +++++++++++++++
+ .../20261117094833_InitialCrs.Designer.cs          | 162 +++++++++
+ .../Migrations/20261117094833_InitialCrs.cs        | 126 +++++++
+ .../Migrations/CrsDbContextModelSnapshot.cs        | 159 +++++++++
+ src/Moodle.Infrastructure/DependencyInjection.cs   |  29 +-
+ .../Fakes/UnavailableCourseSectionQuery.cs         |   9 +
+ .../Moodle.Infrastructure.csproj                   |   7 +-
+ src/Moodle.Web/App.razor                           |   1 +
+ src/Moodle.Web/Crs/CourseEditor.razor              |  41 +++
+ src/Moodle.Web/Crs/CrsApiClient.cs                 |  90 +++++
+ src/Moodle.Web/Crs/CrsBrowserHttpHandler.cs        |  48 +++
+ src/Moodle.Web/Crs/CrsConfirm.razor                |  17 +
+ src/Moodle.Web/Crs/CrsModels.cs                    |  90 +++++
+ src/Moodle.Web/Crs/CrsNotice.razor                 |  24 ++
+ src/Moodle.Web/Crs/CrsPageBase.cs                  |  74 +++++
+ src/Moodle.Web/Crs/EnrolmentEditor.razor           |  35 ++
+ src/Moodle.Web/Layout/NavMenu.razor                |   1 +
+ src/Moodle.Web/Pages/CourseDetails.razor           |  71 ++++
+ src/Moodle.Web/Pages/CourseParticipants.razor      | 119 +++++++
+ src/Moodle.Web/Pages/Courses.razor                 | 107 ++++++
+ src/Moodle.Web/_Imports.razor                      |   3 +
+ src/Moodle.Web/wwwroot/app.css                     |  43 +++
+ src/Moodle.Web/wwwroot/crs-api.js                  |  26 ++
+ tests/Moodle.IntegrationTests/AsgCrsMergeTests.cs  | 104 ++++++
+ .../Moodle.IntegrationTests/AssignmentApiTests.cs  |   3 +
+ tests/Moodle.IntegrationTests/CrsApiFixture.cs     | 127 +++++++
+ .../CrsBlazorHostingTests.cs                       |  45 +++
+ tests/Moodle.IntegrationTests/CrsEndpointTests.cs  | 370 +++++++++++++++++++++
+ tests/Moodle.IntegrationTests/CrsPostgresTests.cs  | 119 +++++++
+ .../CrsUnavailableAuthTests.cs                     |  41 +++
+ .../CrsWebApiContractTests.cs                      |  58 ++++
+ tests/Moodle.UnitTests/AssignmentServiceTests.cs   |   3 +-
+ tests/Moodle.UnitTests/CrsApiTests.cs              | 129 +++++++
+ tests/Moodle.UnitTests/CrsBlazorTests.cs           | 240 +++++++++++++
+ tests/Moodle.UnitTests/CrsValidationTests.cs       |  28 ++
+ tests/Moodle.UnitTests/CrsWebClientTests.cs        |  59 ++++
+ tests/Moodle.UnitTests/CrsWebTestSupport.cs        |  49 +++
+ tests/Moodle.UnitTests/Moodle.UnitTests.csproj     |   1 +
+ tests/web/crs-api.test.mjs                         |  54 +++
+ tests/web/crs-browser-smoke.mjs                    |  82 +++++
+ 65 files changed, 4162 insertions(+), 30 deletions(-)

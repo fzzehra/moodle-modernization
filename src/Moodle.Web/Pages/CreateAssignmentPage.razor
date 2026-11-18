@@ -1,0 +1,48 @@
+@page "/courses/{CourseId:int}/assignments/new"
+@using System.ComponentModel.DataAnnotations
+@using Moodle.Web.Assignments
+@using Microsoft.AspNetCore.Components.Forms
+@inject AsgClient Api
+<h1>Ödev oluştur</h1>
+<p>Ders: @CourseId. Tarihleri UTC olarak girin. Bu sürüm metin teslimini destekler.</p>
+@if (error is not null) { <p role="alert">@error</p> }
+@if (created is not null) { <p role="status">Ödev oluşturuldu. <a href="@($"/assignments/{created.Id}")">Ödevi aç</a></p> }
+<EditForm Model="Form" OnValidSubmit="Create" FormName="createAssignment">
+    <DataAnnotationsValidator /><ValidationSummary />
+    <p><label>Bölüm kimliği <InputNumber @bind-Value="Form!.SectionId" /></label></p>
+    <p><label>Başlık <InputText @bind-Value="Form!.Title" /></label></p>
+    <p><label>Açıklama <InputTextArea @bind-Value="Form!.Instructions" /></label></p>
+    <p><label>Açılış (UTC) <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="Form!.OpensAt" /></label></p>
+    <p><label>Son teslim (UTC) <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="Form!.DueAt" /></label></p>
+    <p><label>Kesim (UTC) <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="Form!.CutoffAt" /></label></p>
+    <p><label><InputCheckbox @bind-Value="Form!.RequiresConfirmation" /> Gönderme onayı gerekli</label></p>
+    <button type="submit">Oluştur</button>
+</EditForm>
+@code {
+    [Parameter] public int CourseId { get; set; }
+    [SupplyParameterFromForm] public CreateForm? Form { get; set; }
+    private string? error;
+    private AssignmentData? created;
+    protected override void OnInitialized() => Form ??= new();
+    private static DateTimeOffset? Utc(DateTime? value) => value is null ? null : new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc));
+    private async Task Create()
+    {
+        try {
+            created = await Api.SendAsync<AssignmentData>(HttpMethod.Post, $"/api/v1/courses/{CourseId}/assignments",
+                new { Form!.SectionId, Form.Title, Form.Instructions, opensAt = Utc(Form.OpensAt),
+                    dueAt = Utc(Form.DueAt), cutoffAt = Utc(Form.CutoffAt), Form.RequiresConfirmation, enabledSubmissionTypes = new[] { "text" } });
+        }
+        catch (Exception ex) when (ex is AsgClientException or HttpRequestException)
+        { error = ex is AsgClientException ? ex.Message : "Sunucuya ulaşılamadı."; }
+    }
+    public sealed class CreateForm
+    {
+        [Range(1, int.MaxValue)] public int SectionId { get; set; } = 1;
+        [Required] public string Title { get; set; } = "";
+        public string Instructions { get; set; } = "";
+        public DateTime? OpensAt { get; set; }
+        public DateTime? DueAt { get; set; }
+        public DateTime? CutoffAt { get; set; }
+        public bool RequiresConfirmation { get; set; }
+    }
+}

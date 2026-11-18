@@ -1,0 +1,392 @@
+{
+  "date": "2026-11-17",
+  "timezone": "Europe/Istanbul",
+  "baseCommit": "db2948e4aa542b227a83a41b71b97b90d36d0863",
+  "branch": "codex/asg-wbs3-implementation",
+  "baseline": {
+    "integrationPassed": 7,
+    "unitPassed": 8
+  },
+  "delivery": [
+    {
+      "file": "_ec071a65115e_2026-11-17_10_49_09_net10.0.trx",
+      "total": 27,
+      "passed": 27,
+      "failed": 0,
+      "notExecuted": 0,
+      "start": "2026-11-17T13:49:08.3388257+03:00",
+      "finish": "2026-11-17T13:49:10.0142488+03:00"
+    },
+    {
+      "file": "_ec071a65115e_2026-11-17_10_49_09_net10.0[1].trx",
+      "total": 27,
+      "passed": 27,
+      "failed": 0,
+      "notExecuted": 0,
+      "start": "2026-11-17T13:49:05.5994986+03:00",
+      "finish": "2026-11-17T13:49:20.4949264+03:00"
+    }
+  ],
+  "coverage": [
+    {
+      "file": "coverage/delivery/25a28d1e-5b4d-4528-b1ea-4d1ddf989d9a/coverage.cobertura.xml",
+      "lineRate": 0.8262,
+      "branchRate": 0.5996,
+      "packages": [
+        {
+          "name": "Moodle.Domain",
+          "lineRate": 1.0,
+          "branchRate": 1.0
+        },
+        {
+          "name": "Moodle.Infrastructure",
+          "lineRate": 0.9603,
+          "branchRate": 0.7857
+        },
+        {
+          "name": "Moodle.Application",
+          "lineRate": 0.9215000000000001,
+          "branchRate": 0.9166
+        },
+        {
+          "name": "Moodle.Api",
+          "lineRate": 0.5143,
+          "branchRate": 0.3346
+        },
+        {
+          "name": "Moodle.Web",
+          "lineRate": 0.9384,
+          "branchRate": 0.6833
+        }
+      ]
+    },
+    {
+      "file": "coverage/delivery/f6720d3c-0fe0-4b7b-b89a-bd39237cdade/coverage.cobertura.xml",
+      "lineRate": 0.151,
+      "branchRate": 0.2465,
+      "packages": [
+        {
+          "name": "Moodle.Domain",
+          "lineRate": 0.9582999999999999,
+          "branchRate": 1.0
+        },
+        {
+          "name": "Moodle.Infrastructure",
+          "lineRate": 0.0229,
+          "branchRate": 0.19039999999999999
+        },
+        {
+          "name": "Moodle.Application",
+          "lineRate": 0.8626999999999999,
+          "branchRate": 0.8525
+        },
+        {
+          "name": "Moodle.Api",
+          "lineRate": 0.0,
+          "branchRate": 0.0
+        },
+        {
+          "name": "Moodle.Web",
+          "lineRate": 0.0,
+          "branchRate": 0.0
+        }
+      ]
+    }
+  ],
+  "docker": {
+    "postgresMajor": 17,
+    "assignmentPageHttpStatus": 200,
+    "submissionListRows": 3,
+    "healthHttpStatus": 200,
+    "imageBuildPassed": true,
+    "configurationValid": true,
+    "createdAssignmentId": 1,
+    "composeProject": "asg-wbs3"
+  },
+  "playwrightRun": false,
+  "remoteCiRun": false,
+  "codeqlRun": false,
+  "commitCreated": false,
+  "pullRequestCreated": false,
+  "limitations": [
+    "Real AUTH/CRS integration pending",
+    "External user/course/section foreign keys pending absent tables",
+    "Sample seed covers existing fake identities only",
+    "Manual comparison condition not met"
+  ],
+  "revision": {
+    "coverage": [
+      {
+        "lineRate": 0.1699,
+        "file": "coverage/revision-final/543f0067-f17c-4941-98aa-367500cdb4c3/coverage.cobertura.xml",
+        "packages": [
+          {
+            "lineRate": 0.9582999999999999,
+            "branchRate": 1.0,
+            "name": "Moodle.Domain"
+          },
+          {
+            "lineRate": 0.0472,
+            "branchRate": 0.10859999999999999,
+            "name": "Moodle.Infrastructure"
+          },
+          {
+            "lineRate": 0.8258,
+            "branchRate": 0.725,
+            "name": "Moodle.Application"
+          },
+          {
+            "lineRate": 0.0241,
+            "branchRate": 0.0447,
+            "name": "Moodle.Api"
+          },
+          {
+            "lineRate": 0.11800000000000001,
+            "branchRate": 0.1417,
+            "name": "Moodle.Web"
+          }
+        ]
+      },
+      {
+        "lineRate": 0.836,
+        "file": "coverage/revision-final/fbdb8e34-1a72-4273-8a79-040fdb8d00f3/coverage.cobertura.xml",
+        "packages": [
+          {
+            "lineRate": 1.0,
+            "branchRate": 1.0,
+            "name": "Moodle.Domain"
+          },
+          {
+            "lineRate": 0.9584,
+            "branchRate": 0.8043,
+            "name": "Moodle.Infrastructure"
+          },
+          {
+            "lineRate": 0.9225,
+            "branchRate": 0.9375,
+            "name": "Moodle.Application"
+          },
+          {
+            "lineRate": 0.5438000000000001,
+            "branchRate": 0.36939999999999995,
+            "name": "Moodle.Api"
+          },
+          {
+            "lineRate": 0.9375,
+            "branchRate": 0.7014,
+            "name": "Moodle.Web"
+          }
+        ]
+      }
+    ],
+    "codeqlRun": false,
+    "docker": {
+      "boundAddress": "127.0.0.1:8080",
+      "health": 200,
+      "configPassed": true,
+      "buildPassed": true,
+      "assignment": 200,
+      "list": 200,
+      "retryPassed": true,
+      "initialPortPublishFailed": true
+    },
+    "tests": [
+      {
+        "file": "_a807e283129f_2026-11-18_13_20_13_net10.0.trx",
+        "total": 41,
+        "passed": 41,
+        "finish": "2026-11-18T16:20:13.8858971+03:00",
+        "failed": 0,
+        "start": "2026-11-18T16:20:11.2384684+03:00"
+      },
+      {
+        "file": "_a807e283129f_2026-11-18_13_20_16_net10.0.trx",
+        "total": 56,
+        "passed": 56,
+        "finish": "2026-11-18T16:20:32.2205841+03:00",
+        "failed": 0,
+        "start": "2026-11-18T16:20:14.2319588+03:00"
+      }
+    ],
+    "date": "2026-11-18",
+    "playwrightRun": false,
+    "remoteCiRun": false,
+    "manualComparisonMet": false,
+    "postgresMajor": 17,
+    "status": "partial_pending_contract_approval",
+    "findings": {
+      "O5": "done_scope_pending_Y1_O1",
+      "O2": "done",
+      "D1": "done",
+      "Y3": "done",
+      "O4": "done",
+      "Y2": "done",
+      "Y1": "blocked_contract_approval",
+      "O3": "done",
+      "D2": "done",
+      "O1": "blocked_contract_approval"
+    },
+    "security": {
+      "realSecretPatternDetected": false,
+      "baselineEvidenceLogsUnchanged": true,
+      "newBuildOutputsDetected": false,
+      "syntheticDevPasswordPresent": true
+    },
+    "migrationChanged": false,
+    "firstRun": {
+      "unitPassed": 41,
+      "integrationFailed": 2,
+      "fixed": "Validate final host configuration",
+      "integrationPassed": 52
+    },
+    "acceptance": {
+      "FR03": "incomplete_Y1_O1",
+      "BR02": "window_tests_pass_AUTH_context_pending",
+      "NFR01": "incomplete_Y1"
+    },
+    "gitDiffCheckPassed": true
+  },
+  "currentStatus": "all_ten_findings_resolved_ASG_real_integration_pending",
+  "scopeDelivery": {
+    "remoteCiRun": false,
+    "date": "2026-11-18",
+    "contractsApproved": true,
+    "migrationChanged": false,
+    "postgresMajor": 17,
+    "docker": {
+      "configPassed": true,
+      "buildPassed": true,
+      "submissionSSR": 200,
+      "assignment": 200,
+      "health": 200,
+      "upPassed": true,
+      "submissionAPI": 200
+    },
+    "previousTests": 97,
+    "commitCreated": false,
+    "newTests": 20,
+    "coverage": [
+      {
+        "file": "coverage/scope-delivery/615b34c3-42b1-4057-8750-322fd0d04c75/coverage.cobertura.xml",
+        "lineRate": 0.8371999999999999,
+        "packages": [
+          {
+            "name": "Moodle.Domain",
+            "branchRate": 1.0,
+            "lineRate": 1.0
+          },
+          {
+            "name": "Moodle.Infrastructure",
+            "branchRate": 0.7735,
+            "lineRate": 0.9554
+          },
+          {
+            "name": "Moodle.Application",
+            "branchRate": 0.9476,
+            "lineRate": 0.9277
+          },
+          {
+            "name": "Moodle.Api",
+            "branchRate": 0.36939999999999995,
+            "lineRate": 0.5438000000000001
+          },
+          {
+            "name": "Moodle.Web",
+            "branchRate": 0.7014,
+            "lineRate": 0.9375
+          }
+        ]
+      },
+      {
+        "file": "coverage/scope-delivery/81ee4b55-df85-48d3-979b-13df6f1e0496/coverage.cobertura.xml",
+        "lineRate": 0.18350000000000002,
+        "packages": [
+          {
+            "name": "Moodle.Domain",
+            "branchRate": 1.0,
+            "lineRate": 0.9582999999999999
+          },
+          {
+            "name": "Moodle.Infrastructure",
+            "branchRate": 0.1981,
+            "lineRate": 0.063
+          },
+          {
+            "name": "Moodle.Application",
+            "branchRate": 0.7383,
+            "lineRate": 0.8373
+          },
+          {
+            "name": "Moodle.Api",
+            "branchRate": 0.0447,
+            "lineRate": 0.0241
+          },
+          {
+            "name": "Moodle.Web",
+            "branchRate": 0.1417,
+            "lineRate": 0.11800000000000001
+          }
+        ]
+      }
+    ],
+    "acceptance": {
+      "FR03": "ASG_passed_real_integration_pending",
+      "BR02": "ASG_passed_real_integration_pending",
+      "NFR01": "ASG_passed_real_integration_pending"
+    },
+    "findings": {
+      "O1": "done",
+      "D1": "done",
+      "D2": "done",
+      "O5": "done",
+      "Y3": "done",
+      "O3": "done",
+      "Y2": "done",
+      "Y1": "done",
+      "O2": "done",
+      "O4": "done"
+    },
+    "playwrightRun": false,
+    "pushPerformed": false,
+    "existingContractsChanged": false,
+    "limitations": [
+      "Real AUTH/CRS provider and context/cookie/CSRF acceptance pending",
+      "External User/Course/Section foreign keys and shared fixture pending",
+      "Manual comparison condition not met",
+      "Per-learner provider calls need measurement with real course sizes"
+    ],
+    "codeqlRun": false,
+    "mergePerformed": false,
+    "manualComparisonMet": false,
+    "pullRequestCreated": false,
+    "total": 117,
+    "tests": [
+      {
+        "passed": 52,
+        "failed": 0,
+        "start": "2026-11-18T16:28:37.1516562+03:00",
+        "finish": "2026-11-18T16:28:40.0351483+03:00",
+        "file": "_866ac4637b8c_2026-11-18_13_28_39_net10.0.trx",
+        "total": 52,
+        "notExecuted": 0
+      },
+      {
+        "passed": 65,
+        "failed": 0,
+        "start": "2026-11-18T16:28:37.5380986+03:00",
+        "finish": "2026-11-18T16:28:59.6259492+03:00",
+        "file": "_866ac4637b8c_2026-11-18_13_28_40_net10.0.trx",
+        "total": 65,
+        "notExecuted": 0
+      }
+    ],
+    "previousTestsMissing": 0,
+    "gitDiffCheckPassed": true,
+    "securityScan": {
+      "syntheticDevPasswordPresent": true,
+      "newBuildOutputsDetected": false,
+      "realSecretPatternDetected": false,
+      "existingEvidenceUnchanged": true
+    }
+  }
+}

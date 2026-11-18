@@ -1,0 +1,70 @@
+18.11.2026 - Onaylanan iki sözleşme dahil on bulgunun ASG düzeltmeleri tamamlandı.
+Commit/push/PR/merge yapılmadı. HEAD: db2948e4aa542b227a83a41b71b97b90d36d0863
+Son test: 117 geçti (97 korundu +20 yeni). Git diff --check: geçti.
+--stat yeni dosyaları içermez; tam envanter status listesindedir.
+
+## codex/asg-wbs3-implementation
+ M docker/docker-compose.yml
+ M docs/izlenebilirlik.md
+ M src/Moodle.Api/Errors/ApiErrorMiddleware.cs
+ M src/Moodle.Api/Program.cs
+ M src/Moodle.Api/Properties/launchSettings.json
+ M src/Moodle.Infrastructure/DependencyInjection.cs
+ D src/Moodle.Infrastructure/Fakes/FakeAssignmentQuery.cs
+ M src/Moodle.Infrastructure/Moodle.Infrastructure.csproj
+ M src/Moodle.Web/Layout/NavMenu.razor
+ M src/Moodle.Web/Moodle.Web.csproj
+?? .dockerignore
+?? docs/asg-wbs3/DOGRULAMA.json
+?? docs/asg-wbs3/GIT-DURUMU.txt
+?? docs/asg-wbs3/ORTAK-SOZLESMELER.md
+?? docs/asg-wbs3/TESLIM-RAPORU.md
+?? docs/asg-wbs3/YZ-KAYDI.md
+?? src/Moodle.Api/AssignmentEndpoints.cs
+?? src/Moodle.Api/DevelopmentConfiguration.cs
+?? src/Moodle.Api/Errors/ApiErrorResponse.cs
+?? src/Moodle.Application/Abstractions/IAssignmentLearnerQuery.cs
+?? src/Moodle.Application/Abstractions/ICourseSectionQuery.cs
+?? src/Moodle.Application/Abstractions/ISubmissionAccessPolicy.cs
+?? src/Moodle.Application/Assignments/AssignmentService.cs
+?? src/Moodle.Application/Assignments/Contracts.cs
+?? src/Moodle.Domain/Assignments/Assignment.cs
+?? src/Moodle.Domain/Assignments/Submission.cs
+?? src/Moodle.Domain/Assignments/SubmissionRule.cs
+?? src/Moodle.Infrastructure/Fakes/FakeAssignmentLearnerQuery.cs
+?? src/Moodle.Infrastructure/Fakes/FakeCourseSectionQuery.cs
+?? src/Moodle.Infrastructure/Fakes/FakeSubmissionAccessPolicy.cs
+?? src/Moodle.Infrastructure/Fakes/UnavailableIdentity.cs
+?? src/Moodle.Infrastructure/Fakes/UnavailableSubmissionScope.cs
+?? src/Moodle.Infrastructure/Persistence/AsgSeed.cs
+?? src/Moodle.Infrastructure/Persistence/AssignmentQuery.cs
+?? src/Moodle.Infrastructure/Persistence/AssignmentStore.cs
+?? src/Moodle.Infrastructure/Persistence/DesignTimeDbContextFactory.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261117103930_AsgInitial.Designer.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261117103930_AsgInitial.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/MoodleDbContextModelSnapshot.cs
+?? src/Moodle.Infrastructure/Persistence/MoodleDbContext.cs
+?? src/Moodle.Web/Assignments/AsgClient.cs
+?? src/Moodle.Web/Pages/AssignmentPage.razor
+?? src/Moodle.Web/Pages/CreateAssignmentPage.razor
+?? src/Moodle.Web/Pages/SubmissionDetail.razor
+?? src/Moodle.Web/Pages/SubmissionForm.razor
+?? src/Moodle.Web/Pages/SubmissionList.razor
+?? tests/Moodle.IntegrationTests/AsgEnvironmentTests.cs
+?? tests/Moodle.IntegrationTests/AssignmentApiTests.cs
+?? tests/Moodle.IntegrationTests/AssignmentRevisionTests.cs
+?? tests/Moodle.IntegrationTests/SubmissionScopeTests.cs
+?? tests/Moodle.UnitTests/AsgConfigurationTests.cs
+?? tests/Moodle.UnitTests/AssignmentServiceTests.cs
+
+ docker/docker-compose.yml                          |  7 ++-
+ docs/izlenebilirlik.md                             | 12 +++---
+ src/Moodle.Api/Errors/ApiErrorMiddleware.cs        |  7 ++-
+ src/Moodle.Api/Program.cs                          | 21 ++++++++-
+ src/Moodle.Api/Properties/launchSettings.json      | 50 ++++++++++++----------
+ src/Moodle.Infrastructure/DependencyInjection.cs   | 22 ++++++++--
+ .../Fakes/FakeAssignmentQuery.cs                   | 15 -------
+ .../Moodle.Infrastructure.csproj                   |  5 ++-
+ src/Moodle.Web/Layout/NavMenu.razor                |  1 +
+ src/Moodle.Web/Moodle.Web.csproj                   |  3 +-
+ 10 files changed, 90 insertions(+), 53 deletions(-)

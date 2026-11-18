@@ -25,11 +25,16 @@ services:
       modern-db:
         condition: service_healthy
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Development__UseFakeIdentity: "true"
+      AsgApi__BaseUrl: "http://localhost:8080"
+      Database__Initialize: "true"
+      Database__SeedAsg: "${ASG_SEED:-false}"
       ConnectionStrings__Default: "Host=modern-db;Port=5432;Database=moodle_modern;Username=moodle;Password=${MODERN_DB_PASSWORD:-local_dev_only}"
     volumes:
       - modern-files:/var/moodle-files
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
 
 volumes:
   modern-db-data:

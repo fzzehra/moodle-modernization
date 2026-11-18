@@ -1451,6 +1451,55 @@ Projenin başarısını özetleyen göstergeler; ara ve son raporlarda bu sıray
 
 ## 7. Literatür, mevcut araçlar ve özgünlük hedefi (Seray)
 
+Bu bölüm, projenin dayandığı çalışmaları ve mevcut araçları özetler ve projenin neyi farklı yaptığını söyler. Tarama sınırlıdır: kaynaklar proje süresince web aramasıyla bulunmuş, özet ve rakamlar kaynağın kendi sayfasındaki ifadelere göre yazılmıştır. Araç ve ürün adları değişebilir; kullanılan sürümler Kaynaklar'da bağlantıyla verilmiştir.
+
+### 7.1 Yapay zekâ destekli modernizasyon araçları
+
+| Araç / çalışma | Ne yapar | Bu projeyle ilişkisi |
+| --- | --- | --- |
+| **GitHub Copilot modernization** (eski adı app modernization) | Java ve .NET uygulamalarını bir sürümden diğerine yükseltir, derleme hatalarını giderir, Azure'a taşımaya yardım eder. Visual Studio, VS Code ve IntelliJ içinde çalışır. | **Aynı dilde sürüm yükseltme** yapar; PHP gibi farklı bir dilden C#'a geçişi kapsamaz. Hedef platformumuz (.NET 10) bu aracın desteklediği ortamdır. |
+| **AWS Transform** (custom) | Kurum çapında kod dönüşümü için ajan tabanlı bir hizmet. Java, Node.js ve Python yükseltmeleri hazırdır; kullanıcı kendi dönüşüm tanımını yazabilir. Windows .NET ve ana bilgisayar (COBOL → Java) iş yükleri için de ayrı kabiliyetleri vardır. | Ticari ve bulut hizmetidir. Dönüşüm kurallarını kullanıcı tanımlar; **PHP'den C#'a hazır tanım bildirilmemiştir**. Müşteri sonuçları üreticinin kendi bildirimidir. |
+| **Google'ın dahili kod göçleri** (Nikolov ve ark., 2025) | Büyük kod tabanında yapay zekâ ile sınıflı değişiklik üretir; AST tabanlı kesin yöntemlerle değişiklikleri bulur ve doğrular, derleme veya test başarısız olursa yapay zekâ ile onarır. Bir deneyim raporudur, kontrollü deney değildir. | Bizim yöntemimize en yakın çalışma: YZ'yi **tek başına bırakmayıp** otomatik doğrulamayla çevreler. Farkımız: tek firmanın dahili altyapısı yerine, 5 kişilik ekibin kendi gereksinimlerine bağlı bir izlenebilirlik matrisi kullanması. |
+| **"Migrating Code At Scale With LLMs At Google"** (2025) | 12 ayda üç geliştiricinin yaptığı 39 göç, 595 kod değişikliği ve 93.574 düzenleme. Geliştiriciler göç süresinin yaklaşık yarıya indiğini tahmin etmiştir. | Süre kazancı **ölçülmemiş, geliştirici tahminidir**. Biz YZ ve elle yazımı aynı işlev için ölçeriz (K17). |
+
+### 7.2 Kod çevirisi araştırmaları
+
+- **TransCoder** (Roziere ve ark., NeurIPS 2020): C++, Java ve Python arasında paralel veri olmadan, tek dilli GitHub kodundan öğrenerek işlev çevirir; 852 işlevlik, birim testli bir test kümesi yayımlamıştır. **PHP bu üç dilin içinde yoktur.** Makale, dinamik türlü dilden statik türlü dile çevirmede değişken türlerinin çıkarılmasının zor olduğunu belirtir. PHP'den C#'a geçişte aynı sorun vardır.
+- **"Lost in Translation"** (Pan ve ark., ICSE 2024): Büyük dil modellerinin kod çevirisinde yaptığı hataları inceler; 1.700 örnekte doğru çeviri oranı modele ve dil çiftine göre %2,1 ile %47,3 arasında değişir. 15 kategoriden oluşan bir hata sınıflandırması sunar ve hata belirtilerine göre istem hazırlamanın sonucu ortalama %5,5 iyileştirdiğini bildirir. **Çıkarım:** çeviri çıktısı testsiz kabul edilemez. Bu, projemizdeki "her gereksinimin testi olmalı" kuralını (WBS-2 §5.2) destekler.
+
+### 7.3 PHP'den başka dile dönüşüm
+
+Yapılan taramada **PHP'den başka bir dile otomatik çeviri üzerine kapsamlı bir araştırma bulunamadı.** Bulunanlar dolaylıdır:
+- **HipHop for PHP (HPHPc):** PHP'yi C++'a derler; amacı çevirinin okunabilir yeni kod vermesi değil, çalışma hızıdır.
+- **Haxe:** PHP, Java ve C# gibi dillere **derleyen** bir dildir; PHP'den derlemez.
+- Genel kaynak-kaynak çevirici karşılaştırmaları (ör. SLATE 2025) PHP'yi ayrıca ele almaz.
+
+Bu yüzden satır satır çeviri yerine, davranışı **gereksinim ve test düzeyinde** tanımlayıp yeni mimaride yeniden yazma yaklaşımı seçilmiştir (WBS-2 §2).
+
+### 7.4 Özgünlük hedefi
+
+Projenin amacı yeni bir çeviri aracı geliştirmek değildir. Özgün katkı, **yöntem ve ölçümdedir**:
+
+1. **Gerçek ve büyük bir uygulama:** Moodle 5.3.1'in seçilen alt fonksiyonları (AUTH, CRS, ASG, GRD, FILE vb.), sabit bir revizyonda (`cfe123f2`) ve tekrarlanabilir bir ortamda ele alınır.
+2. **Davranışın korunması ölçülür:** Gereksinimler K (korunacak), D (düzeltilecek) ve Y (yeni) olarak sınıflanır; **aynı testler eski ve yeni sistemde çalıştırılır** (K1, K2). Aracın "çalışıyor" demesi yerine test sonucu esas alınır.
+3. **İzlenebilirlik:** Her gereksinim eski koda, yeni koda ve teste bağlanır (WBS-2 §5); YZ'nin yazdığı her satırın bir gereksinime dayandığı gösterilebilir.
+4. **YZ ve elle yazım karşılaştırması:** Her modülden bir işlev YZ ile, bir işlev elle yazılır; efor, hata oranı ve yeniden çalışma ölçülür (WBS-2 §4.4, K17). Google çalışmalarındaki süre kazancı tahminlerinden farklı olarak, burada **aynı ekip, aynı koşul ve kayıtlı süre** vardır.
+5. **Çok ölçütlü kalite:** İşlevsellikle birlikte güvenlik (CodeQL, ZAP), performans (k6), bakım yapılabilirlik (SonarCloud) ve erişilebilirlik aynı ölçüm hattında karşılaştırılır (WBS-1 §6, K1–K18).
+6. **Hedef dilin gerekçeli seçimi:** Dil seçimi ekip bilgisi, performans ve YZ desteği ölçütleriyle belgelenmiştir (WBS-2 §1).
+
+**Sınırlar (dürüst değerlendirme):** Örneklem küçüktür (5 kişi, birkaç işlev çifti); sonuçlar istatistiksel genelleme değil, **kontrollü vaka çalışması** olarak yorumlanmalıdır. Moodle'ın tamamı kapsam dışıdır. Literatür taraması sistematik değildir; yukarıda eksik kalan çalışmalar olabilir.
+
+### 7.5 Kaynaklar
+
+- Pan, R. ve ark. "Lost in Translation: A Study of Bugs Introduced by Large Language Models while Translating Code." ICSE 2024. DOI: 10.1145/3597503.3639226. https://arxiv.org/abs/2308.03109
+- Roziere, B. ve ark. "Unsupervised Translation of Programming Languages." NeurIPS 2020. https://arxiv.org/abs/2006.03511
+- Nikolov, S. ve ark. "How is Google using AI for internal code migrations?" 2025. https://arxiv.org/abs/2501.06972
+- "Migrating Code At Scale With LLMs At Google." 2025. https://arxiv.org/abs/2504.09691
+- Microsoft Learn. "GitHub Copilot modernization." https://learn.microsoft.com/azure/developer/github-copilot-app-modernization/overview
+- GitHub Docs. "Upgrade projects with GitHub Copilot." https://docs.github.com/en/copilot/tutorials/upgrade-projects
+- AWS. "AWS Transform custom." https://aws.amazon.com/transform/custom
+- AWS. "AWS Transform custom is now generally available" (1 Aralık 2025). https://aws.amazon.com/about-aws/whats-new/2025/12/transform-custom-organization-wide-modernization
+
 ## 8. Eski sistemin başlangıç ölçümleri (Aslı Ceren)
 
 ### 8.1 Ortam ve veri doğrulaması

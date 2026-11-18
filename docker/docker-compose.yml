@@ -25,6 +25,7 @@ services:
       modern-db:
         condition: service_healthy
     environment:
+      SEED_SAMPLE_DATA: "${SEED_SAMPLE_DATA:-false}"   # true: açılışta ortam/ornek-veri.feature verisini yükler
       ConnectionStrings__Default: "Host=modern-db;Port=5432;Database=moodle_modern;Username=moodle;Password=${MODERN_DB_PASSWORD:-local_dev_only}"
     volumes:
       - modern-files:/var/moodle-files

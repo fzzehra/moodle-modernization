@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Moodle.Infrastructure.Persistence;
 using Npgsql;
 using Testcontainers.PostgreSql;
 
@@ -22,5 +24,13 @@ public class PostgresContainerTests : IAsyncLifetime
         await using var cmd = new NpgsqlCommand("SHOW server_version", conn);
         var version = (string?)await cmd.ExecuteScalarAsync();
         Assert.StartsWith("17", version);
+    }
+
+    [Fact]
+    public async Task AppDbContext_PostgreSQLe_baglanir()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(_db.GetConnectionString()).Options;
+        await using var ctx = new AppDbContext(options);
+        Assert.True(await ctx.Database.CanConnectAsync());
     }
 }

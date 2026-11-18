@@ -1,0 +1,32 @@
+@if (Loading)
+{
+    <p role="status" class="crs-notice">Not bilgileri yükleniyor…</p>
+}
+@if (Error is not null)
+{
+    <section class="crs-notice crs-error" role="alert" data-error-code="@Error.Code">
+        <h2>@Heading</h2>
+        <p>@Error.Message</p>
+        <button type="button" disabled="@Busy" @onclick="OnRetry">@(Error.Code == "version_conflict" ? "Yenile" : "Yeniden dene")</button>
+    </section>
+}
+@if (!string.IsNullOrEmpty(Success))
+{
+    <p role="status" class="crs-notice crs-success">@Success</p>
+}
+
+@code {
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public GrdApiException? Error { get; set; }
+    [Parameter] public string? Success { get; set; }
+    [Parameter] public EventCallback OnRetry { get; set; }
+
+    private string Heading => Error?.Code switch
+    {
+        "auth_not_ready" => "Not işlemleri henüz kullanılamıyor",
+        "grade_locked" or "grade_overridden" => "Bu not defterde korunuyor",
+        "version_conflict" => "Başka biri değiştirdi",
+        _ => "İşlem tamamlanamadı",
+    };
+}

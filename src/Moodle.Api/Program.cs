@@ -4,6 +4,7 @@ using Moodle.Api.Grading;
 using Moodle.Infrastructure;
 using Moodle.Web;
 using Moodle.Web.Crs;
+using Moodle.Web.Grd;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseStaticWebAssets();
@@ -14,6 +15,7 @@ builder.Services.AddGrdApi();
 builder.Services.AddOpenApi();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddCrsWeb();
+builder.Services.AddGrdWeb();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();

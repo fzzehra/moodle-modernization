@@ -1,0 +1,24 @@
+@* Not defteri hücre/sütun durum simgeleri. Simgeler ekran okuyucudan gizlenir; anlamı metin olarak verilir. *@
+@if (Locked || Overridden || Hidden)
+{
+    <span class="grd-flags">
+        @if (Locked)
+        {
+            <span class="grd-flag grd-flag-locked" title="Kilitli" data-flag="locked"><span aria-hidden="true">🔒</span><span class="grd-sr">Kilitli</span></span>
+        }
+        @if (Overridden)
+        {
+            <span class="grd-flag grd-flag-overridden" title="Elle değiştirilmiş" data-flag="overridden"><span aria-hidden="true">✎</span><span class="grd-sr">Elle değiştirilmiş</span></span>
+        }
+        @if (Hidden)
+        {
+            <span class="grd-flag" title="Öğrenciden gizli" data-flag="hidden"><span aria-hidden="true">⦸</span><span class="grd-sr">Öğrenciden gizli</span></span>
+        }
+    </span>
+}
+
+@code {
+    [Parameter] public bool Hidden { get; set; }
+    [Parameter] public bool Locked { get; set; }
+    [Parameter] public bool Overridden { get; set; }
+}

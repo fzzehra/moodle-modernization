@@ -220,9 +220,19 @@ public sealed class GrdService(
                 .ToListAsync(ct);
         var gradeByCell = grades.ToDictionary(x => (x.LearnerId, x.ItemId));
 
+        // Ödev hücrelerinde en son değerlendirilen deneme; arayüz bu denemenin ekranına bağlanır.
+        var assignmentIds = items.Where(x => x.AssignmentId.HasValue).Select(x => x.AssignmentId!.Value).ToList();
+        var latestAttempts = page.Count == 0 || assignmentIds.Count == 0
+            ? new Dictionary<(int AssignmentId, int LearnerId), int>()
+            : await db.AssignmentGrades.AsNoTracking()
+                .Where(x => assignmentIds.Contains(x.AssignmentId) && page.Contains(x.LearnerId))
+                .GroupBy(x => new { x.AssignmentId, x.LearnerId })
+                .Select(g => new { g.Key.AssignmentId, g.Key.LearnerId, Attempt = g.Max(x => x.Attempt) })
+                .ToDictionaryAsync(x => (x.AssignmentId, x.LearnerId), x => x.Attempt, ct);
+
         var columns = items
             .Select(item => new GradebookItem(
-                item.Id, item.Name, item.MinScore, item.MaxScore,
+                item.Id, item.AssignmentId, item.Name, item.MinScore, item.MaxScore,
                 GradeVisibility.IsHidden(item.Hidden, item.HiddenUntil, now),
                 GradeValidation.IsLocked(item.Locked, item.LockAt, now)))
             .ToList();
@@ -232,9 +242,14 @@ public sealed class GrdService(
                 .Select(column =>
                 {
                     gradeByCell.TryGetValue((learnerId, column.ItemId), out var grade);
+                    int? attempt = column.AssignmentId is int assignmentId &&
+                                   latestAttempts.TryGetValue((assignmentId, learnerId), out var latest)
+                        ? latest
+                        : null;
                     return new GradebookCell(
                         column.ItemId,
                         grade?.FinalScore,
+                        attempt,
                         column.Hidden || (grade is not null && GradeVisibility.IsHidden(grade.Hidden, grade.HiddenUntil, now)),
                         column.Locked || (grade is not null && GradeValidation.IsLocked(grade.Locked, grade.LockAt, now)),
                         grade?.Overridden ?? false);

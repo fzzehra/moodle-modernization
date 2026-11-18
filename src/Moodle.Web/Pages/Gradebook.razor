@@ -1,0 +1,126 @@
+@page "/courses/{CourseId:int}/gradebook"
+@rendermode InteractiveServer
+@using Moodle.Web.Grd
+@inherits GrdPageBase
+
+@* GRD-FR-03: değerlendiricinin ders not defteri. Satırlar etkin kayıtlı öğrenciler, sütunlar not kalemleri. *@
+<PageTitle>Not defteri · Moodle</PageTitle>
+<HeadContent><link rel="stylesheet" href="_content/Moodle.Web/grd.css" /></HeadContent>
+<nav class="crs-breadcrumb" aria-label="Not gezinme"><a href="grades">Notlar</a><span>/ Not defteri</span></nav>
+<div class="crs-heading"><div><h1>Not defteri</h1><p>Ders #@CourseId</p></div></div>
+<GrdNotice Loading="Loading" Busy="Busy" Error="Error" Success="@Success" OnRetry="RefreshAsync" />
+<noscript><p>Not defteri için JavaScript'i etkinleştirin.</p></noscript>
+
+@if (HasData && _book is not null)
+{
+    @if (_book.Learners.Count == 0)
+    {
+        <p class="crs-panel">@(_cursor is null ? "Bu derse etkin kayıtlı öğrenci bulunmuyor." : "Bu sayfada öğrenci kalmadı.")</p>
+    }
+    else if (_book.Items.Count == 0)
+    {
+        <p class="crs-panel">Bu derste henüz not kalemi bulunmuyor.</p>
+    }
+    else
+    {
+        @* Öğrenci adları yok: AUTH'ta kullanıcı bilgisi veren bir arayüz henüz bulunmuyor.
+           Arayüz geldiğinde satır başlığında kimlik yerine ad gösterilecek. *@
+        <p class="crs-muted">Öğrenci adları kimlik sistemi tamamlandığında gösterilecek. Şimdilik öğrenci kimlikleri listelenir.</p>
+        <div class="grd-legend" aria-label="Simgeler">
+            <span><span class="grd-flag grd-flag-locked" aria-hidden="true">🔒</span> Kilitli</span>
+            <span><span class="grd-flag grd-flag-overridden" aria-hidden="true">✎</span> Elle değiştirilmiş</span>
+            <span><span class="grd-flag" aria-hidden="true">⦸</span> Öğrenciden gizli</span>
+        </div>
+        <div class="crs-table-wrap"><table class="grd-table">
+            <caption>Öğrenci #@_book.Learners[0].LearnerId – #@_book.Learners[^1].LearnerId (@_book.Learners.Count öğrenci)</caption>
+            <thead><tr>
+                <th scope="col">Öğrenci</th>
+                @foreach (var item in _book.Items)
+                {
+                    <th scope="col" @key="item.ItemId" data-item-id="@item.ItemId">
+                        @item.Name<GrdFlags Hidden="item.Hidden" Locked="item.Locked" Overridden="false" />
+                        <span class="crs-secondary">@GrdDisplay.Range(item.MinScore, item.MaxScore)</span>
+                    </th>
+                }
+            </tr></thead>
+            <tbody>
+                @foreach (var learner in _book.Learners)
+                {
+                    <tr @key="learner.LearnerId" data-learner-id="@learner.LearnerId">
+                        <th scope="row">Öğrenci #@learner.LearnerId</th>
+                        @for (var i = 0; i < _book.Items.Count && i < learner.Grades.Count; i++)
+                        {
+                            var item = _book.Items[i];
+                            var cell = learner.Grades[i];
+                            <td class="grd-score" data-item-id="@cell.ItemId">
+                                @if (item.AssignmentId is int assignmentId)
+                                {
+                                    <a href="@EditorHref(assignmentId, learner.LearnerId, cell.Attempt)"
+                                       aria-label="@($"Öğrenci {learner.LearnerId}, {item.Name}: {GrdDisplay.Score(cell.Score)} — puanı düzenle")">@GrdDisplay.Score(cell.Score)</a>
+                                }
+                                else
+                                {
+                                    @GrdDisplay.Score(cell.Score)
+                                }
+                                <GrdFlags Hidden="cell.Hidden" Locked="cell.Locked" Overridden="cell.Overridden" />
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table></div>
+    }
+    <div class="crs-actions">
+        @if (_cursor is not null)
+        {
+            <button type="button" disabled="@(!CanAct)" @onclick="FirstPageAsync">İlk sayfa</button>
+        }
+        @if (_book.NextCursor is not null)
+        {
+            <button type="button" class="crs-primary" disabled="@(!CanAct)" @onclick="NextPageAsync">Sonraki sayfa</button>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    private int? _requestedId;
+    private string? _cursor;
+    private GrdGradebook? _book;
+
+    protected override void OnParametersSet()
+    {
+        if (_requestedId == CourseId) return;
+        _requestedId = CourseId;
+        _cursor = null;
+        RequestLoad();
+    }
+
+    protected override async Task LoadAsync() => _book = await Api.GradebookAsync(CourseId, _cursor, ct: Token);
+
+    private Task NextPageAsync()
+    {
+        if (!CanAct || _book?.NextCursor is not { } next) return Task.CompletedTask;
+        var previous = _cursor;
+        _cursor = next;
+        return LoadPageAsync(previous);
+    }
+
+    private Task FirstPageAsync()
+    {
+        if (!CanAct || _cursor is null) return Task.CompletedTask;
+        var previous = _cursor;
+        _cursor = null;
+        return LoadPageAsync(previous);
+    }
+
+    private async Task LoadPageAsync(string? previous)
+    {
+        await RefreshAsync();
+        // Sayfa yüklenemezse görünen tablo ile imleç tutarlı kalsın.
+        if (Error is not null) _cursor = previous;
+    }
+
+    private static string EditorHref(int assignmentId, int learnerId, int? attempt) =>
+        $"assignments/{assignmentId}/learners/{learnerId}/grade" + (attempt is > 0 ? $"?attempt={attempt}" : "");
+}

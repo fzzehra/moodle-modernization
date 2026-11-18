@@ -38,12 +38,19 @@ public sealed record GradebookView(
     IReadOnlyList<GradebookRow> Learners,
     string? NextCursor);
 
-/// <summary>Not defteri sütunu. Öğretmen gizli kalemleri de görür; durum bayraklarla bildirilir.</summary>
+/// <summary>
+/// Not defteri sütunu. Öğretmen gizli kalemleri de görür; durum bayraklarla bildirilir.
+/// <c>AssignmentId</c> ödev kalemlerinde doludur; arayüz hücreyi değerlendirme ekranına bağlar.
+/// </summary>
 public sealed record GradebookItem(
-    int ItemId, string Name, decimal MinScore, decimal MaxScore, bool Hidden, bool Locked);
+    int ItemId, int? AssignmentId, string Name, decimal MinScore, decimal MaxScore, bool Hidden, bool Locked);
 
 /// <summary>Not defteri satırı: hücreler <see cref="GradebookView.Items"/> ile aynı sıradadır.</summary>
 public sealed record GradebookRow(int LearnerId, IReadOnlyList<GradebookCell> Grades);
 
-/// <summary>Hücre: nihai puan (yoksa null) ve koruma durumu (kalem veya not düzeyinde).</summary>
-public sealed record GradebookCell(int ItemId, decimal? Score, bool Hidden, bool Locked, bool Overridden);
+/// <summary>
+/// Hücre: nihai puan (yoksa null) ve koruma durumu (kalem veya not düzeyinde).
+/// <c>Attempt</c> ödev kalemlerinde öğrencinin en son değerlendirilen denemesidir (defter bu denemeyi taşır);
+/// değerlendirme yoksa null.
+/// </summary>
+public sealed record GradebookCell(int ItemId, decimal? Score, int? Attempt, bool Hidden, bool Locked, bool Overridden);

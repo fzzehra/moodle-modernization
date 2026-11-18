@@ -2,9 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moodle.Application.Abstractions;
 using Moodle.Application.Assignments;
+using Moodle.Application.Files;
 using Moodle.Application.Seeding;
 using Moodle.Infrastructure.Courses;
 using Moodle.Infrastructure.Fakes;
+using Moodle.Infrastructure.Files;
 using Moodle.Infrastructure.Grading;
 using Moodle.Infrastructure.Persistence;
 
@@ -39,6 +41,14 @@ public static class DependencyInjection
         services.AddDbContext<GrdDbContext>(options =>
             options.UseNpgsql(GrdDatabaseConfiguration.ConnectionString));
         services.AddScoped<GrdService>();
+
+        // FILE: Seray (altyapı), İrem, Aslı Ceren, Fatma Zehra. Gerçek gerçeklemeler hazır olunca sahteler silinir.
+        services.AddDbContext<FilesDbContext>(options => options.UseNpgsql(FilesDatabaseConfiguration.ConnectionString));
+        services.AddScoped<IFilePolicyRegistry, FilePolicyRegistry>();      // modüller IFilePolicy kaydeder; kayıtsız bileşende erişim reddedilir
+        // Geliştirmede sahte içerik deposu ve dosya servisi; aksi hâlde gerçeği bağlanana kadar "kapalı" (UnavailableFiles).
+        services.AddScoped<IFileStore>(sp => useDevelopmentFakes(sp) ? new FakeFileStore() : new UnavailableFiles());   // Seray: yerel disk
+        services.AddScoped<IFileService>(sp => useDevelopmentFakes(sp)
+            ? new FakeFileService(sp.GetRequiredService<IFileStore>()) : new UnavailableFiles());                     // İrem, Aslı Ceren, Fatma Zehra
 
         // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
         services.AddScoped<SeedRunner>();

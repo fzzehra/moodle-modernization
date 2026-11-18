@@ -1,5 +1,6 @@
 using Moodle.Api.Errors;
 using Moodle.Api.Courses;
+using Moodle.Api.Grading;
 using Moodle.Infrastructure;
 using Moodle.Web;
 using Moodle.Web.Crs;
@@ -9,6 +10,7 @@ builder.WebHost.UseStaticWebAssets();
 
 builder.Services.AddInfrastructure();
 builder.Services.AddCrsApi();
+builder.Services.AddGrdApi();
 builder.Services.AddOpenApi();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddCrsWeb();
@@ -23,6 +25,7 @@ app.UseAntiforgery();
 app.MapOpenApi("/api/v1/openapi.json");
 app.MapHealthChecks("/api/v1/health");
 app.MapCrsEndpoints();
+app.MapGrdEndpoints();
 app.MapStaticAssets($"{typeof(Program).Assembly.GetName().Name}.staticwebassets.endpoints.json");
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

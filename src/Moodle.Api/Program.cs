@@ -47,6 +47,7 @@ if (builder.Configuration.GetValue<bool>("Database:Initialize"))
     await db.Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<Moodle.Infrastructure.Courses.CrsDbContext>().Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<Moodle.Infrastructure.Grading.GrdDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<Moodle.Infrastructure.Files.FilesDbContext>().Database.MigrateAsync();
     if (builder.Configuration.GetValue<bool>("Database:SeedAsg"))
         await AsgSeed.ApplyAsync(db,
             scope.ServiceProvider.GetRequiredService<Moodle.Application.Abstractions.ICourseDirectory>(),

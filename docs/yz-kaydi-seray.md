@@ -1,0 +1,46 @@
+# Yapay zekâ ve efor kaydı (Seray)
+
+WBS-2 §4.3 şablonuna göre. Süre canlı tutulmamıştır: **YZ ile çalışma süresi oturum kaydından** (iki mesaj arası 15 dakikadan kısa süreler toplanarak, yani alt sınır), **insan süresi** (yönlendirme, inceleme, commit, PR ve çakışma çözümü) **tahmin** olarak yazılmıştır.
+
+## 1. Altyapı ve iskelet
+
+**Model ve sürüm:** Claude Sonnet 5.5 (Claude Code)
+**Kullanılan adım(lar):** Kod üretimi, test yazımı, CI ve Docker dosyaları
+**Verilen bağlam:** WBS-2 §2.2–2.3, §3.6.4, "görev dağılım2.pdf" Seray bölümü
+**Yapılan iş:** .NET çözümü ve 5 proje, 5 ortak arayüz ve sahte gerçeklemeleri, tek tip hata gövdesi, OpenAPI, Blazor ana düzeni, katman kurallarını denetleyen mimari testi, Docker Compose, GitHub Actions (derleme, test, kapsam) ve CodeQL
+**Yapılan düzeltmeler:** OpenAPI ve Mvc.Testing paketleri önizleme sürümü (11.0.0) olarak çözümlenip derleme hatası verdi, 10.0.13'e sabitlendi. Şablondan kalan gereksiz dosyalar silindi. İnsan düzeltmesi: yok.
+**Harcanan süre:** İnsan: ~1 saat (tahmin) · YZ ile çalışma: ~0,5 saat (oturum kaydı)
+**Kanıt:** PR #19
+
+## 2. Tohumlama
+
+**Model ve sürüm:** Claude Sonnet 5.5 (Claude Code)
+**Kullanılan adım(lar):** Kod üretimi, test yazımı
+**Verilen bağlam:** `ortam/ornek-veri.feature`, Sinem'in CRS tabloları (`CrsDbContext`)
+**Yapılan iş:** `SampleDataset`, `ISeedContributor`, `SeedRunner` ve CRS örnek veri yükleyicisi (`CrsSeedContributor`) ile testleri. Testler, veri kümesinin `ornek-veri.feature` ile aynı kaldığını da denetler.
+**Yapılan düzeltmeler:** İlk testte tablo satırlarını sayma hatası bulundu ve düzeltildi. İlk taslakta ayrı bir `AppDbContext` yazılmıştı; modüller kendi bağlamlarını getirdiği için PR çakışmasında silindi. İnsan düzeltmesi: yok.
+**Harcanan süre:** İnsan: ~1 saat (tahmin) · YZ ile çalışma: ~0,5 saat (oturum kaydı)
+**Kanıt:** PR #25 ve sonraki PR (CRS tohumlama)
+
+## 3. Dokümanlar (WBS-1 §4.6 ve §7; WBS-2 §1, §2, §3.6)
+
+**Model ve sürüm:** Claude Sonnet 5.5 (Claude Code)
+**Kullanılan adım(lar):** Kod okuma ve analiz, doküman taslağı, literatür taraması
+**Verilen bağlam:** Moodle 5.3.1 kaynak kodu (`cfe123f2`), WBS-1 ve WBS-2'nin mevcut bölümleri, web araması
+**Yapılan iş:** Dosya yönetimi analizi ve REST API tasarımı, dil ve teknoloji seçimi, mimari ve dağıtım diyagramları, sürüm planı güncellemesi, literatür bölümü
+**Yapılan düzeltmeler:** `assign_pluginfile` yanlış yorumlanmıştı (teslim dosyaları `assignsubmission_file` üzerinden sunuluyor); satır numaralarıyla birlikte koddan doğrulanıp düzeltildi. Testle doğrulanmayan hata maddeleri (FILE-BUG) "aday", test sonuçları "Bekliyor" olarak işaretlendi. Literatür kaynakları web aramasıyla bulundu, makalelerin tamamı okunmadı. İnsan düzeltmesi: yok.
+**Harcanan süre:** İnsan: ~1 saat (tahmin) · YZ ile çalışma: ~0,5 saat (oturum kaydı)
+**Kanıt:** PR #6, #14, #16
+
+## Elle yazım eforu tahmini (COCOMO)
+
+Hoca yönergesine göre elle yazım eforu ölçülmez, tahmin edilir. Basic COCOMO (organik), `Efor = 2,4 × KLOC^1,05` kişi-ay, 152 saat/kişi-ay. Satır sayısı boş ve yorum satırları hariç.
+
+| İş | Satır | Tahmini elle efor |
+| --- | --- | --- |
+| Hata gövdesi (`ApiErrorMiddleware`, `AppException`) | 78 | ~25 saat |
+| Mimari testi | 42 | ~13 saat |
+| Tohumlama iskeleti (`Seeding/`) | 119 | ~39 saat |
+| CRS tohumlama (`CrsSeedContributor`) | 73 | ~23 saat |
+
+COCOMO büyük projeler için geliştirilmiştir; bu kadar küçük kodda tahminler yüksek çıkar. Rakamlar karşılaştırma için göstergedir, kesin ölçüm değildir.

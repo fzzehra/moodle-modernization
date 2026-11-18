@@ -42,6 +42,7 @@ public static class DependencyInjection
 
         // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
         services.AddScoped<SeedRunner>();
+        services.AddScoped<ISeedContributor, CrsSeedContributor>();   // CRS örnek verisi
         return services;
     }
 }

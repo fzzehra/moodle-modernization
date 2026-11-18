@@ -84,6 +84,15 @@ public class SampleDatasetTests
             Assert.Contains(Data.Submissions, s => s.AssignmentName == g.AssignmentName && s.Username == g.Username));
 
     [Fact]
+    public void UserId_kararlidir_ve_birdir_birinden_baslar()
+    {
+        Assert.Equal(1, Data.UserId("yonetici1"));
+        Assert.Equal(15, Data.UserId("ogrenci10"));
+        Assert.Equal(Data.Users.Count, Data.Users.Select(u => Data.UserId(u.Username)).Distinct().Count());
+        Assert.Throws<ArgumentException>(() => Data.UserId("yok"));
+    }
+
+    [Fact]
     public async Task SeedRunner_katki_saglayicilari_Order_sirasiyla_calistirir()
     {
         var log = new List<string>();

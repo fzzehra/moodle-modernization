@@ -22,4 +22,17 @@ public sealed record SeedDataset(
     IReadOnlyList<SeedAssignment> Assignments,
     IReadOnlyList<SeedResource> Resources,
     IReadOnlyList<SeedSubmission> Submissions,
-    IReadOnlyList<SeedGrade> Grades);
+    IReadOnlyList<SeedGrade> Grades)
+{
+    /// <summary>
+    /// Kullanıcı adından kararlı sayısal kimlik: kümedeki sıra + 1 (yonetici1 = 1, ogrenci10 = 15).
+    /// AUTH tabloları gelene kadar modüller kullanıcıya bu kimlikle başvurur; AUTH kendi kimliklerini
+    /// aynı sırayla üretirse ek bir eşleme gerekmez.
+    /// </summary>
+    public int UserId(string username)
+    {
+        for (var i = 0; i < Users.Count; i++)
+            if (Users[i].Username == username) return i + 1;
+        throw new ArgumentException($"Örnek veride kullanıcı yok: {username}", nameof(username));
+    }
+}

@@ -29,6 +29,11 @@ public sealed class ApiErrorMiddleware(RequestDelegate next, ILogger<ApiErrorMid
             await WriteAsync(context, ex.StatusCode, ex.Code, ex.Message);
             return;
         }
+        catch (BadHttpRequestException ex)
+        {
+            await WriteAsync(context, ex.StatusCode, CodeFor(ex.StatusCode), MessageFor(ex.StatusCode));
+            return;
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "İstek işlenirken beklenmeyen hata: {Path}", context.Request.Path);
@@ -52,7 +57,7 @@ public sealed class ApiErrorMiddleware(RequestDelegate next, ILogger<ApiErrorMid
         context.Response.Clear();
         context.Response.StatusCode = status;
         context.Response.ContentType = "application/json; charset=utf-8";
-        await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = new { code, message } }, Json));
+        await context.Response.WriteAsync(JsonSerializer.Serialize(new ApiErrorResponse(new ApiError(code, message)), Json));
     }
 
     private static string CodeFor(int status) => status switch

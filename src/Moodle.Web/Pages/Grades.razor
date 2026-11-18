@@ -1,0 +1,31 @@
+@page "/grades"
+@rendermode InteractiveServer
+@using Moodle.Web.Grd
+
+@* Menüdeki "Notlar" bağlantısının hedefi. GRD sayfaları ders kimliği ister ve CRS ders sayfalarına
+   (Sinem) GRD bağlantısı eklenmediği için ders burada seçilir. API çağrısı yapmaz. *@
+<PageTitle>Notlar · Moodle</PageTitle>
+<HeadContent><link rel="stylesheet" href="_content/Moodle.Web/grd.css" /></HeadContent>
+<div class="crs-heading"><div><h1>Notlar</h1><p>Ders kimliğini girip notlarınızı ya da dersin not defterini açın.</p></div></div>
+
+<section class="crs-panel grd-form" aria-label="Ders seçimi">
+    <div class="grd-field">
+        <label for="grades-course">Ders kimliği</label>
+        <input id="grades-course" type="number" min="1" step="1" inputmode="numeric" @bind="_courseId" @bind:event="oninput" />
+    </div>
+    @if (_courseId is > 0)
+    {
+        <div class="crs-actions">
+            <a href="@($"courses/{_courseId}/my-grades")">Notlarım</a>
+            <a href="@($"courses/{_courseId}/gradebook")">Not defteri</a>
+        </div>
+    }
+    else
+    {
+        <p class="crs-muted">Bağlantılar geçerli bir ders kimliği girildiğinde görünür.</p>
+    }
+</section>
+
+@code {
+    private int? _courseId;
+}

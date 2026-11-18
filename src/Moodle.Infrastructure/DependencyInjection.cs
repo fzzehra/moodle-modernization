@@ -1,32 +1,47 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moodle.Application.Abstractions;
+using Moodle.Application.Assignments;
 using Moodle.Application.Seeding;
+using Moodle.Infrastructure.Courses;
 using Moodle.Infrastructure.Fakes;
+using Moodle.Infrastructure.Grading;
 using Moodle.Infrastructure.Persistence;
 
 namespace Moodle.Infrastructure;
 
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Altyapı kayıtları. Her modül gerçek gerçeklemesini bitirince ilgili sahte satırı buradan siler
-    /// ve kendi gerçeklemesini kaydeder.
-    /// </summary>
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-    {
-        // Bağlantı dizesi: ConnectionStrings:Default (docker-compose ortam değişkeniyle verilir).
-        services.AddDbContext<AppDbContext>(o =>
-            o.UseNpgsql(configuration.GetConnectionString("Default")
-                        ?? "Host=localhost;Port=5432;Database=moodle_modern;Username=moodle;Password=local_dev_only"));
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, bool useDevelopmentFakes = false)
+        => services.AddInfrastructure(_ => useDevelopmentFakes);
 
-        services.AddScoped<ICurrentUser, FakeCurrentUser>();           // AUTH: İrem
-        services.AddScoped<IAccessPolicy, FakeAccessPolicy>();         // AUTH: İrem
-        services.AddScoped<ICourseDirectory, FakeCourseDirectory>();   // CRS: Sinem
-        services.AddScoped<IEnrolmentQuery, FakeEnrolmentQuery>();     // CRS: Sinem
-        services.AddScoped<IAssignmentQuery, FakeAssignmentQuery>();   // ASG: Aslı Ceren
-        services.AddScoped<SeedRunner>();   // örnek veri yükleyici; modüller ISeedContributor kaydeder
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, Func<IServiceProvider, bool> useDevelopmentFakes)
+    {
+        services.AddScoped<ICurrentUser>(sp => useDevelopmentFakes(sp) ? new FakeCurrentUser() : new UnavailableIdentity());
+        services.AddScoped<IAccessPolicy>(sp => useDevelopmentFakes(sp) ? new FakeAccessPolicy() : new UnavailableIdentity());
+
+        services.AddDbContext<CrsDbContext>(options => options.UseNpgsql(CrsDatabaseConfiguration.ConnectionString));
+        services.AddScoped<CrsService>();
+        services.AddScoped<ICourseDirectory>(sp => sp.GetRequiredService<CrsService>());
+        services.AddScoped<IEnrolmentQuery>(sp => sp.GetRequiredService<CrsService>());
+        services.AddScoped<IAssignmentLearnerQuery>(sp => sp.GetRequiredService<CrsService>());
+
+        // Real CRS data must never inherit the synthetic evaluator-2/learner-3..5 grants.
+        services.AddScoped<ISubmissionAccessPolicy, UnavailableSubmissionScope>();
+        // CRS has no section model yet; do not infer ownership from synthetic IDs.
+        services.AddScoped<ICourseSectionQuery, UnavailableCourseSectionQuery>();
+        services.AddScoped<IAssignmentQuery, AssignmentQuery>();
+        services.AddScoped<IAssignmentStore, AssignmentStore>();
+        services.AddScoped<AssignmentService>();
+        services.AddSingleton(TimeProvider.System);
+
+        // GRD: Fatma Zehra. TimeProvider yukarıda (ASG) kaydedilir; GRD gizleme ve kilit hesaplarında onu kullanır.
+        services.AddDbContext<GrdDbContext>(options =>
+            options.UseNpgsql(GrdDatabaseConfiguration.ConnectionString));
+        services.AddScoped<GrdService>();
+
+        // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
+        services.AddScoped<SeedRunner>();
         return services;
     }
 }

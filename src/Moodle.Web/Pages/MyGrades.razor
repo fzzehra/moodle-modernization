@@ -1,0 +1,53 @@
+@page "/courses/{CourseId:int}/my-grades"
+@rendermode InteractiveServer
+@using Moodle.Web.Grd
+@inherits GrdPageBase
+
+@* GRD-FR-02, GRD-NFR-01: öğrenci yalnızca kendi görünür notlarını görür; öğrenci kimliği oturumdan gelir. *@
+<PageTitle>Notlarım · Moodle</PageTitle>
+<HeadContent><link rel="stylesheet" href="_content/Moodle.Web/grd.css" /></HeadContent>
+<nav class="crs-breadcrumb" aria-label="Not gezinme"><a href="grades">Notlar</a><span>/ Notlarım</span></nav>
+<div class="crs-heading"><div><h1>Notlarım</h1><p>Ders #@CourseId</p></div></div>
+<GrdNotice Loading="Loading" Busy="Busy" Error="Error" Success="@Success" OnRetry="RefreshAsync" />
+<noscript><p>Not raporu için JavaScript'i etkinleştirin.</p></noscript>
+
+@if (HasData && _grades is not null)
+{
+    @if (_grades.Items.Count == 0)
+    {
+        <p class="crs-panel">Bu derste görüntülenecek not bulunmuyor.</p>
+    }
+    else
+    {
+        <div class="crs-table-wrap"><table class="grd-table">
+            <caption>Ders #@CourseId notlarınız</caption>
+            <thead><tr><th scope="col">Not kalemi</th><th scope="col">Puan</th><th scope="col">Aralık</th></tr></thead>
+            <tbody>
+                @foreach (var item in _grades.Items)
+                {
+                    <tr @key="item.ItemId" data-item-id="@item.ItemId">
+                        <th scope="row">@item.Name</th>
+                        <td class="grd-score">@GrdDisplay.Score(item.Score)@if (item.Score is null) { <span class="grd-sr"> (puan yok)</span> }</td>
+                        <td>@GrdDisplay.Range(item.MinScore, item.MaxScore)</td>
+                    </tr>
+                }
+            </tbody>
+        </table></div>
+        <p class="crs-muted">"—" henüz notlandırılmamış ya da öğretmen tarafından gizlenmiş puanı gösterir.</p>
+    }
+}
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    private int? _requestedId;
+    private GrdMyGrades? _grades;
+
+    protected override void OnParametersSet()
+    {
+        if (_requestedId == CourseId) return;
+        _requestedId = CourseId;
+        RequestLoad();
+    }
+
+    protected override async Task LoadAsync() => _grades = await Api.MyGradesAsync(CourseId, Token);
+}

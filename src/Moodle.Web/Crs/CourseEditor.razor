@@ -1,0 +1,41 @@
+<EditForm Model="Model" OnValidSubmit="SubmitAsync" FormName="crs-course-editor" class="crs-panel">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <fieldset disabled="@Disabled">
+        <legend>@Title</legend>
+        <div class="crs-form-grid">
+            <div><label for="course-name">Ders adı</label><InputText id="course-name" @bind-Value="Model.FullName" maxlength="255" /><ValidationMessage For="() => Model.FullName" /></div>
+            <div><label for="course-short-name">Kısa ad</label><InputText id="course-short-name" @bind-Value="Model.ShortName" maxlength="100" /><ValidationMessage For="() => Model.ShortName" /></div>
+            <div>
+                <label for="course-category">Kategori</label>
+                <InputSelect id="course-category" @bind-Value="Model.CategoryId">
+                    <option value="0">Kategori seçin</option>
+                    @if (Model.CategoryId > 0 && !Categories.Any(x => x.Id == Model.CategoryId))
+                    {
+                        <option value="@Model.CategoryId">Kategori #@Model.CategoryId (mevcut)</option>
+                    }
+                    @foreach (var category in Categories) { <option value="@category.Id">@category.Name</option> }
+                </InputSelect>
+                <ValidationMessage For="() => Model.CategoryId" />
+            </div>
+            <div><label for="course-id-number">Kimlik numarası (isteğe bağlı)</label><InputText id="course-id-number" @bind-Value="Model.IdNumber" maxlength="100" /><ValidationMessage For="() => Model.IdNumber" /></div>
+            <div><label for="course-start">Başlangıç (UTC, isteğe bağlı)</label><InputDate id="course-start" Type="InputDateType.DateTimeLocal" @bind-Value="Model.StartDateUtc" /><ValidationMessage For="() => Model.StartDateUtc" /></div>
+            <div><label for="course-end">Bitiş (UTC, isteğe bağlı)</label><InputDate id="course-end" Type="InputDateType.DateTimeLocal" @bind-Value="Model.EndDateUtc" /><ValidationMessage For="() => Model.EndDateUtc" /></div>
+        </div>
+        <label class="crs-check"><InputCheckbox @bind-Value="Model.Visible" /> Ders görünür</label>
+        <div class="crs-actions">
+            <button type="submit" class="crs-primary">Kaydet</button>
+            <button type="button" @onclick="OnCancel">Vazgeç</button>
+        </div>
+    </fieldset>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired] public CourseEditModel Model { get; set; } = default!;
+    [Parameter] public IReadOnlyList<CrsCategory> Categories { get; set; } = [];
+    [Parameter] public string Title { get; set; } = "Ders oluştur";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<CourseEditModel> OnSave { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    private Task SubmitAsync() => Disabled ? Task.CompletedTask : OnSave.InvokeAsync(Model);
+}

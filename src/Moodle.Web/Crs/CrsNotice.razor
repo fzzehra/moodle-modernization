@@ -1,0 +1,24 @@
+@if (Loading)
+{
+    <p role="status" class="crs-notice">Ders bilgileri yükleniyor…</p>
+}
+@if (Error is not null)
+{
+    <section class="crs-notice crs-error" role="alert">
+        <h2>@(Error.Code == "auth_not_ready" ? "Ders işlemleri henüz kullanılamıyor" : "İşlem tamamlanamadı")</h2>
+        <p>@Error.Message</p>
+        <button type="button" disabled="@Busy" @onclick="OnRetry">Yeniden dene</button>
+    </section>
+}
+@if (!string.IsNullOrEmpty(Success))
+{
+    <p role="status" class="crs-notice crs-success">@Success</p>
+}
+
+@code {
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public CrsApiException? Error { get; set; }
+    [Parameter] public string? Success { get; set; }
+    [Parameter] public EventCallback OnRetry { get; set; }
+}

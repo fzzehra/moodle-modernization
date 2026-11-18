@@ -1424,6 +1424,8 @@ Başarı ölçütlerindeki "≤ eski", yeni sistemin eski sistemden kötü olmam
 | K17 | YZ / manuel karşılaştırması | Aynı fonksiyonlar için efor, test ve incelemede bulunan hata / 1.000 satır, yeniden çalışma oranı | YZ kayıt şablonu (WBS-2 §4) | Raporlanır; eşik yok, karşılaştırma amaçlı | — (süreç) |
 | K18 | Dağıtılabilirlik | Tek komutla çalışma, imaj boyutu, açılış süresi | Docker Compose | `docker compose up` ile çalışır | Esneklik (taşınabilirlik) |
 
+**K8 hakkında not.** §8'deki başlangıç ölçümlerinde eski sistemin p95 değeri 50 eş zamanlı kullanıcıda 1.249–1.615 ms arasındadır; yani eski sistem 1.000 ms eşiğini zaten aşmaktadır. Bu bir çelişki değildir: K8'in iki koşulu da **yeni sistem** içindir. "p95 ≤ eski" koşulu yeni sistemin en azından eskisi kadar hızlı olmasını, "50 eş zamanlı kullanıcıda p95 ≤ 1.000 ms" koşulu ise eski sisteme göre iyileşme hedefini tanımlar. Karşılaştırma, §8'deki sayfa ve senaryolar yeni sistemde aynı koşullarda ölçülerek yapılır (WBS-6).
+
 ### 6.2 Ana performans göstergeleri (KPI)
 
 Projenin başarısını özetleyen göstergeler; ara ve son raporlarda bu sırayla verilir:
@@ -1605,3 +1607,72 @@ Temizlenmiş paylaşım kopyası [evidence/](../ortam/testler/asg-grd/evidence/)
 Orijinal ham kanıtlar repo dışında `~/moodle-lab/evidence/` altında saklanır. Yeni koşuların ham çıktıları da repo dışındaki ayrı koşu dizinlerine yazılır. Test kimlik bilgileri yerel olarak sağlanır.
 
 ## 9. Seçilen modüller, bağımlılık haritası ve kararlar (Fatma Zehra)
+
+Bu bölüm, WBS-1 analizleri ve WBS-2 tasarımları tamamlandıktan sonra ekip yazışmasında alınan kararları, modüller arası bağımlılıkları ve belgelerin son tutarlılık kontrolünü kayda geçirir. Modül analizlerindeki "ilk sürüme alınsın mı?" önerileri (§4.1.11, §4.3.11, §4.6.11, §5.8) girdi olarak kullanılmış, son karar burada verilmiştir.
+
+### 9.1 Seçilen modüller ve sürüm planı
+
+Hocanın iş paketi tanımına göre Moodle'da var olan işlevler WBS-3'te, yeni işlevler ve veri aktarımı WBS-4'te geliştirilir. Sıralama "önce ana akış" ilkesine göre yapılmıştır: giriş → derse kayıt → ödev teslimi → not.
+
+| İş paketi | Sürüm | Modüller | Kapsam |
+| --- | --- | --- | --- |
+| WBS-3 | 1. sürüm | AUTH, CRS, ASG, GRD | Yalnızca M öncelikli gereksinimler; ödev teslimi yalnızca çevrimiçi metin |
+| WBS-3 | 2. sürüm | FILE; AUTH ve CRS'nin kalanı | FILE'ın tüm gereksinimleri (M, S, C), ödeve dosya teslimi, AUTH ve CRS'nin S ve C gereksinimleri |
+| WBS-4 | — | ADV, PLAN | Yeni işlevler (Y sınıfı ağırlıklı) ve Moodle'dan yeni sisteme veri aktarımı |
+
+### 9.2 Bağımlılık haritası
+
+```mermaid
+flowchart LR
+    AUTH["AUTH<br/>Kimlik ve yetki"] --> CRS["CRS<br/>Ders ve kayıt"]
+    AUTH --> FILE["FILE<br/>Dosya"]
+    CRS --> ASG["ASG<br/>Ödev ve teslim"]
+    ASG --> GRD["GRD<br/>Değerlendirme"]
+    FILE -. "2. sürümde dosya teslimi" .-> ASG
+    CRS --> ADV["ADV<br/>Danışmanlık"]
+    ADV --> PLAN["PLAN<br/>Ders planı"]
+    CRS --> PLAN
+```
+
+| Modül | Bağlı olduğu modüller | Bağlantı biçimi |
+| --- | --- | --- |
+| AUTH | — | Temel modül; oturum ve yetki politikası (`IAccessPolicy`) sağlar |
+| CRS | AUTH | Ders ve kayıt bilgisini `ICourseDirectory` ve `IEnrolmentQuery` ile sunar |
+| ASG | AUTH, CRS; 2. sürümde FILE | Ödev bilgisini `IAssignmentQuery` ile sunar; dosya teslimi `IFileService` üzerinden |
+| GRD | AUTH, CRS, ASG | Ödev puanını `IAssignmentQuery` üzerinden alır |
+| FILE | AUTH | Sahip modülün `canRead` / `canWrite` politikasını çağırır (WBS-2 §3.6.3) |
+| ADV | AUTH, CRS | Kayıt kararını üretir, kaydı CRS yapar (WBS-2 §3.3) |
+| PLAN | CRS, ADV | Ön şart ve kontenjan verisini okur (§5) |
+
+Modüller birbirine yalnızca arayüzlerle bağlanır (WBS-2 §2.3). Bu sayede bağlı olunan modül bitmeden sahte gerçeklemeyle geliştirmeye başlanabilir.
+
+### 9.3 Kararlar
+
+| No | Karar | Gerekçe |
+| --- | --- | --- |
+| K-01 | Hedef dil ve teknoloji: C# / .NET 10, ASP.NET Core, Blazor, EF Core, PostgreSQL 17 | Ekip bu yığını eShop pilotunda kullandı; YZ çıktısını inceleme ve düzeltme gücü yüksek; tür güvenliği ve hazır kalite araçları (WBS-2 §1.3) |
+| K-02 | Mimari: modüler monolit, eski ve yeni sistem için ayrı veritabanları | 5 kişilik ekip için mikro hizmet gereksiz maliyet; yeni sistem Moodle şemasına bağımlı olmaz (WBS-2 §2.1, §2.7) |
+| K-03 | WBS-3 1. sürümü: AUTH, CRS, ASG, GRD; yalnızca M gereksinimleri | Ana akışın tamamını içeren en küçük çalışan sürüm |
+| K-04 | 1. sürümde ödev teslimi yalnızca çevrimiçi metin | §4.6.11'deki "ASG dosya kullanıyorsa FILE aynı sürümde olmalı" koşulu bu kararla ortadan kalkar; FILE 2. sürümde eklenir |
+| K-05 | ADV, K sınıfı gereksinimleri (ADV-BR-01, BR-03, FR-06) dahil olmak üzere bütünüyle WBS-4'te geliştirilir | Gereksinimlerinin çoğu Y sınıfı; K sınıfı olanlar aynı kayıt akışının parçası olduğu için ayrılmaz. §4.3.11'deki "ilk sürümde kısmi" önerisinin yerine geçer |
+| K-06 | PLAN, ADV'den sonra WBS-4'te geliştirilir | ADV'nin ön şart verisine bağlıdır (§5.8) |
+| K-07 | Dosya geri alma (`restore`) WBS-4'e bırakılır | Moodle'da karşılığı yok, Y sınıfı (WBS-2 §3.6.6) |
+| K-08 | Kod incelemesi döngüseldir: Seray → İrem → Sinem → Aslı Ceren → Fatma Zehra → Seray | Hocanın "geliştirici incelemesi" şartı; yeniden çalışma ölçütü PR inceleme turlarından hesaplanır (WBS-2 §4.4) |
+
+### 9.4 Son tutarlılık kontrolü
+
+Belgeler bu bölüm yazılırken birbirine karşı okunmuştur. Bulgular ve sorumluları:
+
+| Kontrol | Durum | Sorumlu |
+| --- | --- | --- |
+| Gereksinim kimlikleri §2.5 biçimine uygun mu? | Uygun. ADV'de `ADV-BUG` kimlikleri eksik özellikleri gösterir ve Y sınıfı FR'lere kaynak olarak bağlanmıştır; biçimden sapma bilinçlidir | — |
+| Her gereksinimin testi var mı? | FILE-BR-14 dışında var. FILE-BR-14'ün testi WBS-3 2. sürümde yazılacak | İrem |
+| İzlenebilirlik matrisi doldurulmuş mu? | ADV, PLAN, ASG, GRD, FILE dolu. **AUTH ve CRS tabloları boş** | Sinem |
+| Eski sistem test sonuçları yazılmış mı? | AUTH, CRS, ASG, GRD, ADV, PLAN yazılmış. **FILE'ın 31 satırı "Bekliyor"** | Seray |
+| Kullanıcı ihtiyaçları anketi | Tasarlandı, **sonuçlar bekleniyor** (§3.4) | İrem |
+| Literatür taraması | **Boş** (§7) | Seray |
+| WBS-2 sürüm planı bu bölümle uyumlu mu? | Uyumlu (WBS-2 §1, §2.7) | — |
+| WBS-2 tasarımları yeniden yazım varsayımıyla mı? | Uyumlu; §3.1, §3.2 ve §6 düzeltildi | — |
+| Modül analizlerindeki sürüm önerileri bu kararlarla çelişiyor mu? | §4.3.11 (ADV kısmi) ve §4.6.11 (FILE çekirdeği 1. sürümde) önerilerinin yerine K-04 ve K-05 geçer | — |
+
+Açık maddeler kapandıkça bu tablo güncellenir.

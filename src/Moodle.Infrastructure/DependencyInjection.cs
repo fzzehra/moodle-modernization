@@ -4,6 +4,7 @@ using Moodle.Application.Abstractions;
 using Moodle.Application.Assignments;
 using Moodle.Infrastructure.Courses;
 using Moodle.Infrastructure.Fakes;
+using Moodle.Infrastructure.Grading;
 using Moodle.Infrastructure.Persistence;
 
 namespace Moodle.Infrastructure;
@@ -32,6 +33,11 @@ public static class DependencyInjection
         services.AddScoped<IAssignmentStore, AssignmentStore>();
         services.AddScoped<AssignmentService>();
         services.AddSingleton(TimeProvider.System);
+
+        // GRD: Fatma Zehra. TimeProvider yukarıda (ASG) kaydedilir; GRD gizleme ve kilit hesaplarında onu kullanır.
+        services.AddDbContext<GrdDbContext>(options =>
+            options.UseNpgsql(GrdDatabaseConfiguration.ConnectionString));
+        services.AddScoped<GrdService>();
         return services;
     }
 }

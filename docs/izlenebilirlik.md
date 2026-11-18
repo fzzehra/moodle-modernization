@@ -45,12 +45,12 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GRD-FR-01 | K | `public/mod/assign/locallib.php:10245` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-01 | Geçti | | | |
-| GRD-FR-02 | K | `public/grade/report/user/index.php:52-55` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-02 | Geçti | | | |
-| GRD-FR-03 | K | `public/grade/report/grader/index.php:82-83` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-03 | Geçti | | | |
-| GRD-BR-01 | K | `public/mod/assign/lib.php:1011,1118`, `public/lib/gradelib.php:64` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-01 | Geçti | | | |
-| GRD-BR-02 | K | `public/mod/assign/gradeform.php:76-102` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-04 | Geçti | | | |
-| GRD-NFR-01 | K | `public/grade/report/user/index.php:52-73` | [REST tasarımı](WBS-2-tasarim.md#352-rest-api) | T-GRD-05 | Geçti | | | |
+| GRD-FR-01 | K | `public/mod/assign/locallib.php:10245` | `src/Moodle.Infrastructure/Grading/GrdService.cs` (`SaveAssignmentGradeAsync`), `src/Moodle.Api/Grading/GrdEndpoints.cs` (PUT …/grade), `src/Moodle.Web/Pages/GradeEditor.razor` | T-GRD-01 | Geçti | Geçti (geliştirme testi: `GrdGradeEndpointTests`) | YZ | #23 |
+| GRD-FR-02 | K | `public/grade/report/user/index.php:52-55` | `GrdService.cs` (`GetMyGradesAsync`), `src/Moodle.Application/Grading/GradeVisibility.cs`, `src/Moodle.Web/Pages/MyGrades.razor` | T-GRD-02 | Geçti | Geçti (geliştirme testi: `GrdReportEndpointTests`) | YZ | #23 |
+| GRD-FR-03 | K | `public/grade/report/grader/index.php:82-83` | `GrdService.cs` (`GetGradebookAsync`), `src/Moodle.Application/Grading/GradebookPaging.cs`, `src/Moodle.Web/Pages/Gradebook.razor` | T-GRD-03 | Geçti | Geçti (geliştirme testi: `GrdReportEndpointTests`) | YZ | #23 |
+| GRD-BR-01 | K | `public/mod/assign/lib.php:1011,1118`, `public/lib/gradelib.php:64`, `public/mod/assign/locallib.php:10025-10032` | `GrdService.cs` (`SaveAssignmentGradeAsync`: deftere aktarım, kilit ve elle değiştirme koruması) | T-GRD-01 | Geçti | Geçti (geliştirme testi: `GrdGradeEndpointTests`) | YZ | #23 |
+| GRD-BR-02 | K | `public/mod/assign/gradeform.php:76-102` | `src/Moodle.Application/Grading/GradeValidation.cs` | T-GRD-04 | Geçti | Geçti (geliştirme testi: `GrdValidationTests`, `GrdGradeEndpointTests`) | YZ | #23 |
+| GRD-NFR-01 | K | `public/grade/report/user/index.php:52-73` | `GrdService.cs` (`GetMyGradesAsync`: öğrenci kimliği yalnızca oturumdan), `GrdEndpoints.cs` (my-grades parametre reddi) | T-GRD-05 | Geçti | Geçti (geliştirme testi: `GrdReportEndpointTests`) | YZ | #23 |
 
 ## Dosya yönetimi – FILE (Seray)
 

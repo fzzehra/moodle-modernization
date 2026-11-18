@@ -1,0 +1,16 @@
+/* GRD sayfaları: app.css'teki kabuk, renkler ve crs-* panel/tablo sınıfları üzerine küçük eklemeler. */
+.grd-score { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.grd-flags { display: inline-flex; gap: .25rem; margin-inline-start: .35rem; }
+.grd-flag { display: inline-block; min-width: 1.2rem; padding: 0 .25rem; border: 1px solid var(--line); border-radius: .25rem; font-size: .75rem; line-height: 1.2rem; text-align: center; color: var(--muted); }
+.grd-flag-locked { border-color: #c65c29; }
+.grd-flag-overridden { border-color: #8a5cf6; }
+.grd-legend { display: flex; flex-wrap: wrap; gap: 1rem; margin: .75rem 0; color: var(--muted); font-size: .9rem; }
+.grd-legend span { display: inline-flex; align-items: center; gap: .35rem; }
+.grd-form label { display: block; font-weight: 550; margin-bottom: .35rem; }
+.grd-form input, .grd-form textarea { width: 100%; max-width: 32rem; padding: .6rem .7rem; border: 1px solid var(--line); border-radius: .375rem; background: var(--bg); color: var(--fg); font: inherit; }
+.grd-form textarea { min-height: 7rem; }
+.grd-form .grd-field { margin-bottom: 1rem; }
+.grd-form-error { color: #bd3d22; margin: .35rem 0 0; }
+@media (prefers-color-scheme: dark) { .grd-form-error { color: #fda58e; } }
+.grd-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.grd-table th[scope=row] { white-space: nowrap; }

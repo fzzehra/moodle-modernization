@@ -1,0 +1,117 @@
+@page "/assignments/{AssignmentId:int}/learners/{LearnerId:int}/grade"
+@rendermode InteractiveServer
+@using Moodle.Web.Grd
+@inherits GrdPageBase
+
+@* GRD-FR-01, GRD-BR-01, GRD-BR-02: öğretmenin ödev puanı ekranı. Deneme ?attempt= ile seçilir (varsayılan 0). *@
+<PageTitle>Ödev puanı · Moodle</PageTitle>
+<HeadContent><link rel="stylesheet" href="_content/Moodle.Web/grd.css" /></HeadContent>
+<nav class="crs-breadcrumb" aria-label="Not gezinme"><a href="grades">Notlar</a><span>/ Ödev puanı</span></nav>
+<div class="crs-heading"><div><h1>Ödev puanı</h1>
+    <p>Ödev #@AssignmentId · Öğrenci #@LearnerId · Deneme @EffectiveAttempt</p></div>
+</div>
+<GrdNotice Loading="Loading" Busy="Busy" Error="@NoticeError" Success="@Success" OnRetry="RefreshAsync" />
+<noscript><p>Puan işlemleri için JavaScript'i etkinleştirin.</p></noscript>
+
+@if (HasData && _view is not null && _model is not null)
+{
+    <section class="crs-panel" aria-label="Mevcut değerlendirme">
+        <dl class="crs-details">
+            <dt>Mevcut puan</dt>
+            <dd class="grd-score" data-testid="current-score">@(_view.Assessment?.Score is null ? "Henüz notlandırılmadı" : GrdDisplay.Score(_view.Assessment.Score))</dd>
+            <dt>Puan aralığı</dt>
+            <dd data-testid="score-range">@GrdDisplay.Range(_view.MinScore, _view.MaxScore)</dd>
+            @if (_view.Assessment is { } assessment)
+            {
+                <dt>Son değerlendirme</dt>
+                <dd>@GrdDisplay.Date(assessment.GradedAt) · Değerlendiren #@assessment.GraderId</dd>
+            }
+        </dl>
+    </section>
+
+    <EditForm EditContext="_editContext" OnValidSubmit="SaveAsync" FormName="grd-grade-editor" class="crs-panel grd-form">
+        <fieldset disabled="@(!CanAct)">
+            <legend>Puanı kaydet</legend>
+            <div class="grd-field">
+                <label for="grade-score">Puan (@GrdDisplay.Range(_view.MinScore, _view.MaxScore))</label>
+                @* step="any": ondalıklı puanlar tarayıcı doğrulamasına takılmasın. Sınırlar sunucuda denetlenir. *@
+                @* aria-invalid, sunucu hatası EditContext'e eklendiğinde InputNumber tarafından konur. *@
+                <InputNumber id="grade-score" @bind-Value="_model.Score" step="any"
+                             aria-describedby="grade-score-help grade-score-error" />
+                <p id="grade-score-help" class="crs-muted">Boş bırakılırsa not kaldırılır ("notlandırılmadı"); sıfır geçerli bir puandır.</p>
+                @if (FormError is not null)
+                {
+                    <p id="grade-score-error" class="grd-form-error" role="alert">@FormError.Message</p>
+                }
+            </div>
+            <div class="grd-field">
+                <label for="grade-feedback">Geri bildirim (isteğe bağlı)</label>
+                <InputTextArea id="grade-feedback" @bind-Value="_model.Feedback" />
+            </div>
+            <div class="crs-actions">
+                <button type="submit" class="crs-primary">Kaydet</button>
+            </div>
+        </fieldset>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int AssignmentId { get; set; }
+    [Parameter] public int LearnerId { get; set; }
+    [SupplyParameterFromQuery(Name = "attempt")] public int? Attempt { get; set; }
+
+    private int EffectiveAttempt => Attempt ?? 0;
+    private (int, int, int)? _requested;
+    private GrdGradeView? _view;
+    private GradeEditModel? _model;
+    private EditContext? _editContext;
+    private ValidationMessageStore? _serverMessages;
+
+    /// <summary>422 formun içinde gösterilir; diğer hatalar sayfa bildiriminde.</summary>
+    private GrdApiException? FormError => HasData && Error?.Status == System.Net.HttpStatusCode.UnprocessableEntity ? Error : null;
+    private GrdApiException? NoticeError => FormError is null ? Error : null;
+
+    protected override void OnParametersSet()
+    {
+        var key = (AssignmentId, LearnerId, EffectiveAttempt);
+        if (_requested == key) return;
+        _requested = key;
+        RequestLoad();
+    }
+
+    protected override async Task LoadAsync()
+    {
+        _view = await Api.GradeAsync(AssignmentId, LearnerId, EffectiveAttempt, Token);
+        SetModel(GradeEditModel.From(_view));
+    }
+
+    private void SetModel(GradeEditModel model)
+    {
+        _model = model;
+        _editContext = new EditContext(model);
+        _serverMessages = new ValidationMessageStore(_editContext);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (!CanAct || _view is null || _model is null || _editContext is null) return;
+        _serverMessages?.Clear();
+        var request = _model.ToRequest(_view.Version);
+        await ExecuteAsync(async () =>
+        {
+            var result = await Api.SaveGradeAsync(AssignmentId, LearnerId, EffectiveAttempt, request, Token);
+            _view = new GrdGradeView(result.Assessment, result.MinScore, result.MaxScore, result.Assessment.Version);
+            SetModel(GradeEditModel.From(_view));
+            Success = result.GradebookUpdated
+                ? "Puan kaydedildi ve deftere aktarıldı."
+                : "Puan kaydedildi. Defter korunuyor: not defteri öğrencinin daha yeni bir denemesinin puanını gösteriyor.";
+        });
+
+        // GRD-BR-02: sunucunun sınır hatası puan alanına bağlanır; alan geçersiz olarak işaretlenir.
+        if (FormError is not null && _serverMessages is not null && _editContext is not null)
+        {
+            _serverMessages.Add(_editContext.Field(nameof(GradeEditModel.Score)), FormError.Message);
+            _editContext.NotifyValidationStateChanged();
+        }
+    }
+}

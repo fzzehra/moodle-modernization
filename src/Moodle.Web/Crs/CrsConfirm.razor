@@ -1,0 +1,17 @@
+<section class="crs-panel crs-confirm" role="alertdialog" aria-labelledby="crs-confirm-title" aria-describedby="crs-confirm-description">
+    <h2 id="crs-confirm-title">@Title</h2>
+    <p id="crs-confirm-description">@Description</p>
+    <div class="crs-actions">
+        <button type="button" class="crs-danger" disabled="@Busy" @onclick="OnConfirm">@ConfirmLabel</button>
+        <button type="button" disabled="@Busy" @onclick="OnCancel">Vazgeç</button>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string Title { get; set; } = "İşlemi onayla";
+    [Parameter] public string Description { get; set; } = "";
+    [Parameter] public string ConfirmLabel { get; set; } = "Sil";
+    [Parameter] public bool Busy { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+}

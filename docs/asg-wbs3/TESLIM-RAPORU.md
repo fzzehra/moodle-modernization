@@ -1,3 +1,12 @@
+# Güncel durum — PR #21 yerel merge, 18 Kasım 2026
+
+ASG commit 317ceb1 üzerine origin/main c7a2b66 (CRS PR #20) commit oluşturmadan birleştirildi. Dört çakışma çözüldü; 266 .NET + 7 JavaScript testi geçti. Gerçek CRS öğrenci sorgusu bağlandı; bölüm modeli ve gerçek AUTH henüz yok. Bu nedenle gerçek ASG oluşturma/bütünleşik oturum akışı hazır sayılmıyor. Yerel merge commit/push yapılmadı.
+
+Ayrıntılı dosya kararları, kullanıcı tarafından onaylanan CRS uyarlamaları, migration/DI uyumu, testler ve kalan riskler: [PR #21 birleşme raporu](BIRLESME-RAPORU.md).
+
+Aşağıdaki 117/97/54 testli teslim anlatımları merge öncesi tarihsel sonuçlardır. Güncel DI davranışı için birleşme raporu esas alınmalıdır.
+
+---
 # ASG WBS-3 — Son düzeltme teslimi, 18 Kasım 2026
 
 **On bulgunun ASG tarafındaki düzeltmeleri tamamlandı.** Kullanıcı IAssignmentLearnerQuery ve ISubmissionAccessPolicy sözleşmelerini açıkça onayladı; onay bekleyen iş kalmadı. Gerçek AUTH/CRS/GRD geliştirilmedi. Dal codex/asg-wbs3-implementation; commit/push/PR/merge yok.

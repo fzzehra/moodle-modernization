@@ -1,18 +1,15 @@
 using Microsoft.EntityFrameworkCore;
-using Moodle.Infrastructure.Persistence;
-using Moodle.Application.Assignments;
 using Microsoft.Extensions.DependencyInjection;
 using Moodle.Application.Abstractions;
+using Moodle.Application.Assignments;
+using Moodle.Infrastructure.Courses;
 using Moodle.Infrastructure.Fakes;
+using Moodle.Infrastructure.Persistence;
 
 namespace Moodle.Infrastructure;
 
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Altyapı kayıtları. Her modül gerçek gerçeklemesini bitirince ilgili sahte satırı buradan siler
-    /// ve kendi gerçeklemesini kaydeder.
-    /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, bool useDevelopmentFakes = false)
         => services.AddInfrastructure(_ => useDevelopmentFakes);
 
@@ -20,14 +17,18 @@ public static class DependencyInjection
     {
         services.AddScoped<ICurrentUser>(sp => useDevelopmentFakes(sp) ? new FakeCurrentUser() : new UnavailableIdentity());
         services.AddScoped<IAccessPolicy>(sp => useDevelopmentFakes(sp) ? new FakeAccessPolicy() : new UnavailableIdentity());
-        services.AddScoped<IAssignmentLearnerQuery>(sp => useDevelopmentFakes(sp)
-            ? new FakeAssignmentLearnerQuery() : new UnavailableSubmissionScope());
-        services.AddScoped<ISubmissionAccessPolicy>(sp => useDevelopmentFakes(sp)
-            ? new FakeSubmissionAccessPolicy(sp.GetRequiredService<IAssignmentStore>()) : new UnavailableSubmissionScope());
-        services.AddScoped<ICourseDirectory, FakeCourseDirectory>();   // CRS: Sinem
-        services.AddScoped<IEnrolmentQuery, FakeEnrolmentQuery>();     // CRS: Sinem
-        services.AddScoped<IAssignmentQuery, AssignmentQuery>();   // ASG: Aslı Ceren
-        services.AddScoped<ICourseSectionQuery, FakeCourseSectionQuery>();
+
+        services.AddDbContext<CrsDbContext>(options => options.UseNpgsql(CrsDatabaseConfiguration.ConnectionString));
+        services.AddScoped<CrsService>();
+        services.AddScoped<ICourseDirectory>(sp => sp.GetRequiredService<CrsService>());
+        services.AddScoped<IEnrolmentQuery>(sp => sp.GetRequiredService<CrsService>());
+        services.AddScoped<IAssignmentLearnerQuery>(sp => sp.GetRequiredService<CrsService>());
+
+        // Real CRS data must never inherit the synthetic evaluator-2/learner-3..5 grants.
+        services.AddScoped<ISubmissionAccessPolicy, UnavailableSubmissionScope>();
+        // CRS has no section model yet; do not infer ownership from synthetic IDs.
+        services.AddScoped<ICourseSectionQuery, UnavailableCourseSectionQuery>();
+        services.AddScoped<IAssignmentQuery, AssignmentQuery>();
         services.AddScoped<IAssignmentStore, AssignmentStore>();
         services.AddScoped<AssignmentService>();
         services.AddSingleton(TimeProvider.System);

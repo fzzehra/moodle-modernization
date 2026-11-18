@@ -52,3 +52,11 @@ Kullanıcı IAssignmentLearnerQuery.ListRequiredLearnerIdsAsync ve ISubmissionAc
 20 yeni vaka eklendi; önceki 97 testin adları son TRX ile karşılaştırıldı, eksik 0. İlk kapsam turu 110, son Release/Coverlet turu 117 (52 birim/mimari + 65 PostgreSQL entegrasyon) başarılı; bu onay sonrası turlarda test başarısızlığı yok. Yeni DI ile Docker build/Compose ve dört HTTP yoklaması başarılı. Kanıt coverage/scope-delivery; önceki 54 ve 97 tarihsel sonuçları korundu.
 
 Kod, test ve belgeler YZ ajanıyla üretildi. İnsan incelemesi yapılmış sayılmadı; manuel karşılaştırma karşılanmadı, süre tahmin edilmedi. Playwright kapsam dışı; uzak CI/CodeQL yok. Commit/push/PR/merge yapılmadı. İrem/Sinem geçiş belgesi ORTAK-SOZLESMELER.md olarak eklendi.
+
+## PR #21 merge çözümü — 18 Kasım 2026
+
+Kullanıcı temiz ASG dalında origin/main merge'ini --no-commit/--no-ff ile yetkilendirdi; CRS learner sorgusu ve UnavailableIdentity tanıma uyarlamalarına ayrıca açık onay verdi. Dört metinsel çakışma ve gerçek/sentetik provider anlamsal çakışmaları çözüldü. Gerçek AUTH veya bölüm modeli geliştirilmedi.
+
+İlk birleşik koşum 263, son koşum üç yeni PostgreSQL birleşme vakasıyla 266 .NET testi geçti; ayrıca 7 Node testi geçti. Önceki 117 ASG testi testName karşılaştırmasında korunuyor. Release build 0 uyarı/hata; Docker/Compose ve HTTP kontrolleri başarılı. psql meta-komutu escape hatası salt okunur SQL tekrarında çözüldü; önceki otomatik onay kotası engeli sonraki kullanıcı talimatıyla yapılan tekrar denemede kalktı.
+
+Kod ve belgeler YZ ajanıyla düzenlendi; manuel/YZ karşılaştırması karşılanmadı, efor uydurulmadı. Playwright kapsam dışı, uzak CI/CodeQL yok. Bu turda merge commit/push/force push/PR merge yapılmadı. Önceki ASG commit/push kullanıcı tarafından tur öncesinde yapılmıştı.

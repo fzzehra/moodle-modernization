@@ -31,7 +31,7 @@ public sealed class ApiErrorMiddleware(RequestDelegate next, ILogger<ApiErrorMid
         }
         catch (BadHttpRequestException ex)
         {
-            await WriteAsync(context, ex.StatusCode, "bad_request", "İstek biçimi geçersiz.");
+            await WriteAsync(context, ex.StatusCode, CodeFor(ex.StatusCode), MessageFor(ex.StatusCode));
             return;
         }
         catch (Exception ex)

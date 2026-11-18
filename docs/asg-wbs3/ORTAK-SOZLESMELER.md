@@ -1,3 +1,12 @@
+# PR #21 birleşmesinde güncel bağlantılar
+
+18.11.2026 kullanıcı onayıyla CrsService artık IAssignmentLearnerQuery gerçekleştiriyor: aktif, tarih aralığı geçerli, Role="Student" kayıtları. DI gerçek CrsService'e bağlı; ICourseDirectory/IEnrolmentQuery de aynı gerçek servisi kullanır. Sinem için öğrenci sözleşmesi artık öneri değildir.
+
+ICourseSectionQuery, CRS bölüm modeli olmadığı için UnavailableCourseSectionQuery ile false döner; gerçek bölüm sorgusu Sinem'e kalır. ISubmissionAccessPolicy, gerçek AUTH yokken UnavailableSubmissionScope ile false döner; İrem'in gerçek hedef öğrenci politikası beklenir. Geçici ASG sahteleri yalnız açık test fixture'larında kullanılır; runtime gerçek CRS ile sentetik değerlendirici izinleri karıştırılmaz. Compose/launch varsayılan sahte kimlik bayrağı kapalıdır.
+
+[Birleşme kararları ve riskler](BIRLESME-RAPORU.md) güncel kaynaktır. Aşağıdaki sözleşme imzaları/parametreleri geçerlidir; eski “DI geçişi” anlatımı merge öncesi uygulama durumunu açıklar.
+
+---
 # AUTH/CRS teslim kapsamı sözleşmeleri — 18.11.2026
 
 Kullanıcı iki yeni ortak sözleşmeyi açıkça onayladı. Mevcut IAccessPolicy, IEnrolmentQuery, ICourseDirectory ve ICourseSectionQuery imzaları değiştirilmedi. Bu belgede gerçek servis adları öneridir; gerçek AUTH/CRS kodu geliştirilmedi.

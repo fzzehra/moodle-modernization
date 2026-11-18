@@ -32,6 +32,9 @@ public sealed class AsgFixture : WebApplicationFactory<Program>, IAsyncLifetime
         {
             services.RemoveAll<DbContextOptions<MoodleDbContext>>();
             services.AddDbContext<MoodleDbContext>(o => o.UseNpgsql(postgres.GetConnectionString()));
+            services.RemoveAll<ICourseDirectory>(); services.AddScoped<ICourseDirectory, Moodle.Infrastructure.Fakes.FakeCourseDirectory>();
+            services.RemoveAll<IEnrolmentQuery>(); services.AddScoped<IEnrolmentQuery, Moodle.Infrastructure.Fakes.FakeEnrolmentQuery>();
+            services.RemoveAll<ICourseSectionQuery>(); services.AddScoped<ICourseSectionQuery, Moodle.Infrastructure.Fakes.FakeCourseSectionQuery>();
             services.RemoveAll<ICurrentUser>(); services.AddScoped<ICurrentUser, HeaderUser>();
             services.RemoveAll<IAccessPolicy>(); services.AddScoped<IAccessPolicy, ScopedPolicy>();
             services.RemoveAll<IAssignmentLearnerQuery>(); services.AddScoped<IAssignmentLearnerQuery, Moodle.Infrastructure.Fakes.FakeAssignmentLearnerQuery>();

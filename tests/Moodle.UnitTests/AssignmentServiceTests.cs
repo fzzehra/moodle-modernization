@@ -161,7 +161,8 @@ public class AssignmentServiceTests
         using var scope=Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.CreateScope(provider);
         var query=Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<IAssignmentLearnerQuery>(scope.ServiceProvider);
         var access=Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ISubmissionAccessPolicy>(scope.ServiceProvider);
-        Assert.Empty(await query.ListRequiredLearnerIdsAsync(1));
+        Assert.IsType<Moodle.Infrastructure.Courses.CrsService>(query);
+        Assert.Empty(await new UnavailableSubmissionScope().ListRequiredLearnerIdsAsync(1));
         Assert.False(await access.CanAssessLearnerAsync(2,1,1,3));
     }    [Theory]
     [InlineData(2,1,1,3,true)]

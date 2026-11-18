@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Moodle.Infrastructure.Persistence;
 using Moodle.Api;
 using Moodle.Api.Errors;
+using Moodle.Application.Seeding;
 using Moodle.Api.Courses;
 using Moodle.Api.Grading;
 using Moodle.Infrastructure;
@@ -52,6 +53,13 @@ if (builder.Configuration.GetValue<bool>("Database:Initialize"))
             scope.ServiceProvider.GetRequiredService<Moodle.Application.Abstractions.ICourseSectionQuery>(),
             scope.ServiceProvider.GetRequiredService<Moodle.Application.Abstractions.IEnrolmentQuery>(), allowSyntheticFixture: useDevelopmentFakes);
 }
+// Örnek veri: SEED_SAMPLE_DATA=true ile yüklenir (ortam/ornek-veri.feature ile aynı veri). Modüller ISeedContributor kaydeder.
+if (builder.Configuration.GetValue<bool>("SEED_SAMPLE_DATA"))
+{
+    using var seedScope = app.Services.CreateScope();
+    await seedScope.ServiceProvider.GetRequiredService<SeedRunner>().RunAsync(SampleDataset.Create());
+}
+
 app.Run();
 
 /// <summary>Entegrasyon testlerinin <c>WebApplicationFactory</c> ile erişmesi için.</summary>

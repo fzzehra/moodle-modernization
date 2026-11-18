@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Moodle.Application.Abstractions;
 using Moodle.Application.Assignments;
+using Moodle.Application.Seeding;
 using Moodle.Infrastructure.Courses;
 using Moodle.Infrastructure.Fakes;
 using Moodle.Infrastructure.Grading;
@@ -38,6 +39,9 @@ public static class DependencyInjection
         services.AddDbContext<GrdDbContext>(options =>
             options.UseNpgsql(GrdDatabaseConfiguration.ConnectionString));
         services.AddScoped<GrdService>();
+
+        // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
+        services.AddScoped<SeedRunner>();
         return services;
     }
 }

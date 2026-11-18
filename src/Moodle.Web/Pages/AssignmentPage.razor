@@ -1,0 +1,31 @@
+@page "/assignments/{Id:int}"
+@using Moodle.Web.Assignments
+@inject AsgClient Api
+<h1>Ödev</h1>
+@if (error is not null) { <p role="alert">@error</p> }
+else if (data is null) { <p>Yükleniyor…</p> }
+else
+{
+    <h2>@data.Assignment.Title</h2>
+    <p style="white-space: pre-wrap">@data.Assignment.Instructions</p>
+    <dl>
+        <dt>Ders / Bölüm</dt><dd>@data.Assignment.CourseId / @data.Assignment.SectionId</dd>
+        <dt>Açılış (UTC)</dt><dd>@data.Assignment.OpensAt?.ToString("u")</dd>
+        <dt>Son teslim (UTC)</dt><dd>@data.Assignment.DueAt?.ToString("u")</dd>
+        <dt>Kesim (UTC)</dt><dd>@data.Assignment.CutoffAt?.ToString("u")</dd>
+        <dt>Gönderme onayı</dt><dd>@(data.Assignment.RequiresConfirmation ? "Gerekli" : "Kaydetmek doğrudan gönderir")</dd>
+    </dl>
+    @if (data.Permissions.CanSubmit) { <p><a href="@($"/assignments/{Id}/submit")">Teslimimi aç</a></p> }
+    @if (data.Permissions.CanGrade) { <p><a href="@($"/assignments/{Id}/submissions")">Teslim listesi</a></p> }
+}
+@code {
+    [Parameter] public int Id { get; set; }
+    private AssignmentView? data;
+    private string? error;
+    protected override async Task OnParametersSetAsync()
+    {
+        try { data = await Api.SendAsync<AssignmentView>(HttpMethod.Get, $"/api/v1/assignments/{Id}"); }
+        catch (Exception ex) when (ex is AsgClientException or HttpRequestException)
+        { error = ex is AsgClientException ? ex.Message : "Sunucuya ulaşılamadı."; }
+    }
+}

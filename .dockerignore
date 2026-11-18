@@ -1,0 +1,16 @@
+.git
+**/bin
+**/obj
+coverage
+**/TestResults
+**/*.log
+.vs
+.idea
+.codex
+.agents
+.env
+.env.*
+**/*.pfx
+**/*.pem
+docs
+ortam

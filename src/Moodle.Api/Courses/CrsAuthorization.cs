@@ -10,7 +10,7 @@ public sealed class CrsAuthorization(ICurrentUser user, IAccessPolicy policy)
     {
         // The repository's AUTH placeholders impersonate an administrator.
         // Never expose CRS through these placeholders, including in Production.
-        if (user is FakeCurrentUser || policy is FakeAccessPolicy)
+        if (user is FakeCurrentUser or UnavailableIdentity || policy is FakeAccessPolicy or UnavailableIdentity)
             throw new AppException("auth_not_ready",
                 "CRS API için gerçek AUTH kimlik ve yetki servisleri henüz bağlı değil.", 503);
 

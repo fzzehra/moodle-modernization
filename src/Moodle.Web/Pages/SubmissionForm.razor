@@ -1,0 +1,95 @@
+@page "/assignments/{Id:int}/submit"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using Moodle.Web.Assignments
+@inject AsgClient Api
+<h1>Metin teslimi</h1>
+<p><a href="@($"/assignments/{Id}")">Ödeve dön</a></p>
+@if (error is not null) { <p role="alert">@error</p> }
+@if (conflict) { <p>Yazdığınız metin aşağıda korunuyor. Kopyaladıktan sonra <a href="@($"/assignments/{Id}/submit")">güncel sürümü yükleyin</a>.</p> }
+@if (unavailableReason is not null) { <p role="status">@unavailableReason</p> }
+@if (message is not null) { <p role="status">@message</p> }
+@if (allowed && requiresConfirmation && status == "submitted") { <p>Gönderildi. Teslim düzenlemeye kapalı.</p><pre style="white-space: pre-wrap">@Form?.Text</pre> }
+@if (allowed && (!requiresConfirmation || status != "submitted"))
+{
+    <p>Durum: @Labels.Status(status)</p>
+    <EditForm Model="Form" OnValidSubmit="Save" FormName="saveSubmission">
+        <DataAnnotationsValidator /><ValidationSummary />
+        <InputNumber @bind-Value="Form!.Version" type="hidden" />
+        <p><label>Teslim metni <InputTextArea @bind-Value="Form!.Text" /></label></p>
+        <button type="submit" disabled="@(!canSave)">Kaydet</button>
+    </EditForm>
+    @if (requiresConfirmation && status == "draft")
+    {
+        <EditForm Model="Confirmation" OnValidSubmit="Submit" FormName="confirmSubmission">
+            <DataAnnotationsValidator /><ValidationSummary />
+            <InputNumber @bind-Value="Confirmation!.Version" type="hidden" />
+            <label><InputCheckbox @bind-Value="Confirmation!.Confirmed" /> Teslimi göndermek istiyorum; gönderdikten sonra düzenleyemem.</label>
+            <button type="submit" disabled="@(!canSend)">Teslimi gönder</button>
+        </EditForm>
+    }
+}
+@code {
+    [Parameter] public int Id { get; set; }
+    [SupplyParameterFromForm(FormName = "saveSubmission")] public TextForm? Form { get; set; }
+    [SupplyParameterFromForm(FormName = "confirmSubmission")] public ConfirmForm? Confirmation { get; set; }
+    private string? error, message;
+    private string status = "notSubmitted";
+    private bool allowed, requiresConfirmation, conflict, canSave, canSend;
+    private string? unavailableReason;
+    protected override async Task OnParametersSetAsync()
+    {
+        try {
+            var assignment = await Api.SendAsync<AssignmentView>(HttpMethod.Get, $"/api/v1/assignments/{Id}");
+            var mine = await Api.SendAsync<MySubmission>(HttpMethod.Get, $"/api/v1/assignments/{Id}/my-submission");
+            requiresConfirmation = assignment.Assignment.RequiresConfirmation;
+            status = mine.Status;
+            allowed = assignment.Permissions.CanSubmit;
+            canSave = assignment.Permissions.CanSave; canSend = assignment.Permissions.CanSend;
+            unavailableReason = assignment.Permissions.UnavailableReason;
+            Form ??= new() { Text = mine.Submission?.Text ?? "", Version = mine.Submission?.Version ?? 0 };
+            Confirmation ??= new() { Version = mine.Submission?.Version ?? 0 };
+        }
+        catch (Exception ex) when (ex is AsgClientException or HttpRequestException) { Fail(ex); }
+    }
+    private void Fail(Exception ex)
+    {
+        error = ex is AsgClientException ? ex.Message : "Sunucuya ulaşılamadı.";
+        conflict = ex is AsgClientException { Status: 409 };
+    }
+    private async Task Save()
+    {
+        try {
+            var saved = await Api.SendAsync<SubmissionData>(HttpMethod.Put, $"/api/v1/assignments/{Id}/my-submission", new { Form!.Text, Form.Version });
+            Form.Version = saved.Version; Confirmation = new() { Version = saved.Version }; status = saved.Status;
+            message = "Teslim kaydedildi.";
+            await RefreshPermissions();
+        }
+        catch (Exception ex) when (ex is AsgClientException or HttpRequestException) { Fail(ex); }
+    }
+    private async Task RefreshPermissions()
+    {
+        var current = await Api.SendAsync<AssignmentView>(HttpMethod.Get, $"/api/v1/assignments/{Id}");
+        canSave = current.Permissions.CanSave; canSend = current.Permissions.CanSend;
+        unavailableReason = current.Permissions.UnavailableReason;
+    }
+    private async Task Submit()
+    {
+        if (Confirmation?.Confirmed != true) { error = "Gönderme onayını işaretleyin."; return; }
+        try {
+            var saved = await Api.SendAsync<SubmissionData>(HttpMethod.Post, $"/api/v1/assignments/{Id}/my-submission/submit", new { Confirmation.Version });
+            Form = new() { Text = saved.Text, Version = saved.Version }; status = saved.Status; message = "Teslim gönderildi.";
+        }
+        catch (Exception ex) when (ex is AsgClientException or HttpRequestException) { Fail(ex); }
+    }
+    public sealed class TextForm
+    {
+        [Required] public string Text { get; set; } = "";
+        public long Version { get; set; }
+    }
+    public sealed class ConfirmForm
+    {
+        public long Version { get; set; }
+        public bool Confirmed { get; set; }
+    }
+}

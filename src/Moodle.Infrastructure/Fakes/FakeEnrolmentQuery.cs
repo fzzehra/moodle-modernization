@@ -12,4 +12,7 @@ public sealed class FakeEnrolmentQuery : IEnrolmentQuery
 
     public Task<IReadOnlyList<int>> ListEnrolledUserIdsAsync(int courseId, CancellationToken ct = default)
         => Task.FromResult<IReadOnlyList<int>>(courseId == 1 ? Enrolled : []);
+
+    public Task<string?> FindActiveRoleAsync(int userId, int courseId, CancellationToken ct = default)
+        => Task.FromResult(courseId == 1 && Enrolled.Contains(userId) ? "Student" : null);
 }

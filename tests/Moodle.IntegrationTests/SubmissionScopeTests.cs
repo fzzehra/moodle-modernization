@@ -104,6 +104,8 @@ public class SubmissionScopeTests(AsgFixture fixture) : IClassFixture<AsgFixture
             => Task.FromResult(courseId==1 && userId is 2 or 3 or 4 or 8);
         public Task<IReadOnlyList<int>> ListEnrolledUserIdsAsync(int courseId,CancellationToken ct=default)
             => Task.FromResult<IReadOnlyList<int>>([2,3,4,5,8]);
+        public Task<string?> FindActiveRoleAsync(int userId,int courseId,CancellationToken ct=default)
+            => Task.FromResult<string?>(null);
         public Task<bool> HasCapabilityAsync(int userId,string capability,ContextRef context,CancellationToken ct=default)
             => Task.FromResult(context==ContextRef.ForModule(visibleAssignment) && userId is 2 or 3 or 6 or 7 or 8);
     }

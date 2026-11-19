@@ -265,5 +265,6 @@ public class AssignmentRevisionTests(AsgFixture fixture) : IClassFixture<AsgFixt
     {
         public Task<bool> IsActivelyEnrolledAsync(int userId,int courseId,CancellationToken ct=default)=>Task.FromResult(true);
         public Task<IReadOnlyList<int>> ListEnrolledUserIdsAsync(int courseId,CancellationToken ct=default)=>Task.FromResult<IReadOnlyList<int>>([100,101,102]);
+        public Task<string?> FindActiveRoleAsync(int userId,int courseId,CancellationToken ct=default)=>Task.FromResult<string?>(null);
     }
 }

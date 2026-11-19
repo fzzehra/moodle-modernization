@@ -433,16 +433,20 @@ public sealed class GrdUnavailableAuthFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder) => builder.UseEnvironment("Production");
 }
 
-/// <summary>Depodaki AUTH sahteleriyle GRD hiçbir ortamda açılmaz.</summary>
+/// <summary>
+/// AUTH artık gerçek (İrem): depodaki sahte/placeholder kimlik yerine gerçek AuthCurrentUser/
+/// AuthAccessPolicy varsayılandır. Oturumsuz istek artık "auth_not_ready" (503) değil, doğrudan
+/// "not_authenticated" (401) alır.
+/// </summary>
 public sealed class GrdUnavailableAuthTests(GrdUnavailableAuthFactory factory) : IClassFixture<GrdUnavailableAuthFactory>
 {
     [Theory]
     [MemberData(nameof(GrdGradeEndpointTests.Routes), MemberType = typeof(GrdGradeEndpointTests))]
-    public async Task GRD_FR_01_production_rejects_grade_endpoints_with_AUTH_placeholders(string method, string? body)
+    public async Task GRD_FR_01_production_rejects_anonymous_grade_endpoint_requests(string method, string? body)
     {
         using var client = factory.CreateClient();
         using var response = await SendAsync(client, method, GradePath(1), body);
-        await AssertErrorAsync(response, HttpStatusCode.ServiceUnavailable, "auth_not_ready");
+        await AssertErrorAsync(response, HttpStatusCode.Unauthorized, "not_authenticated");
     }
 
     [Fact]

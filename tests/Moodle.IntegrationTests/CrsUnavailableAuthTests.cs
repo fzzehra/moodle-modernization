@@ -15,13 +15,16 @@ public sealed class CrsUnavailableAuthTests(CrsUnavailableAuthFactory factory) :
 {
     public static IEnumerable<object[]> ProtectedRoutes() => Routes();
 
+    // AUTH artık gerçek (İrem): sahte/placeholder kimlik yerine gerçek AuthCurrentUser/AuthAccessPolicy
+    // varsayılandır. Oturumsuz (çerezsiz) bir istek artık "auth_not_ready" (503) değil, doğrudan
+    // "not_authenticated" (401) alır — CrsAuthorization.RequireIdentity() ile aynı sırada.
     [Theory]
     [MemberData(nameof(ProtectedRoutes))]
-    public async Task Production_rejects_every_CRS_endpoint_with_repository_AUTH_placeholders(string method, string path, string? body)
+    public async Task Production_rejects_every_anonymous_CRS_endpoint_request(string method, string path, string? body)
     {
         using var client = factory.CreateClient();
         using var response = await SendAsync(client, method, path, body);
-        await AssertErrorAsync(response, HttpStatusCode.ServiceUnavailable, "auth_not_ready");
+        await AssertErrorAsync(response, HttpStatusCode.Unauthorized, "not_authenticated");
     }
 
     [Fact]

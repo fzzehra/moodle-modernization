@@ -32,14 +32,14 @@ public sealed class CrsBlazorHostingTests(CrsUnavailableAuthFactory factory) : I
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/_content/Moodle.Web/crs-api.js")).StatusCode);
     }
 
+    // AUTH artık gerçek (İrem): oturumsuz istek "auth_not_ready" (503) değil "not_authenticated" (401) alır.
     [Fact]
-    public async Task Real_API_AUTH_unavailable_is_preserved_and_translated_for_the_UI()
+    public async Task Real_API_anonymous_request_is_preserved_and_translated_for_the_UI()
     {
         using var client = new CrsApiClient(factory.CreateClient());
         var error = await Assert.ThrowsAsync<CrsApiException>(() => client.CoursesAsync());
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, error.Status);
-        Assert.Equal("auth_not_ready", error.Code);
-        Assert.Contains("AUTH", error.Message);
-        Assert.Contains("henüz hazır değil", error.Message);
+        Assert.Equal(HttpStatusCode.Unauthorized, error.Status);
+        Assert.Equal("not_authenticated", error.Code);
+        Assert.Contains("oturum açmanız gerekiyor", error.Message);
     }
 }

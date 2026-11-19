@@ -45,8 +45,10 @@ public static class DependencyInjection
         // FILE: Seray (altyapı), İrem, Aslı Ceren, Fatma Zehra. Gerçek gerçeklemeler hazır olunca sahteler silinir.
         services.AddDbContext<FilesDbContext>(options => options.UseNpgsql(FilesDatabaseConfiguration.ConnectionString));
         services.AddScoped<IFilePolicyRegistry, FilePolicyRegistry>();      // modüller IFilePolicy kaydeder; kayıtsız bileşende erişim reddedilir
-        // Geliştirmede sahte içerik deposu ve dosya servisi; aksi hâlde gerçeği bağlanana kadar "kapalı" (UnavailableFiles).
-        services.AddScoped<IFileStore>(sp => useDevelopmentFakes(sp) ? new FakeFileStore() : new UnavailableFiles());   // Seray: yerel disk
+        // Dosya servisi: geliştirmede sahte, aksi hâlde gerçeği bağlanana kadar "kapalı" (UnavailableFiles). Depo gerçektir.
+        services.AddSingleton(FileStoreOptions.FromEnvironment());
+        services.AddSingleton<IFileStore, LocalDiskFileStore>();           // Seray: yerel disk (FILES_ROOT)
+        services.AddScoped<FileConsistencyChecker>();
         services.AddScoped<IFileService>(sp => useDevelopmentFakes(sp)
             ? new FakeFileService(sp.GetRequiredService<IFileStore>()) : new UnavailableFiles());                     // İrem, Aslı Ceren, Fatma Zehra
 

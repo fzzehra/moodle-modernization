@@ -15,6 +15,8 @@ public sealed class UnavailableFiles : IFileStore, IFileService
     public Task<bool> ExistsAsync(string contentHash, CancellationToken ct = default) => throw Off();
     public Task DeleteAsync(string contentHash, CancellationToken ct = default) => throw Off();
 
+    public IAsyncEnumerable<string> ListHashesAsync(CancellationToken ct = default) => throw Off();
+
     public Task<DraftInfo> CreateDraftAsync(int userId, CancellationToken ct = default) => throw Off();
     public Task<FileMeta> AddToDraftAsync(int userId, long draftId, string name, Stream content, string path = "/", bool overwrite = false, CancellationToken ct = default) => throw Off();
     public Task<IReadOnlyList<FileMeta>> ListDraftAsync(int userId, long draftId, string path = "/", CancellationToken ct = default) => throw Off();

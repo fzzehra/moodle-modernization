@@ -30,4 +30,10 @@ public sealed class FakeFileStore : IFileStore
         Blobs.TryRemove(contentHash, out _);
         return Task.CompletedTask;
     }
+
+    public async IAsyncEnumerable<string> ListHashesAsync([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        foreach (var h in Blobs.Keys.ToList()) yield return h;
+        await Task.CompletedTask;
+    }
 }

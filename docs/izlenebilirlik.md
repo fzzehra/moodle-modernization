@@ -73,7 +73,7 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 | FILE-FR-05 | K | `public/lib/filestorage/stored_file.php:364-404` | `FileService.cs` (`DeleteAsync`, `SoftDeleteAsync`) | T-FILE-06 | Geçti | Geçti (geliştirme testi: `FileEndpointTests.Delete_hides_the_file_and_quota_counts_each_distinct_file_once`) | YZ | (bu şube) |
 | FILE-FR-06 | K | `public/lib/filestorage/file_system.php:226-243` | `src/Moodle.Infrastructure/Files/LocalDiskFileStore.cs` | T-FILE-07 | Geçti | | YZ | |
 | FILE-FR-07 | K | `public/repository/upload/lib.php:237-245` | | T-FILE-09 | Geçti | | YZ | |
-| FILE-FR-08 | K | `public/repository/upload/lib.php:220-231` | | T-FILE-11 | Kısmen | | YZ | |
+| FILE-FR-08 | K | `public/repository/upload/lib.php:220-231` | | T-FILE-11 | Geçti | | YZ | |
 | FILE-FR-09 | K | `public/lib/filelib.php:639-651` | `FileService.cs` (`GetQuotaAsync`), `FileEndpoints.cs` (`GET /users/me/quota`) | T-FILE-10 | Kaldı (BUG-01 doğrulandı) | Geçti (geliştirme testi: `FileEndpointTests.Delete_hides_the_file_and_quota_counts_each_distinct_file_once`) | YZ | (bu şube) |
 | FILE-FR-10 | K | `public/repository/upload/lib.php:148-175, 209-214` | | T-FILE-12, T-FILE-13 | Bekliyor | | YZ | |
 | FILE-FR-11 | K | `public/repository/upload/lib.php:202` | | T-FILE-14 | Uygulanamaz | | YZ | |
@@ -84,7 +84,7 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 | FILE-BR-03 | K | `public/lib/filestorage/file_system.php:226-243` | `src/Moodle.Infrastructure/Files/LocalDiskFileStore.cs`; kayıtlı içerik silinemez (FK Restrict) | T-FILE-07 | Geçti | | YZ | |
 | FILE-BR-04 | K | `public/lib/filestorage/file_system_filedir.php:326-333` | | T-FILE-08 | Kaldı (BUG-02 doğrulandı) | | YZ | |
 | FILE-BR-05 | K | `public/lib/filestorage/file_storage.php:2268-2278` | | T-FILE-08 | Kaldı (BUG-02 doğrulandı) | | YZ | |
-| FILE-BR-06 | K | `public/repository/upload/lib.php:148-152, 173-175` | | T-FILE-12 | Kısmen | | YZ | |
+| FILE-BR-06 | K | `public/repository/upload/lib.php:148-152, 173-175` | | T-FILE-12 | Geçti | | YZ | |
 | FILE-BR-07 | K | `public/repository/upload/lib.php:237-245` | | T-FILE-09 | Geçti | | YZ | |
 | FILE-BR-08 | K | `public/lib/moodlelib.php:6337-6364` | | T-FILE-11, T-FILE-13 | Bekliyor | | YZ | |
 | FILE-BR-09 | K | `public/repository/upload/lib.php:177-202` | | T-FILE-14 | Uygulanamaz | | YZ | |
@@ -95,8 +95,8 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 | FILE-BR-14 | K | `public/lib/filestorage/stored_file.php:391-399` | `FileService.cs` (`SoftDeleteAsync`: `FileBlob.OrphanedAt` işaretlenmesi, gelecekteki temizlik kancası için) | T-FILE-07 (önceden testi yoktu, bu PR'da eklendi) | Bekliyor | Geçti (geliştirme testi: `FileEndpointTests.Deleting_the_last_reference_orphans_the_shared_content_but_not_while_still_used`) | YZ | (bu şube) |
 | FILE-BUG-01 | D | `public/lib/filelib.php:639-651` | `FileService.cs` (`GetQuotaAsync`: `(contenthash, filename)` ile tekilleştirme yapılmaz, her kayıt sayılır) | T-FILE-10 | Kaldı (BUG-01 doğrulandı) | Geçti (geliştirme testi: `FileEndpointTests.Delete_hides_the_file_and_quota_counts_each_distinct_file_once`) | YZ | (bu şube) |
 | FILE-BUG-02 | D | `public/lib/filestorage/file_storage.php:2268-2278` | | T-FILE-08 | Kaldı (BUG-02 doğrulandı) | | YZ | |
-| FILE-NFR-01 | Y | Kaynak: WBS-1 §6, K8 (eski kod referansı yok) | | T-FILE-15 | Bekliyor | | YZ | |
-| FILE-NFR-02 | Y | Kaynak: FILE-BUG-04, `public/lib/filestorage/file_system.php:234-241` | `src/Moodle.Infrastructure/Files/LocalDiskFileStore.cs` (geçici dosya + taşıma), `FileConsistency.cs` | T-FILE-16 | Denenmedi | | YZ | |
+| FILE-NFR-01 | Y | Kaynak: WBS-1 §6, K8 (eski kod referansı yok) | | T-FILE-15 | p95 = 20,4 sn (başlangıç değeri) | | YZ | |
+| FILE-NFR-02 | Y | Kaynak: FILE-BUG-04, `public/lib/filestorage/file_system.php:234-241` | `src/Moodle.Infrastructure/Files/LocalDiskFileStore.cs` (geçici dosya + taşıma), `FileConsistency.cs` | T-FILE-16 | Geçti | | YZ | |
 
 ## Otomatik eğitim planı – PLAN (İrem)
 

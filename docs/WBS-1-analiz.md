@@ -1105,7 +1105,7 @@ Bu çekirdek gereksinimler mevcut sayısal notlandırmayı koruduğu için K sı
 
 ### 4.6 Dosya yönetimi (Seray)
 
-Bu bölüm Moodle 5.3.1, revizyon `cfe123f2` kaynak koduna göre yazılmıştır. Dosya yolları `public/` klasörüne görecelidir. Bölümdeki bilgiler koddan okunarak çıkarılmıştır; §4.6.10'daki test senaryoları eski sistemde çalıştırılmıştır (sonuçlar tabloda; 19 Kasım 2026, Moodle 5.3.1 `cfe123f2`, moodle-docker). "Hatalar ve eksikler" altındaki maddelerden FILE-BUG-01 ve FILE-BUG-02 testle **doğrulanmıştır**; FILE-BUG-03 ve FILE-BUG-04 henüz **aday**dır.
+Bu bölüm Moodle 5.3.1, revizyon `cfe123f2` kaynak koduna göre yazılmıştır. Dosya yolları `public/` klasörüne görecelidir. Bölümdeki bilgiler koddan okunarak çıkarılmıştır; §4.6.10'daki test senaryoları eski sistemde çalıştırılmıştır (sonuçlar tabloda; 19 Kasım 2026, Moodle 5.3.1 `cfe123f2`, moodle-docker). "Hatalar ve eksikler" altındaki maddelerden FILE-BUG-01, FILE-BUG-02 ve FILE-BUG-03 eski sistemde **doğrulanmıştır**; FILE-BUG-04 kod incelemesine dayanır (yarış durumu, testle üretilemez) ve **aday** kalır.
 
 #### 4.6.1 Moodle'daki karşılığı
 
@@ -1291,11 +1291,15 @@ Sınıf: **K** korunacak · **D** düzeltilecek · **Y** yeni. Öncelik: **M** m
 | FILE-NFR-01 | Y | Dosya indirme yanıtı 50 eş zamanlı kullanıcıda p95 ≤ 1.000 ms olmalı. | WBS-1 §6, K8 | S | k6 ölçümü. | T-FILE-15 |
 | FILE-NFR-02 | Y | Veritabanı kaydı ile fiziksel dosya tutarlı olmalı; bir yarım kalan işlem sahipsiz kayıt bırakmamalı. | FILE-BUG-04 | M | Yükleme/silme sırasında hata enjekte edilince tutarsızlık yok. | T-FILE-16 |
 
+**T-FILE-15 ölçüm koşulları ve sınırlar:** Docker Desktop (Mac, Apple Silicon), tek `webserver` konteyneri (PHP 8.3 + Apache), önbellek ayarı varsayılan, 1 MB `olcum.bin` dosyası, `ogrenci1` özel dosyaları. **Bütün 50 sanal kullanıcı aynı oturumu kullandı** (k6 içinde 50 ayrı oturum açılmadı); bu, Moodle'ın oturum kilidi nedeniyle isteklerin sıraya girmesine ve sürelerin olduğundan yüksek çıkmasına yol açabilir. Rakam kesin başarım değil, **başlangıç değeri**dir; yeni sistemle aynı koşulda (aynı dosya, aynı makine) karşılaştırılacaktır. k6 betiğindeki "1 MB" gövde denetimi gövde türü yüzünden başarısız göründü; HTTP 200 ve 1.048.576 bayt `curl` ile ayrıca doğrulandı.
+
+**Ek doğrulama (FILE-BUG-03, ayrı bir test kimliği yok):** Dosya silinip `trashdir`'e taşındıktan 1 saniye sonra `file_storage::cron()` çalıştırıldığında (`fileslastcleanup` sıfırlanarak) çöpteki dosya **kalıcı silindi**. Çöp, dosyanın yaşına bakılmadan toptan boşaltılıyor; kullanıcı için garantili bir geri alma süresi yoktur.
+
 **Kapsam dışı (ilk sürümde):** harici depolar, dosya dönüştürme ve önizleme, zip/tgz/mbz paketleyiciler, içerik bankası.
 
 #### 4.6.10 Test senaryoları
 
-Senaryolar `ortam/ornek-veri.feature` verisiyle çalıştırılacaktır (kullanıcılar `ogretmen1`, `ogrenci1`, `ogrenci2`, `danisman1`; ders SENG101; dosya "SENG101 Ders Notları"). **Eski sistem sonucu:** Moodle 5.3.1 ortamında (moodle-docker, PHP 8.3, PostgreSQL 17, örnek veri) 19 Kasım 2026'da çalıştırıldı. **Yöntem:** T-FILE-01, 02, 06–10, 12 Moodle'ın dosya API'sine karşı komut satırından (`file_storage`, `file_save_draft_area_files`, `repository::get_unused_filename`) çalıştırılmıştır, yani arayüzdeki form ve tarayıcı adımları dahil değildir; T-FILE-03–05 HTTP istekleriyle (`curl`, gerçek oturum) denenmiştir. T-FILE-11, 13, 16 yalnızca kısmen veya hiç denenmemiştir (tarayıcıda yükleme gerektirir); T-FILE-14 ortamda ClamAV olmadığı için uygulanamaz; T-FILE-15 k6 ölçümü bekliyor. **Lab notu:** moodle-docker şablonu hata ayıklamayı açık tuttuğu için yetki reddi HTTP 500 ve ayrıntılı hata sayfasıyla görünür; üretim ayarında bu durum farklı olabilir.
+Senaryolar `ortam/ornek-veri.feature` verisiyle çalıştırılacaktır (kullanıcılar `ogretmen1`, `ogrenci1`, `ogrenci2`, `danisman1`; ders SENG101; dosya "SENG101 Ders Notları"). **Eski sistem sonucu:** Moodle 5.3.1 ortamında (moodle-docker, PHP 8.3, PostgreSQL 17, örnek veri) 19 Kasım 2026'da çalıştırıldı. **Yöntem:** T-FILE-01, 02, 06–10, 12 Moodle'ın dosya API'sine karşı komut satırından (`file_storage`, `file_save_draft_area_files`, `repository::get_unused_filename`) çalıştırılmıştır, yani arayüzdeki form ve tarayıcı adımları dahil değildir; T-FILE-03–05 HTTP istekleriyle (`curl`, gerçek oturum) denenmiştir. T-FILE-11–14 ve 16 gerçek yükleme isteğiyle (`repository_ajax.php?action=upload`, oturum açmış `ogrenci1`, `curl`) denenmiştir; T-FILE-14 ortamda ClamAV olmadığı için reddetme yönüyle denenemedi; T-FILE-15 k6 ile ölçülmüştür (grafana/k6 imajı, `host.docker.internal` üzerinden). **Lab notu:** moodle-docker şablonu hata ayıklamayı açık tuttuğu için yetki reddi HTTP 500 ve ayrıntılı hata sayfasıyla görünür; üretim ayarında bu durum farklı olabilir.
 
 | Kimlik | Tür | Adımlar | Beklenen sonuç | Eski sonuç |
 | --- | --- | --- | --- | --- |
@@ -1309,12 +1313,12 @@ Senaryolar `ortam/ornek-veri.feature` verisiyle çalıştırılacaktır (kullan�
 | T-FILE-08 | Sınır | Temizlik görevi çalıştırılırken 5 günlük taslak ve 1 günlük taslak bulunur. | 5 günlük silinir, 1 günlük kalır; hâlâ düzenlenen 5 günlük taslak da silinir (FILE-BUG-02). | Geçti: **FILE-BUG-02 doğrulandı** (düzenlenen 5 günlük taslak da silindi) |
 | T-FILE-09 | Sınır | Aynı ad ve içerikle iki kez yükleme. | İkinci dosya benzersiz adla kaydedilir. | Geçti (arayüz önerisi `ayni (1).txt`; doğrudan API aynı ada `stored_file_creation_exception`) |
 | T-FILE-10 | Sınır | Kota 1 MB yapılır; iki klasöre aynı 600 KB dosya yüklenir. | Hesaplanan kullanım 600 KB mı 1,2 MB mı: FILE-BUG-01 doğrulanır. Kota aşımında hata. | **FILE-BUG-01 doğrulandı**: iki klasörde aynı 600 KB dosya için kullanım 614.400 bayt (gerçek 1.228.800). Kota aşımı hatası denenmedi |
-| T-FILE-11 | Hatalı girdi | Site sınırının üstünde bir dosya yüklenir. | Boyut hatası, dosya kaydedilmez. | Kısmen: sınır hesabı doğrulandı (200 MB, `maxbytes=0`); reddetme tarayıcıda denenmedi |
-| T-FILE-12 | Hatalı girdi | 256 karakterlik ad ve geçersiz karakterli ad yüklenir. | Ad hatası veya temizlenmiş ad; 5xx yok. | Kısmen: 256 karakterlik ad `stored_file_creation_exception` verdi (API); `PARAM_FILE` temizliği `a<b>:c*\|d.txt` → `abc*d.txt` |
-| T-FILE-13 | Hatalı girdi | Boş dosya ve klasör yüklemesi denenir. | "Geçersiz dosya" hatası. | Denenmedi (tarayıcıda yükleme gerekir) |
-| T-FILE-14 | Hatalı girdi | EICAR test dosyası yüklenir (antivirüs açıksa). | Dosya reddedilir. | Uygulanamaz (ortamda ClamAV yapılandırılmamış) |
-| T-FILE-15 | Performans | 50 eş zamanlı kullanıcı aynı dosyayı indirir (k6). | p95 ölçülür (başlangıç değeri). | Bekliyor (k6 gerekir) |
-| T-FILE-16 | Dayanıklılık | Yükleme sırasında bağlantı kesilir. | Sahipsiz kayıt veya dosya kalmaz. | Denenmedi (bağlantı kesme tarayıcıda/ağ düzeyinde denenmeli) |
+| T-FILE-11 | Hatalı girdi | Site sınırının üstünde bir dosya yüklenir. | Boyut hatası, dosya kaydedilmez. | Geçti (50 KB sınırında 100 KB dosya: `maxbytesfile` hatası, taslakta kayıt oluşmadı) |
+| T-FILE-12 | Hatalı girdi | 256 karakterlik ad ve geçersiz karakterli ad yüklenir. | Ad hatası veya temizlenmiş ad; 5xx yok. | Geçti (256 karakter: `filenametoolong`; `a<b>:c*\|d.txt` yüklemesi `abc*d.txt` adıyla temizlenerek kaydedildi; 5xx yok) |
+| T-FILE-13 | Hatalı girdi | Boş dosya ve klasör yüklemesi denenir. | "Geçersiz dosya" hatası. | Geçti (boş dosya: `upload_error_invalid_file`, "empty or a folder") |
+| T-FILE-14 | Hatalı girdi | EICAR test dosyası yüklenir (antivirüs açıksa). | Dosya reddedilir. | Uygulanamaz: ClamAV yapılandırılmamış; antivirüs kapalıyken EICAR dosyası **kabul edildi**. Reddetme davranışı denenemedi |
+| T-FILE-15 | Performans | 50 eş zamanlı kullanıcı aynı dosyayı indirir (k6). | p95 ölçülür (başlangıç değeri). | **Başlangıç değeri (k6, 50 sanal kullanıcı, 30 sn, 1 MB dosya):** 124 istek, hepsi HTTP 200, hata %0; ortalama 13,0 sn, medyan 13,9 sn, **p95 = 20,4 sn**, verim 3,7 istek/sn. NFR-01 hedefi (p95 ≤ 1.000 ms) eski sistemde **karşılanmıyor** (bkz. not) |
+| T-FILE-16 | Dayanıklılık | Yükleme sırasında bağlantı kesilir. | Sahipsiz kayıt veya dosya kalmaz. | Geçti (5 MB yükleme 3. saniyede kesildi: taslakta kayıt kalmadı). Disk üzerindeki sahipsiz içerik ayrıca denetlenmedi |
 
 #### 4.6.11 Öneri: ilk sürüme alınsın mı?
 

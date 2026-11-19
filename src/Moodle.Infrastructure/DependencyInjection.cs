@@ -90,9 +90,11 @@ public static class DependencyInjection
         services.AddDbContext<FilesDbContext>(options => options.UseNpgsql(FilesDatabaseConfiguration.ConnectionString));
         services.AddScoped<IFilePolicyRegistry, FilePolicyRegistry>();      // modüller IFilePolicy kaydeder; kayıtsız bileşende erişim reddedilir
         services.AddScoped<IFilePolicy, UserFilePolicy>();                  // İrem: taslak ve özel dosyalar yalnızca sahibine (component="user")
-        // İçerik deposu (Seray: yerel disk) henüz bağlanmadı; geliştirmede açık istekle sahte, aksi hâlde "kapalı".
-        services.AddScoped<IFileStore>(sp => useDevelopmentFakes(sp) ? new FakeFileStore() : new UnavailableFiles());   // Seray: yerel disk
-        services.AddScoped<FileService>();                                                                             // İrem: gerçek dosya servisi (FR-02, 03, 04, 05, 09)
+        // İçerik deposu: gerçek yerel disk gerçeklemesi (Seray, FILES_ROOT). Dosya servisi: geliştirmede açık istekle sahte.
+        services.AddSingleton(FileStoreOptions.FromEnvironment());
+        services.AddSingleton<IFileStore, LocalDiskFileStore>();
+        services.AddScoped<FileConsistencyChecker>();
+        services.AddScoped<FileService>();                                  // İrem: gerçek dosya servisi (FR-02, 03, 04, 05, 09)
         services.AddScoped<IFileService>(sp => useDevelopmentFakes(sp)
             ? new FakeFileService(sp.GetRequiredService<IFileStore>()) : sp.GetRequiredService<FileService>());
 

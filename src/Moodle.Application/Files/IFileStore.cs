@@ -16,4 +16,7 @@ public interface IFileStore
 
     /// <summary>Fiziksel içeriği siler. Çağıran, hiçbir kaydın kullanmadığını önceden doğrulamış olmalıdır (FILE-BUG-04).</summary>
     Task DeleteAsync(string contentHash, CancellationToken ct = default);
+
+    /// <summary>Depodaki tüm içeriklerin özetleri. Veritabanı ile tutarlılık denetimi içindir (FILE-NFR-02).</summary>
+    IAsyncEnumerable<string> ListHashesAsync(CancellationToken ct = default);
 }

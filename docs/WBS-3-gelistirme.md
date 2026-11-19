@@ -109,6 +109,26 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 ### 2.1 Dosya altyapısı (Seray)
 
+**Yapılan iş:** FILE veri modeli (`file_blob`, `file_entry`, `file_draft`, `file_setting`) ve EF Core geçişi; `IFileStore`, `IFileService`, `IFilePolicy` arayüzleri ve sahte gerçeklemeleri (PR #27). İçerik adresli yerel disk deposu (`LocalDiskFileStore`: SHA-256, `ab/cd/<özet>`, geçici dosyaya yazıp tek adımda taşıma, özet doğrulaması) ve veritabanı–disk tutarlılık denetimi (`FileConsistencyChecker`).
+**Tasarım kararı:** Yazma sırası "önce depoya, sonra veritabanına"dır. Çökme olursa en kötü sonuç sahipsiz dosyadır (güvenle silinir); kaydı olup dosyası olmayan içerik oluşmaz.
+
+#### YZ kaydı (Seray, FILE altyapısı)
+
+**Model ve sürüm:** Claude Sonnet 5.5 (Claude Code)
+**Kullanılan adım(lar):** Kod üretimi, test yazımı
+**Verilen bağlam:** WBS-2 §3.6 (veri ve API tasarımı), WBS-3-kalan-is-bolumu.pdf Seray bölümü, mevcut modül kalıpları (CRS, GRD)
+**Yapılan iş:** Varlıklar, `FilesDbContext`, geçiş, arayüzler ve sahteleri, `LocalDiskFileStore`, `FileConsistencyChecker` ve testleri
+**Yapılan düzeltmeler:** Seed verisini okuyan ilk test çalışma zamanı modelinde seed bulunmadığı için kırıldı, tasarım zamanı modeliyle düzeltildi. Sahte dosya politikası üretimde de kayıtlı kalacaktı, fail-closed kalıbına (`UnavailableFiles`) çevrildi. İnsan düzeltmesi: yok.
+**Harcanan süre:** İnsan: ~1 saat (tahmin) · YZ ile çalışma: ~1 saat (oturum kaydı, alt sınır)
+**Kanıt:** PR #27 ve depolama PR'ı
+
+**Karşılaştırma (depolama gerçeklemesi, tutarlılık kontrolü):** Elle yazım eforu COCOMO ile tahmin edilir (Basic, organik, 152 saat/kişi-ay; hoca yönergesi). Küçük kodda tahmin yüksek çıkar, gösterge olarak okunmalıdır.
+
+| İş | Satır | Tahmini elle efor |
+| --- | --- | --- |
+| `LocalDiskFileStore` | 107 | ~35 saat |
+| `FileConsistencyChecker` | 27 | ~8 saat |
+
 ### 2.2 Dosya kaydetme, indirme, silme ve kota (İrem)
 
 **Kapsam:** FILE-FR-02, 03, 04, 05, 09; FILE-BR-10, 11, 12, 13, 14; FILE-BUG-01 (WBS-1 §4.6, WBS-2 §3.6).

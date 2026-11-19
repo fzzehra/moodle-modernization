@@ -94,3 +94,37 @@ public sealed class FilesPostgresTests(FilesPostgresFixture fixture) : IClassFix
         await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
     }
 }
+
+public sealed class FilesConsistencyPostgresTests(FilesPostgresFixture fixture) : IClassFixture<FilesPostgresFixture>
+{
+    [Fact]
+    public async Task FILE_NFR_02_kayit_ve_disk_tutarsizligi_gercek_veritabaniyla_yakalanir()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "moodle-consistency-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var store = new LocalDiskFileStore(new FileStoreOptions(root));
+            await using var db = fixture.CreateContext();
+
+            // tutarlı: önce depoya yaz, sonra kaydet
+            var good = await store.WriteAsync(new MemoryStream("tutarli"u8.ToArray()));
+            db.Blobs.Add(new FileBlob { ContentHash = good.ContentHash, SizeBytes = good.SizeBytes, StorageKey = good.StorageKey, CreatedAt = DateTimeOffset.UtcNow });
+            // yarım iş: depoya yazıldı ama kayıt eklenemedi
+            var orphan = await store.WriteAsync(new MemoryStream("sahipsiz"u8.ToArray()));
+            // bozuk: kayıt var, dosya yok
+            var missingHash = new string('e', 64);
+            db.Blobs.Add(new FileBlob { ContentHash = missingHash, SizeBytes = 1, StorageKey = "ee/ee/" + missingHash, CreatedAt = DateTimeOffset.UtcNow });
+            await db.SaveChangesAsync();
+
+            var report = await new FileConsistencyChecker(db, store).CheckAsync();
+
+            Assert.Equal([missingHash], report.BlobsMissingOnDisk);
+            Assert.Equal([orphan.ContentHash], report.FilesWithoutBlob);
+            Assert.DoesNotContain(good.ContentHash, report.BlobsMissingOnDisk.Concat(report.FilesWithoutBlob));
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+}

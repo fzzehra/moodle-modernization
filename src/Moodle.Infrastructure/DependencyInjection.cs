@@ -89,10 +89,12 @@ public static class DependencyInjection
         // FILE: Seray (altyapı), İrem, Aslı Ceren, Fatma Zehra. Gerçek gerçeklemeler hazır olunca sahteler silinir.
         services.AddDbContext<FilesDbContext>(options => options.UseNpgsql(FilesDatabaseConfiguration.ConnectionString));
         services.AddScoped<IFilePolicyRegistry, FilePolicyRegistry>();      // modüller IFilePolicy kaydeder; kayıtsız bileşende erişim reddedilir
-        // Geliştirmede sahte içerik deposu ve dosya servisi; aksi hâlde gerçeği bağlanana kadar "kapalı" (UnavailableFiles).
+        services.AddScoped<IFilePolicy, UserFilePolicy>();                  // İrem: taslak ve özel dosyalar yalnızca sahibine (component="user")
+        // İçerik deposu (Seray: yerel disk) henüz bağlanmadı; geliştirmede açık istekle sahte, aksi hâlde "kapalı".
         services.AddScoped<IFileStore>(sp => useDevelopmentFakes(sp) ? new FakeFileStore() : new UnavailableFiles());   // Seray: yerel disk
+        services.AddScoped<FileService>();                                                                             // İrem: gerçek dosya servisi (FR-02, 03, 04, 05, 09)
         services.AddScoped<IFileService>(sp => useDevelopmentFakes(sp)
-            ? new FakeFileService(sp.GetRequiredService<IFileStore>()) : new UnavailableFiles());                     // İrem, Aslı Ceren, Fatma Zehra
+            ? new FakeFileService(sp.GetRequiredService<IFileStore>()) : sp.GetRequiredService<FileService>());
 
         // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
         services.AddScoped<SeedRunner>();

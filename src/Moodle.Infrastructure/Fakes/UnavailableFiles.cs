@@ -24,4 +24,5 @@ public sealed class UnavailableFiles : IFileStore, IFileService
     public Task<FileMeta> GetMetaAsync(int userId, long fileId, CancellationToken ct = default) => throw Off();
     public Task<FileContent> OpenAsync(int userId, long fileId, bool download = false, CancellationToken ct = default) => throw Off();
     public Task DeleteAsync(int userId, long fileId, CancellationToken ct = default) => throw Off();
+    public Task<(long UsedBytes, long LimitBytes)> GetQuotaAsync(int userId, CancellationToken ct = default) => throw Off();
 }

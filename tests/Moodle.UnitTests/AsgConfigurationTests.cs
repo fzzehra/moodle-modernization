@@ -33,13 +33,16 @@ public class AsgConfigurationTests
         else Assert.Throws<InvalidOperationException>(() => DevelopmentConfiguration.Validate(host, config));
     }
     [Fact]
-    public async Task Default_infrastructure_does_not_impersonate_admin()
+    public void Default_infrastructure_does_not_impersonate_admin()
     {
+        // AUTH artık gerçek: varsayılan ICurrentUser, HttpContext olmadan (bu çıplak ServiceCollection'da
+        // olduğu gibi) her zaman oturumsuzdur ve FakeCurrentUser değildir. IAccessPolicy.HasCapabilityAsync
+        // artık gerçek veritabanına bağlı olduğundan burada (veritabansız birim test) çağrılmaz; aynı koruma
+        // uçtan uca AsgEnvironmentTests.Production_without_AUTH_returns_401_instead_of_fake_admin'de sınanır.
         using var provider = new ServiceCollection().AddInfrastructure().BuildServiceProvider();
         using var scope = provider.CreateScope();
         Assert.False(scope.ServiceProvider.GetRequiredService<ICurrentUser>().IsAuthenticated);
         Assert.Null(scope.ServiceProvider.GetRequiredService<ICurrentUser>().UserId);
-        Assert.False(await scope.ServiceProvider.GetRequiredService<IAccessPolicy>().HasCapabilityAsync(2, "mod/assign:grade", ContextRef.ForModule(1)));
         Assert.IsNotType<FakeCurrentUser>(scope.ServiceProvider.GetRequiredService<ICurrentUser>());
     }
     [Theory]

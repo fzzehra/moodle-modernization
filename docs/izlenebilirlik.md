@@ -5,10 +5,20 @@ Kurallar: [WBS-2 §5](WBS-2-tasarim.md). Eski kod referansları Moodle 5.3.1, re
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
-## Kimlik ve yetkilendirme – AUTH (Sinem)
+## Kimlik ve yetkilendirme – AUTH (WBS-1/2 analiz ve tasarım: Sinem · WBS-3 kod: İrem)
 
 | Gereksinim | Sınıf | Eski kod | Yeni kod | Test | Eski sonuç | Yeni sonuç | Üretim | PR |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| AUTH-FR-01 | K | `public/lib/moodlelib.php:3795, 4074` | `src/Moodle.Infrastructure/Auth/AuthService.cs` (`LoginAsync`), `src/Moodle.Api/Auth/AuthEndpoints.cs` (`POST /auth/login`), `src/Moodle.Web/Pages/Login.razor` | T-AUTH-01 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Login_succeeds_and_session_reflects_it_until_logout`) | YZ | (bu şube: `irem/auth-wbs3`) |
+| AUTH-FR-02 | K | `public/lib/accesslib.php:432, 872-877` | `src/Moodle.Infrastructure/Auth/AuthAccessPolicy.cs`, `src/Moodle.Application/Auth/CapabilityRules.cs` | T-AUTH-02 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Protected_endpoints_reject_anonymous_requests`, `CapabilityRulesTests`) | YZ | (bu şube) |
+| AUTH-FR-03 | K | `public/lib/accesslib.php:432` | `CapabilityRules.cs` (`course.update` → yalnızca `EditingTeacher`/yönetici) | T-AUTH-03 | Geçti | Geçti (geliştirme testi: `CapabilityRulesTests.Course_update_requires_editing_teacher_or_manager`) | YZ | (bu şube) |
+| AUTH-FR-04 | K | `authenticate_user_login()` | `AuthService.cs` (`LoginAsync`: `Suspended`/`Deleted` kontrolü) | T-AUTH-04 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Suspended_account_is_rejected_with_the_same_generic_error`) | YZ | (bu şube) |
+| AUTH-FR-05 | K | `authenticate_user_login()` | `AuthService.cs` (`LoginAsync`: `SignInManager.PasswordSignInAsync`, `SecurityEvent` kaydı) | T-AUTH-05, T-AUTH-06 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Wrong_password_and_unknown_username_return_the_same_generic_error`, `Account_locks_out_after_repeated_failed_attempts`) | YZ | (bu şube) |
+| AUTH-FR-07 | K | `public/lib/accesslib.php:432, 788-843` | `AuthAccessPolicy.cs` (sistem rolü + ders bağlamı rolü), `CapabilityRules.cs` | T-AUTH-07 | Geçti | Geçti (geliştirme testi: `CapabilityRulesTests`, `AuthEndpointTests.Permissions_reports_manager_only_capabilities_correctly`) | YZ | (bu şube) |
+| AUTH-FR-08 | K | `public/lib/moodlelib.php:2259` | `AuthService.cs` (`LogoutAsync`), `AuthEndpoints.cs` (`POST /auth/logout`, `GET /logout`) | T-AUTH-08 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Login_succeeds_and_session_reflects_it_until_logout`, `Logout_is_idempotent_for_an_anonymous_caller`) | YZ | (bu şube) |
+| AUTH-FR-09 | S | `complete_user_login()` | `AuthService.cs` (`ChangePasswordAsync`), `AuthEndpoints.cs` (`POST /auth/change-password`) | T-AUTH-09 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Change_password_requires_the_correct_current_password`) | YZ | (bu şube) |
+| AUTH-BR-03 | K | `authenticate_user_login()` (hesap kilitleme) | `DependencyInjection.cs` (`Lockout.MaxFailedAccessAttempts=5`), `AuthService.cs` | T-AUTH-06 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Account_locks_out_after_repeated_failed_attempts`) | YZ | (bu şube) |
+| AUTH-NFR-01, 02 | Y | Kaynak: WBS-1 §6, K3-K4 (eski kod referansı yok) | `Api/Errors/ApiErrorMiddleware.cs` (Seray; AUTH kendi hata kodlarını bu biçimle döner) | T-AUTH-10 | Geçti | Geçti (geliştirme testi: `AuthEndpointTests.Protected_endpoints_reject_anonymous_requests`, `CrsApiTestSupport.AssertErrorAsync` yığın izi kontrolü) | YZ | (bu şube) |
 
 ## Ders ve kayıt – CRS (Sinem)
 

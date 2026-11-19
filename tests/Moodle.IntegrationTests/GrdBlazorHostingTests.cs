@@ -39,13 +39,14 @@ public sealed class GrdBlazorHostingTests(GrdUnavailableAuthFactory factory) : I
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/_content/Moodle.Web/grd-api.js")).StatusCode);
     }
 
+    // AUTH artık gerçek (İrem): oturumsuz istek "auth_not_ready" (503) değil "not_authenticated" (401) alır.
     [Fact]
-    public async Task GRD_real_API_AUTH_unavailable_is_preserved_and_translated_for_the_UI()
+    public async Task GRD_real_API_anonymous_request_is_preserved_and_translated_for_the_UI()
     {
         using var client = new GrdApiClient(factory.CreateClient());
         var error = await Assert.ThrowsAsync<GrdApiException>(() => client.MyGradesAsync(1));
-        Assert.Equal(HttpStatusCode.ServiceUnavailable, error.Status);
-        Assert.Equal("auth_not_ready", error.Code);
-        Assert.Contains("AUTH", error.Message);
+        Assert.Equal(HttpStatusCode.Unauthorized, error.Status);
+        Assert.Equal("not_authenticated", error.Code);
+        Assert.Contains("oturum açmanız gerekiyor", error.Message);
     }
 }

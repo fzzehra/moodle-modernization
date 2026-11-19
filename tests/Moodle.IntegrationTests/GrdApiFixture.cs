@@ -136,6 +136,9 @@ public sealed class GrdApiFixture : IAsyncLifetime
                 CourseLearners.TryGetValue(courseId, out var ids) ? ids
                 : courseId == MissingCourseId ? []
                 : [3, 4, 5]);
+
+        public Task<string?> FindActiveRoleAsync(int userId, int courseId, CancellationToken ct = default) =>
+            Task.FromResult<string?>(null);
     }
 }
 

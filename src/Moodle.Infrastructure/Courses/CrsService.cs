@@ -43,6 +43,20 @@ public sealed class CrsService(CrsDbContext db)
                 (!x.EndsAt.HasValue || x.EndsAt > now), ct);
     }
 
+    public async Task<string?> FindActiveRoleAsync(int userId, int courseId, CancellationToken ct = default)
+    {
+        var now = DateTimeOffset.UtcNow;
+        return await db.Enrolments.AsNoTracking()
+            .Where(x =>
+                x.UserId == userId &&
+                x.CourseId == courseId &&
+                !x.Suspended &&
+                (!x.StartsAt.HasValue || x.StartsAt <= now) &&
+                (!x.EndsAt.HasValue || x.EndsAt > now))
+            .Select(x => x.Role)
+            .SingleOrDefaultAsync(ct);
+    }
+
     public async Task<IReadOnlyList<int>> ListEnrolledUserIdsAsync(
         int courseId, CancellationToken ct = default)
     {

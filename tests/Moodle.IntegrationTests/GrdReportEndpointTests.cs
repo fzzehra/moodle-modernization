@@ -397,13 +397,14 @@ public sealed class GrdReportEndpointTests(GrdApiFixture fixture) : IClassFixtur
         Assert.Equal((capability, ContextRef.ForCourse(courseId)), Assert.Single(calls));
     }
 
+    // AUTH artık gerçek (İrem): oturumsuz istek "auth_not_ready" (503) değil "not_authenticated" (401) alır.
     [Theory]
     [MemberData(nameof(ReportPaths))]
-    public async Task GRD_NFR_01_reports_are_closed_with_AUTH_placeholders(string report)
+    public async Task GRD_NFR_01_reports_reject_anonymous_requests(string report)
     {
         using var factory = new GrdUnavailableAuthFactory();
         using var client = factory.CreateClient();
         using var response = await client.GetAsync(ReportPath(report, 1));
-        await AssertErrorAsync(response, HttpStatusCode.ServiceUnavailable, "auth_not_ready");
+        await AssertErrorAsync(response, HttpStatusCode.Unauthorized, "not_authenticated");
     }
 }

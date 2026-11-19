@@ -164,7 +164,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Veriler herkesin yap
 | Altyapı | Tohumlama | YZ | | | | | | | |
 | Altyapı | Hata gövdesi ve mimari testi | Elle | | | | | | | |
 | AUTH | Giriş ve çıkış | YZ | ~1 | ~1086* | 6† | — | 1 | — | PR (bu şube) |
-| AUTH | Hesap durumu ve başarısız giriş kaydı | Elle yapılmadı; aynı oturumda YZ ile üretildi | | | — | — | — | — | |
+| AUTH | Hesap durumu ve başarısız giriş kaydı | ikinci/karşılaştırma uygulaması¶ | | 104 | 0 | 0 | 1 | — | `ManualAccountStatusCheck.cs` |
 | CRS | Ders oluşturma | YZ | | | | | | | |
 | CRS | Derse kayıt | Elle | | | | | | | |
 | ASG | Teslim kaydetme | YZ | | | | | | | |
@@ -172,7 +172,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Veriler herkesin yap
 | GRD | Puan yazma | YZ | | | | | | | |
 | GRD | Kişisel not raporu | Elle yapılmadı; efor COCOMO II tahmini | | | — | — | — | — | |
 | FILE | İndirme ve yetki | YZ | ~0,5 | ~540‡ | 2§ | — | 1 | — | PR (bu şube: `irem/file-wbs3-2surum`) |
-| FILE | Kota hesabı | Elle yapılmadı; aynı oturumda YZ ile üretildi | | | — | — | — | — | |
+| FILE | Kota hesabı | ikinci/karşılaştırma uygulaması¶ | | 70 | 0 | 0 | 1 | — | `ManualQuotaCalculator.cs` |
 
 2. sürümün diğer çiftleri (Seray, Sinem, Aslı Ceren, Fatma Zehra) kendi PR'ları bitince bu tabloya eklenir.
 

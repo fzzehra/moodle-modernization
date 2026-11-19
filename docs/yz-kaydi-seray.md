@@ -44,3 +44,13 @@ Hoca yönergesine göre elle yazım eforu ölçülmez, tahmin edilir. Basic COCO
 | CRS tohumlama (`CrsSeedContributor`) | 73 | ~23 saat |
 
 COCOMO büyük projeler için geliştirilmiştir; bu kadar küçük kodda tahminler yüksek çıkar. Rakamlar karşılaştırma için göstergedir, kesin ölçüm değildir.
+
+## 4. FILE testlerinin eski Moodle'da çalıştırılması (T-FILE-01–16)
+
+**Model ve sürüm:** Claude Sonnet 5.5 (Claude Code)
+**Kullanılan adım(lar):** Ortam kurulumu (moodle-docker), test betiği yazımı (PHP komut satırı, curl, k6), sonuçların dokümana işlenmesi
+**Verilen bağlam:** WBS-1 §4.6.10 test senaryoları, `ortam/README.md`, Moodle 5.3.1 kaynak kodu (`cfe123f2`)
+**Yapılan iş:** Moodle'ın kurulması ve örnek verinin yüklenmesi; 16 senaryonun çalıştırılması ve eski sistem sonuçlarının `WBS-1` ve `izlenebilirlik.md`'ye yazılması; FILE-BUG-01, 02 ve 03'ün doğrulanması; T-FILE-15 için k6 başlangıç ölçümü
+**Yapılan düzeltmeler:** Beklenen sonuçlardan biri yanlış çıktı: T-FILE-02'de "taslak alanı temizlenir" beklenmişti, Moodle taslağı kaydetmeden sonra silmiyor (cron 4 gün sonra siliyor); sonuç "beklenenden farklı" yazıldı. İlk betikte dosya sahibi (`userid`) kaydı ve `get_unused_filename` argümanları hatalıydı, düzeltildi. k6'da önce yanlış dosya yolu kullanıldı (HTTP 500), düzeltildi. k6 ölçümünde 50 kullanıcı tek oturumu paylaştı; bu sınır dokümanda belirtildi. İnsan düzeltmesi: yok.
+**Harcanan süre:** İnsan: ~1 saat (tahmin) · YZ ile çalışma: ~0,7 saat (oturum kaydı, alt sınır)
+**Kanıt:** `docs/WBS-1-analiz.md` §4.6.10, `docs/izlenebilirlik.md` (FILE satırları)

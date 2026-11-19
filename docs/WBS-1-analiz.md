@@ -1105,7 +1105,7 @@ Bu çekirdek gereksinimler mevcut sayısal notlandırmayı koruduğu için K sı
 
 ### 4.6 Dosya yönetimi (Seray)
 
-Bu bölüm Moodle 5.3.1, revizyon `cfe123f2` kaynak koduna göre yazılmıştır. Dosya yolları `public/` klasörüne görecelidir. Bölümdeki bilgiler koddan okunarak çıkarılmıştır; §4.6.10'daki test senaryoları henüz eski sistemde çalıştırılmamıştır ve "Hatalar ve eksikler" altındaki maddeler testle doğrulanana kadar **aday** sayılır.
+Bu bölüm Moodle 5.3.1, revizyon `cfe123f2` kaynak koduna göre yazılmıştır. Dosya yolları `public/` klasörüne görecelidir. Bölümdeki bilgiler koddan okunarak çıkarılmıştır; §4.6.10'daki test senaryoları eski sistemde çalıştırılmıştır (sonuçlar tabloda; 19 Kasım 2026, Moodle 5.3.1 `cfe123f2`, moodle-docker). "Hatalar ve eksikler" altındaki maddelerden FILE-BUG-01 ve FILE-BUG-02 testle **doğrulanmıştır**; FILE-BUG-03 ve FILE-BUG-04 henüz **aday**dır.
 
 #### 4.6.1 Moodle'daki karşılığı
 
@@ -1295,26 +1295,26 @@ Sınıf: **K** korunacak · **D** düzeltilecek · **Y** yeni. Öncelik: **M** m
 
 #### 4.6.10 Test senaryoları
 
-Senaryolar `ortam/ornek-veri.feature` verisiyle çalıştırılacaktır (kullanıcılar `ogretmen1`, `ogrenci1`, `ogrenci2`, `danisman1`; ders SENG101; dosya "SENG101 Ders Notları"). **Eski sistem sonucu:** Moodle ortamında çalıştırıldıktan sonra doldurulacaktır; şimdilik tüm senaryolar `Bekliyor`.
+Senaryolar `ortam/ornek-veri.feature` verisiyle çalıştırılacaktır (kullanıcılar `ogretmen1`, `ogrenci1`, `ogrenci2`, `danisman1`; ders SENG101; dosya "SENG101 Ders Notları"). **Eski sistem sonucu:** Moodle 5.3.1 ortamında (moodle-docker, PHP 8.3, PostgreSQL 17, örnek veri) 19 Kasım 2026'da çalıştırıldı. **Yöntem:** T-FILE-01, 02, 06–10, 12 Moodle'ın dosya API'sine karşı komut satırından (`file_storage`, `file_save_draft_area_files`, `repository::get_unused_filename`) çalıştırılmıştır, yani arayüzdeki form ve tarayıcı adımları dahil değildir; T-FILE-03–05 HTTP istekleriyle (`curl`, gerçek oturum) denenmiştir. T-FILE-11, 13, 16 yalnızca kısmen veya hiç denenmemiştir (tarayıcıda yükleme gerektirir); T-FILE-14 ortamda ClamAV olmadığı için uygulanamaz; T-FILE-15 k6 ölçümü bekliyor. **Lab notu:** moodle-docker şablonu hata ayıklamayı açık tuttuğu için yetki reddi HTTP 500 ve ayrıntılı hata sayfasıyla görünür; üretim ayarında bu durum farklı olabilir.
 
 | Kimlik | Tür | Adımlar | Beklenen sonuç | Eski sonuç |
 | --- | --- | --- | --- | --- |
-| T-FILE-01 | Normal | `ogrenci1` özel dosyalarına 1 MB bir PDF yükler. | Dosya listede görünür, taslak alanındaysa yalnızca `ogrenci1` görür. | Bekliyor |
-| T-FILE-02 | Normal | Taslağa yüklenen dosya kaydedilir (form gönderilir). | Dosya kalıcı alanda; taslak alanı temizlenir. | Bekliyor |
-| T-FILE-03 | Normal | `ogrenci1`, SENG101 Ders Notları dosyasını indirir. | Dosya indirilir, içerik özdeş. | Bekliyor |
-| T-FILE-04 | Yetkisiz | Giriş yapmamış ziyaretçi bir `pluginfile.php` adresini açar. | Giriş sayfasına yönlendirilir veya "dosya bulunamadı"; içerik yok. | Bekliyor |
-| T-FILE-05 | Yetkisiz | `ogrenci1`, `files/index.php` (ders dosyaları) sayfasını açar; `ogretmen1` aynı sayfayı açar. | Öğrenci: yetki hatası. Öğretmen: sayfa açılır. | Bekliyor |
-| T-FILE-06 | Normal | Kullanıcı yüklediği dosyayı siler. | Dosya listeden kalkar. | Bekliyor |
-| T-FILE-07 | Sınır | `ogrenci1` ve `ogrenci2` aynı dosyayı yükler; biri siler. | Diğerinin dosyası açılmaya devam eder; ikisi de silinince fiziksel dosya çöpe taşınır. | Bekliyor |
-| T-FILE-08 | Sınır | Temizlik görevi çalıştırılırken 5 günlük taslak ve 1 günlük taslak bulunur. | 5 günlük silinir, 1 günlük kalır; hâlâ düzenlenen 5 günlük taslak da silinir (FILE-BUG-02). | Bekliyor |
-| T-FILE-09 | Sınır | Aynı ad ve içerikle iki kez yükleme. | İkinci dosya benzersiz adla kaydedilir. | Bekliyor |
-| T-FILE-10 | Sınır | Kota 1 MB yapılır; iki klasöre aynı 600 KB dosya yüklenir. | Hesaplanan kullanım 600 KB mı 1,2 MB mı: FILE-BUG-01 doğrulanır. Kota aşımında hata. | Bekliyor |
-| T-FILE-11 | Hatalı girdi | Site sınırının üstünde bir dosya yüklenir. | Boyut hatası, dosya kaydedilmez. | Bekliyor |
-| T-FILE-12 | Hatalı girdi | 256 karakterlik ad ve geçersiz karakterli ad yüklenir. | Ad hatası veya temizlenmiş ad; 5xx yok. | Bekliyor |
-| T-FILE-13 | Hatalı girdi | Boş dosya ve klasör yüklemesi denenir. | "Geçersiz dosya" hatası. | Bekliyor |
-| T-FILE-14 | Hatalı girdi | EICAR test dosyası yüklenir (antivirüs açıksa). | Dosya reddedilir. | Bekliyor |
-| T-FILE-15 | Performans | 50 eş zamanlı kullanıcı aynı dosyayı indirir (k6). | p95 ölçülür (başlangıç değeri). | Bekliyor |
-| T-FILE-16 | Dayanıklılık | Yükleme sırasında bağlantı kesilir. | Sahipsiz kayıt veya dosya kalmaz. | Bekliyor |
+| T-FILE-01 | Normal | `ogrenci1` özel dosyalarına 1 MB bir PDF yükler. | Dosya listede görünür, taslak alanındaysa yalnızca `ogrenci1` görür. | Geçti (CLI + HTTP: kendi taslağı açılır, başka kullanıcı reddedilir) |
+| T-FILE-02 | Normal | Taslağa yüklenen dosya kaydedilir (form gönderilir). | Dosya kalıcı alanda; taslak alanı temizlenir. | Beklenenden farklı: kalıcı alana kaydedildi, taslak alanında dosya kaldı (cron 4 gün sonra siler) |
+| T-FILE-03 | Normal | `ogrenci1`, SENG101 Ders Notları dosyasını indirir. | Dosya indirilir, içerik özdeş. | Geçti (HTTP 200, `text/plain`, içerik özdeş) |
+| T-FILE-04 | Yetkisiz | Giriş yapmamış ziyaretçi bir `pluginfile.php` adresini açar. | Giriş sayfasına yönlendirilir veya "dosya bulunamadı"; içerik yok. | Geçti (HTTP 303, `login/index.php`) |
+| T-FILE-05 | Yetkisiz | `ogrenci1`, `files/index.php` (ders dosyaları) sayfasını açar; `ogretmen1` aynı sayfayı açar. | Öğrenci: yetki hatası. Öğretmen: sayfa açılır. | Geçti (`ogretmen1` HTTP 200; `ogrenci1` `required_capability_exception`, durum kodu 500) |
+| T-FILE-06 | Normal | Kullanıcı yüklediği dosyayı siler. | Dosya listeden kalkar. | Geçti |
+| T-FILE-07 | Sınır | `ogrenci1` ve `ogrenci2` aynı dosyayı yükler; biri siler. | Diğerinin dosyası açılmaya devam eder; ikisi de silinince fiziksel dosya çöpe taşınır. | Geçti (aynı özet; biri silince diğeri açık; ikisi silince `filedir` → `trashdir`) |
+| T-FILE-08 | Sınır | Temizlik görevi çalıştırılırken 5 günlük taslak ve 1 günlük taslak bulunur. | 5 günlük silinir, 1 günlük kalır; hâlâ düzenlenen 5 günlük taslak da silinir (FILE-BUG-02). | Geçti: **FILE-BUG-02 doğrulandı** (düzenlenen 5 günlük taslak da silindi) |
+| T-FILE-09 | Sınır | Aynı ad ve içerikle iki kez yükleme. | İkinci dosya benzersiz adla kaydedilir. | Geçti (arayüz önerisi `ayni (1).txt`; doğrudan API aynı ada `stored_file_creation_exception`) |
+| T-FILE-10 | Sınır | Kota 1 MB yapılır; iki klasöre aynı 600 KB dosya yüklenir. | Hesaplanan kullanım 600 KB mı 1,2 MB mı: FILE-BUG-01 doğrulanır. Kota aşımında hata. | **FILE-BUG-01 doğrulandı**: iki klasörde aynı 600 KB dosya için kullanım 614.400 bayt (gerçek 1.228.800). Kota aşımı hatası denenmedi |
+| T-FILE-11 | Hatalı girdi | Site sınırının üstünde bir dosya yüklenir. | Boyut hatası, dosya kaydedilmez. | Kısmen: sınır hesabı doğrulandı (200 MB, `maxbytes=0`); reddetme tarayıcıda denenmedi |
+| T-FILE-12 | Hatalı girdi | 256 karakterlik ad ve geçersiz karakterli ad yüklenir. | Ad hatası veya temizlenmiş ad; 5xx yok. | Kısmen: 256 karakterlik ad `stored_file_creation_exception` verdi (API); `PARAM_FILE` temizliği `a<b>:c*\|d.txt` → `abc*d.txt` |
+| T-FILE-13 | Hatalı girdi | Boş dosya ve klasör yüklemesi denenir. | "Geçersiz dosya" hatası. | Denenmedi (tarayıcıda yükleme gerekir) |
+| T-FILE-14 | Hatalı girdi | EICAR test dosyası yüklenir (antivirüs açıksa). | Dosya reddedilir. | Uygulanamaz (ortamda ClamAV yapılandırılmamış) |
+| T-FILE-15 | Performans | 50 eş zamanlı kullanıcı aynı dosyayı indirir (k6). | p95 ölçülür (başlangıç değeri). | Bekliyor (k6 gerekir) |
+| T-FILE-16 | Dayanıklılık | Yükleme sırasında bağlantı kesilir. | Sahipsiz kayıt veya dosya kalmaz. | Denenmedi (bağlantı kesme tarayıcıda/ağ düzeyinde denenmeli) |
 
 #### 4.6.11 Öneri: ilk sürüme alınsın mı?
 

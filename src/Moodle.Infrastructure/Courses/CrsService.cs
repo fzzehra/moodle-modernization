@@ -1,5 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moodle.Application.Abstractions;
 using Moodle.Application.Courses;
 using Moodle.Domain.Courses;
@@ -9,25 +11,62 @@ namespace Moodle.Infrastructure.Courses;
 public sealed class CrsService(CrsDbContext db)
     : ICourseDirectory, IEnrolmentQuery, IAssignmentLearnerQuery
 {
+    private readonly CrsQueryCache cache = new();
+
+    private bool BypassCache => db.Database.CurrentTransaction is not null ||
+        System.Transactions.Transaction.Current is not null ||
+        db.GetService<IDbContextTransactionManager>() is ITransactionEnlistmentManager { EnlistedTransaction: not null };
+
+    private async Task<CrsQueryCache.Stamp> RevisionAsync(bool enrolments, int? courseId, CancellationToken ct)
+    {
+        var kinds = enrolments
+            ? new[] { "enrolment.created", "enrolment.updated", "enrolment.deleted" }
+            : new[] { "course.created", "course.updated", "course.deleted" };
+        var row = await db.Database.SqlQuery<CacheRevision>($"""
+            SELECT count(*) AS "Count", COALESCE(max("Id"), 0) AS "LastId"
+            FROM crs_events WHERE "Kind" = ANY ({kinds})
+                AND ({courseId}::integer IS NULL OR "CourseId" = {courseId})
+            """).SingleAsync(ct);
+        return new(row.Count, row.LastId);
+    }
+
+    private sealed class CacheRevision
+    {
+        public long Count { get; set; }
+        public long LastId { get; set; }
+    }
+
+    private static Course? CopyCourse(Course? x) => x is null ? null : new()
+    {
+        Id = x.Id, CategoryId = x.CategoryId, FullName = x.FullName, ShortName = x.ShortName,
+        IdNumber = x.IdNumber, Visible = x.Visible, StartDate = x.StartDate, EndDate = x.EndDate
+    };
+
+    private static CourseEnrolment? CopyEnrolment(CourseEnrolment? x) => x is null ? null : new()
+    {
+        Id = x.Id, CourseId = x.CourseId, UserId = x.UserId, Suspended = x.Suspended,
+        Role = x.Role, StartsAt = x.StartsAt, EndsAt = x.EndsAt
+    };
+
     public Task<CourseCategory?> FindCategoryAsync(int id, CancellationToken ct = default) =>
         db.Categories.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
 
     public Task<Course?> FindCourseAsync(int id, CancellationToken ct = default) =>
-        db.Courses.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct);
+        cache.ReadAsync($"course:{id}", BypassCache,
+            () => RevisionAsync(false, id, ct),
+            () => db.Courses.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct), CopyCourse);
 
     public Task<CourseEnrolment?> FindEnrolmentAsync(int courseId, int id, CancellationToken ct = default) =>
-        db.Enrolments.AsNoTracking().SingleOrDefaultAsync(x => x.CourseId == courseId && x.Id == id, ct);
+        cache.ReadAsync($"enrolment:{courseId}:{id}", BypassCache,
+            () => RevisionAsync(true, courseId, ct),
+            () => db.Enrolments.AsNoTracking().SingleOrDefaultAsync(x => x.CourseId == courseId && x.Id == id, ct), CopyEnrolment);
 
     public async Task<CourseInfo?> FindAsync(
         int courseId, CancellationToken ct = default)
     {
-        return await db.Courses.AsNoTracking()
-            .Where(x => x.Id == courseId)
-            .Select(x => new CourseInfo(
-                x.Id, x.CategoryId, x.FullName,
-                x.ShortName, x.Visible,
-                x.StartDate, x.EndDate))
-            .SingleOrDefaultAsync(ct);
+        var course = await FindCourseAsync(courseId, ct);
+        return course is null ? null : new CourseInfo(course.Id, course.CategoryId, course.FullName,
+            course.ShortName, course.Visible, course.StartDate, course.EndDate);
     }
 
     public async Task<bool> IsActivelyEnrolledAsync(
@@ -84,8 +123,10 @@ public sealed class CrsService(CrsDbContext db)
 
     public Task<List<Course>> ListCoursesAsync(
         CancellationToken ct = default) =>
-        db.Courses.AsNoTracking()
-            .OrderBy(x => x.FullName).ToListAsync(ct);
+        cache.ReadAsync("courses", BypassCache,
+            () => RevisionAsync(false, null, ct),
+            () => db.Courses.AsNoTracking().OrderBy(x => x.FullName).ToListAsync(ct),
+            list => list.Select(x => CopyCourse(x)!).ToList());
 
     public Task<List<CourseCategory>> ListCategoriesAsync(
         CancellationToken ct = default) =>
@@ -94,8 +135,10 @@ public sealed class CrsService(CrsDbContext db)
 
     public Task<List<CourseEnrolment>> ListEnrolmentsAsync(
         int courseId, CancellationToken ct = default) =>
-        db.Enrolments.AsNoTracking()
-            .Where(x => x.CourseId == courseId).ToListAsync(ct);
+        cache.ReadAsync($"enrolments:{courseId}", BypassCache,
+            () => RevisionAsync(true, courseId, ct),
+            () => db.Enrolments.AsNoTracking().Where(x => x.CourseId == courseId).ToListAsync(ct),
+            list => list.Select(x => CopyEnrolment(x)!).ToList());
 
     public async Task<CourseCategory> SaveCategoryAsync(
         CourseCategory category, CancellationToken ct = default)

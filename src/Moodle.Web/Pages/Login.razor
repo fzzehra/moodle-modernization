@@ -1,0 +1,68 @@
+@page "/login"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using Moodle.Web.Auth
+@inject AuthApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Giriş · Moodle</PageTitle>
+<h1>Giriş yap</h1>
+
+@if (error is not null)
+{
+    <p role="alert">@error</p>
+}
+<noscript><p>Giriş için JavaScript'i etkinleştirin.</p></noscript>
+
+<EditForm Model="_model" OnValidSubmit="SubmitAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <p>
+        <label for="username">Kullanıcı adı</label><br />
+        <InputText id="username" @bind-Value="_model.Username" disabled="@_busy" autocomplete="username" />
+    </p>
+    <p>
+        <label for="password">Parola</label><br />
+        <InputText id="password" type="password" @bind-Value="_model.Password" disabled="@_busy" autocomplete="current-password" />
+    </p>
+    <button type="submit" disabled="@_busy">@(_busy ? "Giriş yapılıyor..." : "Giriş yap")</button>
+</EditForm>
+
+@code {
+    private readonly LoginModel _model = new();
+    private string? error;
+    private bool _busy;
+
+    private async Task SubmitAsync()
+    {
+        if (_busy) return;
+        _busy = true;
+        error = null;
+        try
+        {
+            // RequiresPasswordChange burada ayrı bir sayfaya yönlendirilmez; 1. sürüm kapsamı yalnızca
+            // giriş sayfasıdır (WBS-3). API uç noktası (change-password) hazırdır, kendi arayüzü yoktur.
+            await Api.LoginAsync(_model.Username, _model.Password);
+            // AUTH-FR-01: çerez yeni ayarlandı; mevcut devre eski (anonim) HttpContext'i taşıdığından
+            // tam sayfa yenileme ile yeni bir istek (ve devre) başlatılır ki oturum hemen görünsün.
+            Nav.NavigateTo("/", forceLoad: true);
+        }
+        catch (AuthApiException ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
+        public string Username { get; set; } = "";
+
+        [Required(ErrorMessage = "Parola zorunludur.")]
+        public string Password { get; set; } = "";
+    }
+}

@@ -74,7 +74,7 @@ public sealed class CrsApiClient(HttpClient http) : IDisposable
             {
                 (HttpStatusCode.ServiceUnavailable, "auth_not_ready") =>
                     "Ders ve kayıt işlemleri şu anda kullanılamıyor. Kimlik ve yetkilendirme sistemi (AUTH) henüz hazır değil. Hazır olduğunda bu ekrandan işlem yapabilirsiniz.",
-                (HttpStatusCode.Unauthorized, _) => "Bu işlem için oturum açmanız gerekiyor. Kimlik doğrulama sistemi hazır olduğunda oturum açıp yeniden deneyin.",
+                (HttpStatusCode.Unauthorized, _) => "Bu işlem için oturum açmanız gerekiyor. Oturum açıp yeniden deneyin.",
                 (HttpStatusCode.Forbidden, _) => "Bu işlem için yetkiniz yok.",
                 (HttpStatusCode.NotFound, _) => "İstenen ders veya kayıt bulunamadı. Ders listesine dönebilirsiniz.",
                 (HttpStatusCode.Conflict or HttpStatusCode.UnprocessableEntity, _) when !string.IsNullOrWhiteSpace(message) => message,

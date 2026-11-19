@@ -1,8 +1,19 @@
+@using Microsoft.AspNetCore.Components.Authorization
+
 <nav class="app-nav" aria-label="Ana menü">
     <NavLink href="/" Match="NavLinkMatch.All">Ana sayfa</NavLink>
     <NavLink href="courses">Dersler</NavLink>
     <NavLink href="grades">Notlar</NavLink>
     @* Modüller sayfalarını ekledikçe buraya bağlantı koyar:
-       AUTH: Giriş · CRS: Dersler · ASG: Ödevler · GRD: Notlarım *@
+       CRS: Dersler · ASG: Ödevler · GRD: Notlarım *@
     <NavLink href="/courses/1/assignments/new">Ödev oluştur</NavLink>
+    <AuthorizeView>
+        <Authorized>
+            <span class="app-user">@context.User.Identity?.Name</span>
+            <a href="/logout">Çıkış yap</a>
+        </Authorized>
+        <NotAuthorized>
+            <NavLink href="/login">Giriş yap</NavLink>
+        </NotAuthorized>
+    </AuthorizeView>
 </nav>

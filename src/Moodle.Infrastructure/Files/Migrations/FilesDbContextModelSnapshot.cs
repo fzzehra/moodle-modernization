@@ -166,7 +166,8 @@ namespace Moodle.Infrastructure.Files.Migrations
                     b.HasIndex("Component", "Area", "ContextId", "ItemId");
 
                     b.HasIndex("ContextId", "Component", "Area", "ItemId", "Path", "Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL");
 
                     b.ToTable("file_entry", (string)null);
                 });

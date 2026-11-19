@@ -39,8 +39,13 @@ public sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) : D
 
             e.HasOne<FileBlob>().WithMany().HasForeignKey(x => x.ContentHash).OnDelete(DeleteBehavior.Restrict);
 
-            // FILE-BR-02: aynı alanda, aynı yolda aynı ad iki kez bulunamaz.
-            e.HasIndex(x => new { x.ContextId, x.Component, x.Area, x.ItemId, x.Path, x.Name }).IsUnique();
+            // FILE-BR-02: aynı alanda, aynı yolda aynı ad iki kez bulunamaz — yalnızca etkin (çöpte
+            // olmayan) kayıtlar arasında. Filtre olmazsa çöpe taşınmış bir dosya, aynı adla yeniden
+            // yüklemeyi (ör. commit "replace: true") kalıcı olarak engeller; bu FILE-BR-13/14'ün
+            // (çöp, kalıcı silinene kadar ayrı tutulur) amacıyla çelişir (İrem, FileService.CommitAsync
+            // ile fark edildi).
+            e.HasIndex(x => new { x.ContextId, x.Component, x.Area, x.ItemId, x.Path, x.Name })
+                .IsUnique().HasFilter("\"DeletedAt\" IS NULL");
             e.HasIndex(x => new { x.Component, x.Area, x.ContextId, x.ItemId });
             e.HasIndex(x => x.ContentHash);          // içerik kullanımda mı sorgusu
             e.HasIndex(x => new { x.OwnerUserId, x.Component }); // kota hesabı

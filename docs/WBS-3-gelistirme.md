@@ -110,6 +110,44 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 ### 2.2 Dosya kaydetme, indirme, silme ve kota (İrem)
 
+**Kapsam:** FILE-FR-02, 03, 04, 05, 09; FILE-BR-10, 11, 12, 13, 14; FILE-BUG-01 (WBS-1 §4.6, WBS-2 §3.6).
+
+**Yazılanlar**
+
+| Katman | Dosyalar |
+| --- | --- |
+| İş mantığı ve veri | `src/Moodle.Infrastructure/Files/FileService.cs` — gerçek `IFileService`: taslak→kalıcı taşıma (`CommitAsync`), yetkili okuma/indirme (`OpenAsync`), silme/çöp (`DeleteAsync`), kota (`GetQuotaAsync`); `UserFilePolicy.cs` — `component="user"` için taslak ve özel dosya sahiplik politikası |
+| API | `src/Moodle.Api/Files/FileEndpoints.cs`: `POST /file-areas/{contextId}/{component}/{area}/{itemId}/commit`, `GET .../files`, `GET /files/{id}`, `GET /files/{id}/content` (akış, `Content-Disposition`), `DELETE /files/{id}`, `GET /users/me/quota` |
+| DI | `DependencyInjection.cs`: `IFileService` artık (fakes kapalıyken) gerçek `FileService`'i bağlıyor; `IFilePolicy` olarak `UserFilePolicy` kaydedildi |
+
+**Taslak/yükleme (FR-01, 07, 08, 10, 11) hakkında not:** `IFileService` tek bir arayüz olduğundan ve commit/indirme kendi testlerimde uçtan uca çalışabilsin diye, `CreateDraftAsync`/`AddToDraftAsync`/`ListDraftAsync`/`DeleteFromDraftAsync` için de çalışan bir **taban** yazıldı (temel ad/boş dosya kontrolü dâhil). Ad benzersizleştirme, boyut/tür sınırı ve antivirüs (FR-07, 08, 10, 11) — Aslı Ceren'in kapsamı — bu tabanın üzerine eklenecek; bu yüzden bu uçların HTTP yüzeyi (`POST /file-drafts` vb.) bilerek açılmadı, yalnızca servis seviyesinde (testlerimde doğrudan `IFileService` çağrılarak) kullanılıyor.
+
+**Testler:** 4 yeni birim testi (`UserFilePolicyTests`, saf sahiplik mantığı), 6 yeni entegrasyon testi (`FileEndpointTests`, gerçek PostgreSQL + gerçek HTTP): kaydetme, zorla indirme, yetkisiz erişimde 404, silme+kota, kayıtsız bileşene commit reddi, paylaşılan içeriğin yalnızca son referans silinince boşa düşmesi (FILE-BR-13/14 — PDF'te "henüz testi yok" diye işaretliydi, bu PR'da eklendi). Tüm paket 270 birim + 283 entegrasyon testiyle yeşil.
+
+**Tasarım kararları ve belgeden sapmalar**
+
+- **Seray'ın gerçek (yerel disk) `IFileStore`'u henüz yok.** Yalnızca tablolar, arayüzler ve sahteler (ilk PR) landı. `FileService` yalnızca `IFileStore` **arayüzüne** bağlıdır; testlerimde Seray'ın `FakeFileStore`'unu (bellek içi) kullandım — tıpkı CRS/GRD'nin AUTH'u beklerken yaptığı gibi. Seray gerçek depoyu bağladığında `FileService` hiç değişmeden gerçek diske yazmaya başlayacak.
+- **`GetQuotaAsync`, `IFileService`'e eklendi.** Orijinal arayüzde kota yoktu; FR-09 için gerekli olduğundan eklendi (AUTH'ta `IEnrolmentQuery.FindActiveRoleAsync` eklemesiyle aynı gerekçe: arayüz, gerçek ihtiyaç ortaya çıkınca büyütülür). `FakeFileService` ve `UnavailableFiles` da güncellendi.
+- **Yetkisiz erişimde 403 değil 404** (FILE-BR-11, 12): WBS-2 §3.6.4 tasarımıyla birebir — dosyanın var olup olmadığı bile sızdırılmaz. Bu, AUTH'un genel 401/403 yaklaşımından kasıtlı olarak farklıdır (orada "kaynak" kavramı yok); FILE'ın kendi "sahip bileşen" modeli bunu gerektiriyor.
+- **İndirme `Results.File(..., enableRangeProcessing: true)` ile akış hâlinde** (NFR-01): içerik belleğe tam yüklenmeden akıtılır ve HTTP Range isteklerini destekler. k6 ile 50 eş zamanlı kullanıcı ölçümü (T-FILE-15) bu oturumda **çalıştırılmadı**; gerçek ölçüm için uygulamanın `docker compose up` ile ayağa kaldırılıp çalıştırılması gerekir (WBS-1 §8'deki Moodle ölçümüyle aynı yöntem). Kod gereksinimi (akış, doğru başlıklar) karşılanmıştır; sayısal p95 sonucu bekliyor.
+- **FILE-BR-14'ün testi eklendi** (PDF'te açıkça eksik olduğu belirtilmişti): paylaşılan içeriğin yalnızca gerçekten son etkin kaydı silinince `FileBlob.OrphanedAt` işaretlendiği, hâlâ başka bir kayıt tarafından kullanılıyorsa işaretlenmediği doğrulandı. Gerçek kalıcı silme (temizlik görevi) Fatma Zehra'nın kapsamındadır; bu PR yalnızca "boşa düşme" işaretini doğru koyar.
+
+**Yapay zekâ kaydı**
+
+**Model ve sürüm:** Claude Code (Claude Sonnet 5, düşünme seviyesi: Orta-Yüksek).
+**Kullanılan adım(lar):** Kodun anlaşılması (Seray'ın FILE iskeleti: tablolar, arayüzler, sahteler), hedef dilde kod üretme, test senaryosu üretme (WBS-2 §4.1).
+**Verilen bağlam:** WBS-1 §4.6, WBS-2 §3.6, Seray'ın FILE iskelet PR'ı (`IFileStore`, `IFileService`, `IFilePolicy`, `FilesDbContext`), AUTH modülünün kendi kodu (desen olarak: `ICurrentUser` kullanımı, test fixture yapısı).
+**Yapılan iş:** `FileService` (tam `IFileService` gerçeklemesi), `UserFilePolicy`, FILE API uçları, DI güncellemesi, birim ve entegrasyon testleri tek oturumda üretildi.
+**Yapılan düzeltmeler:**
+- Yapay zekânın kendi düzelttikleri: İlk derleme denemesinde test fixture'ında `Task.WhenAll`/`AsTask()` tür uyuşmazlığı ve bir dosyada yanlış yazılmış tam nitelikli tür adı giderildi. İkisi de ilk derlemede yakalandı, ikinci denemede derlendi.
+- İnsan incelemesi: Henüz tamamlanmadı; bu PR'ın kod incelemesi sırada Sinem'e düşüyor (İrem → Sinem).
+
+**Harcanan süre:** Yaklaşık 20–25 dakika (19.11.2026, 13:50 civarı başlayıp 14:10 civarı bitti) — AUTH'ta kurulan desenlerin (test fixture yapısı, DI genişletme yaklaşımı) doğrudan tekrar kullanılabilmesi nedeniyle AUTH'tan belirgin biçimde daha hızlı tamamlandı.
+
+**Elle geliştirme:** Karşılaştırma çifti için ikinci işlev (kota hesabı) de bu oturumda YZ ile üretildi; ayrı bir elle geliştirme yapılmadı (AUTH'taki §1.2 ile aynı sınırlılık, §3'te not edilmiştir).
+
+**Kanıt:** Bu PR (şube: `irem/file-wbs3-2surum`).
+
 ### 2.3 AUTH ve CRS'nin kalan gereksinimleri (Sinem)
 
 ### 2.4 Dosya yükleme, antivirüs, ödeve dosya teslimi ve uçtan uca test (Aslı Ceren)
@@ -132,10 +170,14 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Veriler herkesin yap
 | ASG | Teslim listesi | Elle | | | | | | | |
 | GRD | Puan yazma | YZ | | | | | | | |
 | GRD | Kişisel not raporu | Elle yapılmadı; efor COCOMO II tahmini | | | — | — | — | — | |
+| FILE | İndirme ve yetki | YZ | ~0,5 | ~540‡ | 2§ | — | 1 | — | PR (bu şube: `irem/file-wbs3-2surum`) |
+| FILE | Kota hesabı | Elle yapılmadı; aynı oturumda YZ ile üretildi | | | — | — | — | — | |
 
-2. sürümün çiftleri o sürüm bitince bu tabloya eklenir.
+2. sürümün diğer çiftleri (Seray, Sinem, Aslı Ceren, Fatma Zehra) kendi PR'ları bitince bu tabloya eklenir.
 
 \* AUTH satırındaki satır sayısı, giriş/çıkış işlevine özgü değil; tüm AUTH modülünün (üretilmiş geçiş dosyaları hariç) el yazısı satır toplamıdır. Giriş/çıkış ve hesap durumu/başarısız giriş kaydı aynı sınıfta (`AuthService.LoginAsync`) iç içe olduğundan anlamlı bir ayrım yapılamadı; bu, AUTH çiftinin bu tablo için en büyük sınırlılığıdır.
 † İnceleme turu sayısı, bu oturumdaki kendi kendine derleme/test döngülerinden (insan incelemesi değil) sayılmıştır: ilk derleme hatası (eksik `using`), ardından tam test koşusunda ortaya çıkan 3 CRS/GRD testi + 1 birim testi düzeltmesi, ardından AUTH'un kendi testlerinde 3 ayrı hata (kimlik çakışması, kilitlenme eşiği, `/permissions`'ın CRS'ye bağımlılığı). Bağımsız bir insan kod incelemesi henüz yapılmadı.
+‡ FILE satırındaki satır sayısı da (AUTH'taki gibi) tüm FILE katkımın (İrem) toplamıdır; indirme/yetki ile kota hesabı aynı `FileService` sınıfında iç içedir, ayrı sayılamaz.
+§ İlk derlemede iki hata (yanlış tam nitelikli tür adı, `Task`/`ValueTask` uyuşmazlığı); ikinci denemede derlendi ve tüm testler ilk çalıştırmada geçti.
 
-**Yorum:** Doldurulduktan sonra yazılacak. Sınırlılıklar da burada belirtilecek: örneklem küçük, geliştiriciler farklı, GRD'de ve AUTH'ta elle veri yok (AUTH'ta ayrıca iki işlev aynı oturumda ve aynı kod birimlerinde üretildiği için anlamlı biçimde ayrılamadı).
+**Yorum:** Doldurulduktan sonra yazılacak. Sınırlılıklar da burada belirtilecek: örneklem küçük, geliştiriciler farklı, GRD'de ve AUTH'ta elle veri yok (AUTH'ta ve FILE'da ayrıca iki işlev aynı oturumda ve aynı kod birimlerinde üretildiği için anlamlı biçimde ayrılamadı).

@@ -6,6 +6,7 @@ using Moodle.Api.Auth;
 using Moodle.Api.Errors;
 using Moodle.Application.Seeding;
 using Moodle.Api.Courses;
+using Moodle.Api.Files;
 using Moodle.Api.Grading;
 using Moodle.Infrastructure;
 using Moodle.Infrastructure.Auth;
@@ -49,6 +50,7 @@ app.MapHealthChecks("/api/v1/health");
 app.MapCrsEndpoints();
 app.MapGrdEndpoints();
 app.MapAuthEndpoints();
+app.MapFileEndpoints();
 app.MapStaticAssets($"{typeof(Program).Assembly.GetName().Name}.staticwebassets.endpoints.json");
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

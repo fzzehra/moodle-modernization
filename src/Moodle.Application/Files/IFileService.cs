@@ -31,4 +31,8 @@ public interface IFileService
     Task<FileContent> OpenAsync(int userId, long fileId, bool download = false, CancellationToken ct = default);
 
     Task DeleteAsync(int userId, long fileId, CancellationToken ct = default);
+
+    // --- Kota (FILE-FR-09, BR-10) ---
+    /// <summary>Kullanıcının kalıcı (taslak hariç) özel dosyalarının toplam boyutu ve limiti.</summary>
+    Task<(long UsedBytes, long LimitBytes)> GetQuotaAsync(int userId, CancellationToken ct = default);
 }

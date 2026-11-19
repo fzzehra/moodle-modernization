@@ -73,6 +73,15 @@ public sealed class FakeFileService(IFileStore store) : IFileService
         return Task.CompletedTask;
     }
 
+    public Task<(long UsedBytes, long LimitBytes)> GetQuotaAsync(int userId, CancellationToken ct = default)
+    {
+        lock (Gate)
+        {
+            var used = Rows.Where(r => r.DraftId is null && r.Meta.OwnerUserId == userId).Sum(r => r.Meta.SizeBytes);
+            return Task.FromResult((used, 100L * 1024 * 1024));
+        }
+    }
+
     private static List<FileMeta> Snapshot(Func<Row, bool> where)
     {
         lock (Gate) return Rows.Where(where).Select(r => r.Meta).ToList();

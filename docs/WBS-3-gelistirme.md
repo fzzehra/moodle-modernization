@@ -49,7 +49,7 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 **Harcanan süre:** Araştırma (iskelet/CRS/GRD'yi okuma, arayüzleri çıkarma) ve kod yazımı toplam yaklaşık 35–40 dakika (19.11.2026, 12:30 civarı başlayıp 13:30 civarı bitti); test çalıştırma/düzeltme döngüleri (Testcontainers koşuları dâhil) ayrıca yaklaşık 20 dakika sürdü. Bu süreler Claude Code'un kendi çalışmasını ve insanın yönlendirme/okuma süresini birlikte içerir; ayrıştırılmış ölçüm yapılmadı.
 
-**Elle geliştirme:** Karşılaştırma çifti için ikinci işlev (hesap durumu kontrolü ve başarısız giriş kaydı) de bu oturumda YZ ile üretildi; ayrı, bağımsız bir elle geliştirme yapılmadı (GRD'nin §1.5'teki yaklaşımıyla tutarlı: elle geliştirme yoksa efor COCOMO II ile tahmin edilir, §3). WBS-2 §4.4'teki "adil karşılaştırma" ilkesi (aynı kişi, aynı güncel gereksinim, kör inceleme) bu nedenle bu çift için henüz uygulanamadı; gerçek bir karşılaştırma isteniyorsa ikinci işlevin bağımsız olarak elle yazılması gerekir.
+**Elle geliştirme:** Karşılaştırma çifti için ikinci işlev (hesap durumu kontrolü ve başarısız giriş kaydı) de bu oturumda YZ ile üretildi; ayrı, bağımsız bir elle geliştirme yapılmadı. GRD'nin §1.5'teki yaklaşımıyla tutarlı olarak efor COCOMO II ile **tahmin edilmiştir**: ~65 satırlık ilgili kod için ~29 adam-saat (yöntem ve sınırlılıklar §3'teki ¶ dipnotunda). WBS-2 §4.4'teki "adil karşılaştırma" ilkesi (aynı kişi, aynı güncel gereksinim, kör inceleme) bu çift için uygulanamadı çünkü COCOMO bir tahmindir, gerçek bir ikinci geliştirici değildir; gerçek bir karşılaştırma isteniyorsa ikinci işlevin bağımsız olarak elle yazılması gerekir.
 
 **Kanıt:** Bu PR (şube: `irem/auth-wbs3`).
 
@@ -145,7 +145,7 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 **Harcanan süre:** Yaklaşık 20–25 dakika (19.11.2026, 13:50 civarı başlayıp 14:10 civarı bitti) — AUTH'ta kurulan desenlerin (test fixture yapısı, DI genişletme yaklaşımı) doğrudan tekrar kullanılabilmesi nedeniyle AUTH'tan belirgin biçimde daha hızlı tamamlandı.
 
-**Elle geliştirme:** Karşılaştırma çifti için ikinci işlev (kota hesabı) de bu oturumda YZ ile üretildi; ayrı bir elle geliştirme yapılmadı (AUTH'taki §1.2 ile aynı sınırlılık, §3'te not edilmiştir).
+**Elle geliştirme:** Karşılaştırma çifti için ikinci işlev (kota hesabı) de bu oturumda YZ ile üretildi; ayrı bir elle geliştirme yapılmadı. AUTH'taki §1.2 ile aynı yöntemle COCOMO II tahmini yapıldı: ~14 satırlık ilgili kod için ~6 adam-saat (yöntem ve sınırlılıklar §3'teki ¶ dipnotunda).
 
 **Kanıt:** Bu PR (şube: `irem/file-wbs3-2surum`).
 
@@ -164,7 +164,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Veriler herkesin yap
 | Altyapı | Tohumlama | YZ | | | | | | | |
 | Altyapı | Hata gövdesi ve mimari testi | Elle | | | | | | | |
 | AUTH | Giriş ve çıkış | YZ | ~1 | ~1086* | 6† | — | 1 | — | PR (bu şube) |
-| AUTH | Hesap durumu ve başarısız giriş kaydı | Elle yapılmadı; aynı oturumda YZ ile üretildi | | | — | — | — | — | |
+| AUTH | Hesap durumu ve başarısız giriş kaydı | Elle yapılmadı; efor COCOMO II tahmini¶ | ~29 | ~65 | — | — | — | — | COCOMO II (basitleştirilmiş) |
 | CRS | Ders oluşturma | YZ | | | | | | | |
 | CRS | Derse kayıt | Elle | | | | | | | |
 | ASG | Teslim kaydetme | YZ | | | | | | | |
@@ -172,7 +172,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Veriler herkesin yap
 | GRD | Puan yazma | YZ | | | | | | | |
 | GRD | Kişisel not raporu | Elle yapılmadı; efor COCOMO II tahmini | | | — | — | — | — | |
 | FILE | İndirme ve yetki | YZ | ~0,5 | ~540‡ | 2§ | — | 1 | — | PR (bu şube: `irem/file-wbs3-2surum`) |
-| FILE | Kota hesabı | Elle yapılmadı; aynı oturumda YZ ile üretildi | | | — | — | — | — | |
+| FILE | Kota hesabı | Elle yapılmadı; efor COCOMO II tahmini¶ | ~6 | ~14 | — | — | — | — | COCOMO II (basitleştirilmiş) |
 
 2. sürümün diğer çiftleri (Seray, Sinem, Aslı Ceren, Fatma Zehra) kendi PR'ları bitince bu tabloya eklenir.
 
@@ -180,5 +180,6 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Veriler herkesin yap
 † İnceleme turu sayısı, bu oturumdaki kendi kendine derleme/test döngülerinden (insan incelemesi değil) sayılmıştır: ilk derleme hatası (eksik `using`), ardından tam test koşusunda ortaya çıkan 3 CRS/GRD testi + 1 birim testi düzeltmesi, ardından AUTH'un kendi testlerinde 3 ayrı hata (kimlik çakışması, kilitlenme eşiği, `/permissions`'ın CRS'ye bağımlılığı). Bağımsız bir insan kod incelemesi henüz yapılmadı.
 ‡ FILE satırındaki satır sayısı da (AUTH'taki gibi) tüm FILE katkımın (İrem) toplamıdır; indirme/yetki ile kota hesabı aynı `FileService` sınıfında iç içedir, ayrı sayılamaz.
 § İlk derlemede iki hata (yanlış tam nitelikli tür adı, `Task`/`ValueTask` uyuşmazlığı); ikinci denemede derlendi ve tüm testler ilk çalıştırmada geçti.
+¶ **COCOMO II tahmini nasıl hesaplandı (İrem):** Gerçek bir elle yazım yapılmadığından, karşılaştırma İrem tarafından hesaplanan bir COCOMO II tahminiyle yapılır — bu, GRD'nin §1.5'te bıraktığı "efor COCOMO II tahmini" notunun fiilen doldurulmuş hâlidir. Yöntem: basitleştirilmiş COCOMO II (Erken Tasarım biçimi), `Efor (adam-ay) = A × KSLOC^E`, **A = 2,94** (standart sabit), **E = 1,0** (ölçek faktörü düzeltmesi yapılmadı — küçük, iyi anlaşılan, zaten iskeletli bir projeye eklenen tek bir işlev için makul bir basitleştirme) ve 17 efor çarpanı nötr (1,0) alındı (çarpanları tek tek kalibre edecek geçmiş veri yok). 1 adam-ay = 152 adam-saat (standart COCOMO dönüşümü). Satır sayısı yalnızca ilgili işlevin kendi koduna (AUTH: askıya alma/silinmiş kontrolü + kilitlenme işleme + `SecurityEvent` günlüğü ve tablosu; FILE: `GetQuotaAsync` + kota ucu) aittir — modülün tamamına değil, çünkü COCOMO'nun girdisi yalnızca o işlevin kendisi olmalı. **Sınırlılık:** COCOMO'nun kuvvet yasası çok küçük kod parçalarında (65 ve 14 satır) bağlam anlama, geliştirme ortamı kurulumu ve test yazma gibi *sabit* maliyetleri yakalamaz; gerçek bir insanın bu kadar küçük bir işlevi bile sıfırdan yazması muhtemelen bu tahminlerden (29 ve 6 adam-saat) daha uzun sürer. Bu nedenle sayılar bir **alt sınır** olarak okunmalıdır, kesin bir ölçüm değildir.
 
-**Yorum:** Doldurulduktan sonra yazılacak. Sınırlılıklar da burada belirtilecek: örneklem küçük, geliştiriciler farklı, GRD'de ve AUTH'ta elle veri yok (AUTH'ta ve FILE'da ayrıca iki işlev aynı oturumda ve aynı kod birimlerinde üretildiği için anlamlı biçimde ayrılamadı).
+**Yorum:** AUTH ve FILE çiftlerinde YZ tarafı (tüm modül, ~1086 ve ~540 satır) ile elle/COCOMO tarafı (yalnızca ilgili alt işlev, ~65 ve ~14 satır) **farklı kapsamlarda** ölçüldüğünden iki sütun doğrudan karşılaştırılamaz; YZ satırı "bu modülü YZ ile baştan sona üretmenin maliyeti", COCOMO satırı ise "yalnızca bu dar işlevi insanın yazmasının COCOMO tahmini" sorusuna cevap verir. Diğer sınırlılıklar: örneklem küçük, geliştiriciler farklı, GRD'de elle veri yok.

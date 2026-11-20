@@ -102,6 +102,11 @@ public static class DependencyInjection
         services.AddScoped<IFileMaintenance, FileMaintenanceService>();
         services.AddSingleton(sp => FileCleanupOptions.FromConfiguration(sp.GetRequiredService<IConfiguration>()));
         services.AddHostedService<FileCleanupWorker>();
+        // Fatma Zehra: yönetici dosya ayarları ve ders dosyaları (FILE-FR-13, component="course").
+        services.AddScoped<IFileSettingsService, FileSettingsService>();
+        services.AddScoped<ISiteAdminQuery, IdentitySiteAdminQuery>();
+        services.AddScoped<IFilePolicy, CourseFilePolicy>();
+        services.AddScoped<ISeedContributor, CourseFilesSeedContributor>(); // SENG101 ders dosyası, CRS'den sonra (Order 31)
 
         // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
         services.AddScoped<SeedRunner>();

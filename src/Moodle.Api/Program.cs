@@ -26,6 +26,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<Moodle.Web.Assignments.AsgClient>(client => client.BaseAddress = new Uri(builder.Configuration["AsgApi:BaseUrl"] ?? "http://localhost:5202")).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false });
 builder.Services.AddCrsApi();
+builder.Services.AddFileAdminApi();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddCrsWeb();
@@ -51,6 +52,7 @@ app.MapCrsEndpoints();
 app.MapGrdEndpoints();
 app.MapAuthEndpoints();
 app.MapFileEndpoints();
+app.MapFileAdminEndpoints();
 app.MapStaticAssets($"{typeof(Program).Assembly.GetName().Name}.staticwebassets.endpoints.json");
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

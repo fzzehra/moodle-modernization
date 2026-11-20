@@ -1,5 +1,7 @@
 # WBS-3 Mevcut Alt Fonksiyonların Yapay Zekâ Desteğiyle Yeniden Geliştirilmesi
 
+> **Yöntem değişikliği (18.11.2026, hocanın onayıyla):** Hiçbir işlev elle (YZ'siz) yazılmaz; bütün kod YZ ile yazılır. K17 karşılaştırması, YZ ile harcanan gerçek efor ile aynı kodun elle yazılsaydı gerektireceği eforun Basic COCOMO tahmini arasında yapılır (WBS-2 §4.4). Hata oranı ve yeniden çalışma yalnızca YZ ile yazılan kod için ölçülür. Herkes YZ kaydına yalnızca YZ ile harcadığı süreyi yazar; COCOMO hesabı §3'te herkes için aynı kurallarla toplu yapılır. Bölümlerdeki "elle geliştirme" ve "karşılaştırma çifti" ifadeleri bu karardan önce yazılmıştır.
+
 Sürüm planı ve kararlar: [WBS-1 §9](WBS-1-analiz.md). Yapay zekâ kayıt şablonu ve karşılaştırma tasarımı: [WBS-2 §4](WBS-2-tasarim.md). İzlenebilirlik: [izlenebilirlik.md](izlenebilirlik.md).
 
 Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablonuyla yapay zekâ kaydı bulunur.
@@ -49,7 +51,7 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 **Harcanan süre:** Araştırma (iskelet/CRS/GRD'yi okuma, arayüzleri çıkarma) ve kod yazımı toplam yaklaşık 35–40 dakika (19.11.2026, 12:30 civarı başlayıp 13:30 civarı bitti); test çalıştırma/düzeltme döngüleri (Testcontainers koşuları dâhil) ayrıca yaklaşık 20 dakika sürdü. Bu süreler Claude Code'un kendi çalışmasını ve insanın yönlendirme/okuma süresini birlikte içerir; ayrıştırılmış ölçüm yapılmadı.
 
-**Elle geliştirme:** Karşılaştırma çifti için ikinci işlev (hesap durumu kontrolü ve başarısız giriş kaydı) de bu oturumda YZ ile üretildi; ayrı, bağımsız bir elle geliştirme yapılmadı (GRD'nin §1.5'teki yaklaşımıyla tutarlı: elle geliştirme yoksa efor COCOMO II ile tahmin edilir, §3). WBS-2 §4.4'teki "adil karşılaştırma" ilkesi (aynı kişi, aynı güncel gereksinim, kör inceleme) bu nedenle bu çift için henüz uygulanamadı; gerçek bir karşılaştırma isteniyorsa ikinci işlevin bağımsız olarak elle yazılması gerekir.
+**Elle geliştirme:** Karşılaştırma çifti için ikinci işlev (hesap durumu kontrolü ve başarısız giriş kaydı) de bu oturumda YZ ile üretildi; ayrı, bağımsız bir elle geliştirme yapılmadı (GRD'nin §1.5'teki yaklaşımıyla tutarlı: elle geliştirme yoksa efor Basic COCOMO (raporda toplu hesaplanır, §3) ile tahmin edilir). Hocanın kararıyla elle geliştirme yapılmaz; karşılaştırma, YZ ile harcanan gerçek efor ile aynı kodun Basic COCOMO tahmini arasında yapılır (§3).
 
 **Kanıt:** Bu PR (şube: `irem/auth-wbs3`).
 
@@ -101,7 +103,7 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 | 4 | Öğrenci not raporu ve not defteri | ~8 dk |
 | 5 | Blazor sayfaları | ~19 dk |
 
-**Elle geliştirme:** GRD'de elle yazılmış işlev yoktur. Karşılaştırma için elle yazım eforu COCOMO II ile **tahmin** edilmiştir (§3). Hocanın şartı "seçilmiş bazı alt fonksiyonlar" olduğundan karşılaştırma diğer modüllerin çiftleriyle yapılır.
+**Elle geliştirme:** GRD'de elle yazılmış işlev yoktur. Karşılaştırma için elle yazım eforu Basic COCOMO (raporda toplu hesaplanır, §3) ile **tahmin** edilmiştir. Hocanın şartı "seçilmiş bazı alt fonksiyonlar" olduğundan karşılaştırma diğer modüllerin çiftleriyle yapılır.
 
 **Kanıt:** PR #23
 
@@ -175,30 +177,32 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 ### 2.5 Temizlik görevi, ders dosyaları ve rapor (Fatma Zehra)
 
-## 3. Yapay zekâ destekli ve elle geliştirme karşılaştırması
+## 3. Yapay zekâ destekli geliştirme ve COCOMO elle tahmini karşılaştırması
 
-Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Veriler herkesin yapay zekâ kaydından ve PR geçmişinden alınır. Bu tablo herkesin kaydı tamamlanınca doldurulur.
+Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Bütün kod YZ ile yazılır; YZ ile harcanan gerçek efor, aynı kodun elle yazılsaydı gerektireceği eforun Basic COCOMO tahminiyle karşılaştırılır (organik, Efor = 2,4 × KLOC^1,05 kişi-ay, 1 kişi-ay = 152 saat; satır sayısı boş ve yorum satırları hariç). Efor, hata ve inceleme verileri herkesin yapay zekâ kaydından ve PR geçmişinden alınır. Satır sayısı ve COCOMO sütunları en sonda herkes için aynı kurallarla toplu doldurulur.
 
-| Modül | İşlev | Üretim | İnsan eforu (saat) | Satır | İnceleme ve testte bulunan hata | Hata / 1.000 satır | İnceleme turu | Değişen satır oranı | Kaynak |
+| Modül | Kapsam | Satır (boş ve yorum hariç) | Gerçek efor, YZ ile (saat) | COCOMO elle tahmini (saat) | Oran (gerçek / tahmin) | İnceleme ve testte bulunan hata | Hata / 1.000 satır | İnceleme turu | Kaynak |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Altyapı | Tohumlama | YZ | | | | | | | |
-| Altyapı | Hata gövdesi ve mimari testi | Elle | | | | | | | |
-| AUTH | Giriş ve çıkış | YZ | ~1 | ~1086* | 6† | — | 1 | — | PR (bu şube) |
-| AUTH | Hesap durumu ve başarısız giriş kaydı | ikinci/karşılaştırma uygulaması¶ | | 104 | 0 | 0 | 1 | — | `ManualAccountStatusCheck.cs` |
-| CRS | Ders oluşturma | YZ | | | | | | | |
-| CRS | Derse kayıt | Elle | | | | | | | |
-| ASG | Teslim kaydetme | YZ | | | | | | | |
-| ASG | Teslim listesi | Elle | | | | | | | |
-| GRD | Puan yazma | YZ | | | | | | | |
-| GRD | Kişisel not raporu | Elle yapılmadı; efor COCOMO II tahmini | | | — | — | — | — | |
-| FILE | İndirme ve yetki | YZ | ~0,5 | ~540‡ | 2§ | — | 1 | — | PR (bu şube: `irem/file-wbs3-2surum`) |
-| FILE | Kota hesabı | ikinci/karşılaştırma uygulaması¶ | | 70 | 0 | 0 | 1 | — | `ManualQuotaCalculator.cs` |
+| **1. sürüm** | | | | | | | | | |
+| Altyapı | Ortak bileşenler (§1.1) | | | | | | | | |
+| AUTH | Kimlik ve yetki (§1.2) | | ~1 | | | 6† | | 1 | PR (şube: `irem/auth-wbs3`); `ManualAccountStatusCheck.cs`¶ |
+| CRS | Ders ve kayıt (§1.3) | | | | | | | | |
+| ASG | Ödev ve teslim (§1.4) | | | | | | | | |
+| GRD | Değerlendirme (§1.5) | | ~1,1 | | | 7◊ | | | §1.5, PR #23 |
+| **2. sürüm** | | | | | | | | | |
+| FILE | Altyapı (§2.1) | | ~1 | | | 2‡ | | | §2.1 |
+| FILE | Kaydetme, indirme, silme ve kota (§2.2) | | ~0,5 | | | 2§ | | 1 | PR (şube: `irem/file-wbs3-2surum`); `ManualQuotaCalculator.cs`¶ |
+| FILE | Yükleme ve antivirüs (§2.4) | | | | | | | | |
+| FILE | Temizlik görevi ve ders dosyaları (§2.5) | | | | | | | | |
+| ASG | Ödeve dosya teslimi (§2.4) | | | | | | | | |
+| AUTH ve CRS | Kalan gereksinimler (§2.3) | | | | | | | | |
 
-2. sürümün diğer çiftleri (Seray, Sinem, Aslı Ceren, Fatma Zehra) kendi PR'ları bitince bu tabloya eklenir.
-
-\* AUTH satırındaki satır sayısı, giriş/çıkış işlevine özgü değil; tüm AUTH modülünün (üretilmiş geçiş dosyaları hariç) el yazısı satır toplamıdır. Giriş/çıkış ve hesap durumu/başarısız giriş kaydı aynı sınıfta (`AuthService.LoginAsync`) iç içe olduğundan anlamlı bir ayrım yapılamadı; bu, AUTH çiftinin bu tablo için en büyük sınırlılığıdır.
 † İnceleme turu sayısı, bu oturumdaki kendi kendine derleme/test döngülerinden (insan incelemesi değil) sayılmıştır: ilk derleme hatası (eksik `using`), ardından tam test koşusunda ortaya çıkan 3 CRS/GRD testi + 1 birim testi düzeltmesi, ardından AUTH'un kendi testlerinde 3 ayrı hata (kimlik çakışması, kilitlenme eşiği, `/permissions`'ın CRS'ye bağımlılığı). Bağımsız bir insan kod incelemesi henüz yapılmadı.
-‡ FILE satırındaki satır sayısı da (AUTH'taki gibi) tüm FILE katkımın (İrem) toplamıdır; indirme/yetki ile kota hesabı aynı `FileService` sınıfında iç içedir, ayrı sayılamaz.
 § İlk derlemede iki hata (yanlış tam nitelikli tür adı, `Task`/`ValueTask` uyuşmazlığı); ikinci denemede derlendi ve tüm testler ilk çalıştırmada geçti.
+◊ §1.5'teki YZ kaydında YZ'nin kendi düzelttiği maddelerden sayılmıştır: geçişin gereksiz iki indeks nedeniyle yeniden üretilmesi, test verisindeki hata mesajı, bir testte dizi karşılaştırma biçimi, sayfa adımında iki derleme öncesi düzeltme, bir test verisi tür hatası ve bir gerçek hata (`422` yanıtında puan alanının ekran okuyucuya geçersiz bildirilmemesi). İnsan incelemesinde koda düzeltme gerekmedi. İnceleme turu sayısı kayıtta yok. Süre, Claude Code'un çalışmasını ve insan süresini birlikte içerir.
+‡ §2.1'deki YZ kaydından: seed verisini okuyan testin çalışma zamanı modelinde kırılması ve sahte dosya politikasının üretimde kayıtlı kalması (fail-closed kalıbına çevrildi). İnsan düzeltmesi yok. İnceleme turu sayısı kayıtta yok. Efor, kayıttaki "YZ ile çalışma: ~1 saat (oturum kaydı, alt sınır)" değeridir. Kayıtta ayrıca "İnsan: ~1 saat (tahmin)" yazılıdır.
+¶ Bu dosyalar da aynı oturumda YZ ile üretilmiştir; incelemede ve testte hata bulunmamıştır (0 hata, 1 tur). Modülün YZ kodu olarak satır sayımına dahil edilir.
 
-**Yorum:** Doldurulduktan sonra yazılacak. Sınırlılıklar da burada belirtilecek: örneklem küçük, geliştiriciler farklı, GRD'de ve AUTH'ta elle veri yok (AUTH'ta ve FILE'da ayrıca iki işlev aynı oturumda ve aynı kod birimlerinde üretildiği için anlamlı biçimde ayrılamadı).
+**Yorum:** Doldurulduktan sonra yazılacak.
+
+**Sınırlılıklar:** Elle efor ölçülmez, aynı kod için Basic COCOMO ile tahmin edilir. COCOMO büyük projeler için geliştirilmiştir; bu kadar küçük kodda tahmin yüksek çıkar, bu yüzden oran kesin ölçüm değil gösterge olarak okunmalıdır. Gerçek efor kayıtlarında insan süresi ile modelin çalışma süresi her zaman ayrıştırılamamıştır (ör. AUTH ve FILE kayıtları). Örneklem küçüktür ve modüller farklı kişilerce geliştirilmiştir; hata ve inceleme turu sayıları kısmen YZ'nin kendi derleme/test döngülerinden gelir, bağımsız insan incelemesi henüz tamamlanmamıştır.

@@ -33,6 +33,7 @@ services:
       Database__Initialize: "true"
       SEED_SAMPLE_DATA: "${SEED_SAMPLE_DATA:-false}"   # true: ortam/ornek-veri.feature verisini yükler (ISeedContributor'lar)
       Database__SeedAsg: "${ASG_SEED:-false}"
+      FILES_ROOT: /var/moodle-files   # içerik adresli dosya deposu (modern-files birimi)
       ConnectionStrings__Default: "Host=modern-db;Port=5432;Database=moodle_modern;Username=moodle;Password=${MODERN_DB_PASSWORD:-local_dev_only}"
     volumes:
       - modern-files:/var/moodle-files

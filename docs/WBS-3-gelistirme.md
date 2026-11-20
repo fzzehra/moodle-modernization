@@ -228,7 +228,7 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 **Elle geliştirme:** Yapılmadı; efor Basic COCOMO ile raporda toplu hesaplanır (§3).
 
-**Kanıt:** PR #__
+**Kanıt:** PR #40
 
 ## 3. Yapay zekâ destekli geliştirme ve COCOMO elle tahmini karşılaştırması
 

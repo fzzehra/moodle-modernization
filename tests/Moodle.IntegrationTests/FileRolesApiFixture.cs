@@ -22,6 +22,7 @@ namespace Moodle.IntegrationTests;
 public sealed class FileRolesApiFixture : IAsyncLifetime
 {
     public const int CourseId = 101;
+    public const int HiddenCourseId = 102;
     public const int MissingCourseId = 999;
 
     public const int SiteAdmin = 1;
@@ -99,13 +100,18 @@ public sealed class FileRolesApiFixture : IAsyncLifetime
 
     private sealed class TestCourses : ICourseDirectory
     {
-        public Task<CourseInfo?> FindAsync(int courseId, CancellationToken ct = default) =>
-            Task.FromResult(courseId == CourseId ? new CourseInfo(courseId, 1, "Programlamaya Giriş", "SENG101", true, null, null) : null);
+        public Task<CourseInfo?> FindAsync(int courseId, CancellationToken ct = default) => Task.FromResult(courseId switch
+        {
+            CourseId => new CourseInfo(courseId, 1, "Programlamaya Giriş", "SENG101", true, null, null),
+            HiddenCourseId => new CourseInfo(courseId, 1, "Gizli Ders", "SENG102", false, null, null),
+            _ => (CourseInfo?)null,
+        });
     }
 
+    /// <summary>Aynı kullanıcılar hem görünür (101) hem gizli (102) derse aynı rolle kayıtlıdır.</summary>
     private sealed class TestEnrolments : IEnrolmentQuery
     {
-        private static string? Role(int userId, int courseId) => courseId != CourseId ? null : userId switch
+        private static string? Role(int userId, int courseId) => courseId is not (CourseId or HiddenCourseId) ? null : userId switch
         {
             EditingTeacher => "EditingTeacher",
             Teacher => "Teacher",
@@ -116,7 +122,7 @@ public sealed class FileRolesApiFixture : IAsyncLifetime
         public Task<bool> IsActivelyEnrolledAsync(int userId, int courseId, CancellationToken ct = default) =>
             Task.FromResult(Role(userId, courseId) is not null);
         public Task<IReadOnlyList<int>> ListEnrolledUserIdsAsync(int courseId, CancellationToken ct = default) =>
-            Task.FromResult<IReadOnlyList<int>>(courseId == CourseId ? [EditingTeacher, Teacher, Student] : []);
+            Task.FromResult<IReadOnlyList<int>>(courseId is CourseId or HiddenCourseId ? [EditingTeacher, Teacher, Student] : []);
         public Task<string?> FindActiveRoleAsync(int userId, int courseId, CancellationToken ct = default) =>
             Task.FromResult(Role(userId, courseId));
     }

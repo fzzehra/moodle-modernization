@@ -132,6 +132,28 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
     }
 
     [Fact]
+    public async Task FILE_FR_13_gizli_derste_ogrenci_goremez_ogretmenler_ve_yonetici_gorur()
+    {
+        var hiddenArea = $"/api/v1/file-areas/{HiddenCourseId}/course/files/0";
+        var teacherFactory = Factory(EditingTeacher);
+        var draftId = await DraftWithFileAsync(teacherFactory, EditingTeacher, "gizli-ders.pdf", "gizli ders notu");
+        var commit = await CommitAsync(teacherFactory.CreateClient(), draftId, hiddenArea);
+        Assert.Equal(HttpStatusCode.OK, commit.StatusCode);
+        var fileId = (await commit.Content.ReadFromJsonAsync<FileList>())!.Files.Single().FileId;
+
+        var student = Factory(Student).CreateClient();
+        await AssertErrorAsync(await student.GetAsync($"{hiddenArea}/files"), HttpStatusCode.NotFound, "not_found");
+        await AssertErrorAsync(await student.GetAsync($"/api/v1/files/{fileId}/content"), HttpStatusCode.NotFound, "not_found");
+
+        foreach (var userId in new[] { EditingTeacher, Teacher, SiteAdmin, Manager })
+        {
+            var response = await Factory(userId).CreateClient().GetAsync($"{hiddenArea}/files");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains((await response.Content.ReadFromJsonAsync<FileList>())!.Files, f => f.FileId == fileId);
+        }
+    }
+
+    [Fact]
     public async Task FILE_FR_13_olmayan_dersin_dosya_alani_404()
     {
         var factory = Factory(SiteAdmin);

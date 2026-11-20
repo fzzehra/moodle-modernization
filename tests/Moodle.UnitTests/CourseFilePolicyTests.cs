@@ -8,13 +8,18 @@ namespace Moodle.UnitTests;
 public sealed class CourseFilePolicyTests
 {
     private const int CourseId = 101;
+    private const int HiddenCourseId = 102;
     private const int MissingCourseId = 999;
     private const int UserId = 7;
 
     private sealed class Courses : ICourseDirectory
     {
-        public Task<CourseInfo?> FindAsync(int courseId, CancellationToken ct = default) =>
-            Task.FromResult(courseId == CourseId ? new CourseInfo(courseId, 1, "Programlamaya Giriş", "SENG101", true, null, null) : null);
+        public Task<CourseInfo?> FindAsync(int courseId, CancellationToken ct = default) => Task.FromResult(courseId switch
+        {
+            CourseId => new CourseInfo(courseId, 1, "Programlamaya Giriş", "SENG101", true, null, null),
+            HiddenCourseId => new CourseInfo(courseId, 1, "Gizli Ders", "SENG102", false, null, null),
+            _ => (CourseInfo?)null,
+        });
     }
 
     private sealed class Enrolments(string? role) : IEnrolmentQuery
@@ -24,7 +29,7 @@ public sealed class CourseFilePolicyTests
         public Task<IReadOnlyList<int>> ListEnrolledUserIdsAsync(int courseId, CancellationToken ct = default) =>
             Task.FromResult<IReadOnlyList<int>>(role is null ? [] : [UserId]);
         public Task<string?> FindActiveRoleAsync(int userId, int courseId, CancellationToken ct = default) =>
-            Task.FromResult(userId == UserId && courseId == CourseId ? role : null);
+            Task.FromResult(userId == UserId && courseId is CourseId or HiddenCourseId ? role : null);
     }
 
     private sealed class Access(bool manager) : IAccessPolicy
@@ -53,6 +58,23 @@ public sealed class CourseFilePolicyTests
     {
         var policy = Policy(role, manager);
         var area = CourseFilePolicy.AreaFor(CourseId);
+
+        Assert.Equal(canRead, await policy.CanReadAsync(UserId, area));
+        Assert.Equal(canWrite, await policy.CanWriteAsync(UserId, area));
+    }
+
+    [Theory]
+    // rol,             yönetici, okur,  yazar  — gizli ders
+    [InlineData("Student", false, false, false)]     // gizli dersi öğrenci göremez
+    [InlineData("Teacher", false, true, false)]
+    [InlineData("EditingTeacher", false, true, true)]
+    [InlineData(null, true, true, true)]             // yönetici
+    [InlineData(null, false, false, false)]
+    public async Task FILE_FR_13_gizli_derste_ogrenci_okuyamaz_ogretmenler_ve_yonetici_okur(
+        string? role, bool manager, bool canRead, bool canWrite)
+    {
+        var policy = Policy(role, manager);
+        var area = CourseFilePolicy.AreaFor(HiddenCourseId);
 
         Assert.Equal(canRead, await policy.CanReadAsync(UserId, area));
         Assert.Equal(canWrite, await policy.CanWriteAsync(UserId, area));

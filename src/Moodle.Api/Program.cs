@@ -13,6 +13,7 @@ using Moodle.Infrastructure.Auth;
 using Moodle.Web;
 using Moodle.Web.Auth;
 using Moodle.Web.Crs;
+using Moodle.Web.Files;
 using Moodle.Web.Grd;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +33,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddCrsWeb();
 builder.Services.AddGrdWeb();
 builder.Services.AddAuthWeb();
+builder.Services.AddFileWeb();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();

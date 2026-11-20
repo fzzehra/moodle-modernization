@@ -71,13 +71,14 @@ public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicy
 
     public async Task DeleteFromDraftAsync(int userId, long draftId, long fileId, CancellationToken ct = default)
     {
-        await RequireOwnDraftAsync(userId, draftId, ct);
+        var draft = await RequireOwnDraftAsync(userId, draftId, ct);
         var area = DraftArea(userId, draftId);
         var entry = await db.Entries.SingleOrDefaultAsync(
             e => e.Id == fileId && e.DeletedAt == null && e.ContextId == area.ContextId
                 && e.Component == area.Component && e.Area == area.Area && e.ItemId == area.ItemId, ct)
             ?? throw AppException.NotFound();
         await SoftDeleteAsync(entry, ct);
+        draft.LastActivityAt = clock.GetUtcNow(); // FILE-BUG-02: taslaktan silme de etkinliktir
         await db.SaveChangesAsync(ct);
     }
 
@@ -85,7 +86,7 @@ public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicy
     public async Task<IReadOnlyList<FileMeta>> CommitAsync(
         int userId, long draftId, FileArea target, bool replace = true, CancellationToken ct = default)
     {
-        await RequireOwnDraftAsync(userId, draftId, ct);
+        var draft = await RequireOwnDraftAsync(userId, draftId, ct);
         if (!await CanWriteAsync(userId, target, ct)) throw AppException.NotFound();
 
         var sourceArea = DraftArea(userId, draftId);
@@ -96,6 +97,7 @@ public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicy
                 await SoftDeleteAsync(old, ct);
 
         var now = clock.GetUtcNow();
+        draft.LastActivityAt = now; // FILE-BUG-02: kaydetme de etkinliktir
         foreach (var entry in draftEntries)
         {
             entry.ContextId = target.ContextId;

@@ -1,3 +1,4 @@
+> **19.11.2026 v2 güncellemesi:** Güncel durum [ASG/FILE teslim raporundadır](../asg-file-wbs3/TESLIM-RAPORU.md). Gerçek AUTH ve aktif CRS öğrenci kapsamı bağlıdır; yalnız gerçek bölüm modeli/ICourseSectionQuery hâlâ engeldir. Manuel kod yazma zorunluluğu kaldırılmıştır. Aşağıdaki önceki rapor tarihsel kayıttır; eski AUTH/manuel bekleme ifadeleri güncel durum sayılmamalıdır. V2 sonuçları ve devri [doğrulama](../asg-file-wbs3/DOGRULAMA.json), [sözleşmeler](../asg-file-wbs3/ENTEGRASYON.md) belgelerindedir. V1 PR #21 korunur, v2 PR açılmadı.
 # PR #21 birleşmesinde güncel bağlantılar
 
 18.11.2026 kullanıcı onayıyla CrsService artık IAssignmentLearnerQuery gerçekleştiriyor: aktif, tarih aralığı geçerli, Role="Student" kayıtları. DI gerçek CrsService'e bağlı; ICourseDirectory/IEnrolmentQuery de aynı gerçek servisi kullanır. Sinem için öğrenci sözleşmesi artık öneri değildir.

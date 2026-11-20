@@ -1,3 +1,4 @@
+> **19.11.2026 v2 güncellemesi:** Güncel durum [ASG/FILE teslim raporundadır](../asg-file-wbs3/TESLIM-RAPORU.md). Gerçek AUTH ve aktif CRS öğrenci kapsamı bağlıdır; yalnız gerçek bölüm modeli/ICourseSectionQuery hâlâ engeldir. Manuel kod yazma zorunluluğu kaldırılmıştır. Aşağıdaki önceki rapor tarihsel kayıttır; eski AUTH/manuel bekleme ifadeleri güncel durum sayılmamalıdır. V2 sonuçları ve devri [doğrulama](../asg-file-wbs3/DOGRULAMA.json), [sözleşmeler](../asg-file-wbs3/ENTEGRASYON.md) belgelerindedir. V1 PR #21 korunur, v2 PR açılmadı.
 # Güncel durum — PR #21 yerel merge, 18 Kasım 2026
 
 ASG commit 317ceb1 üzerine origin/main c7a2b66 (CRS PR #20) commit oluşturmadan birleştirildi. Dört çakışma çözüldü; 266 .NET + 7 JavaScript testi geçti. Gerçek CRS öğrenci sorgusu bağlandı; bölüm modeli ve gerçek AUTH henüz yok. Bu nedenle gerçek ASG oluşturma/bütünleşik oturum akışı hazır sayılmıyor. Yerel merge commit/push yapılmadı.

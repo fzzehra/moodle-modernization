@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -73,11 +74,13 @@ public static class DependencyInjection
         services.AddScoped<IAssignmentLearnerQuery>(sp => sp.GetRequiredService<CrsService>());
 
         // Real CRS data must never inherit the synthetic evaluator-2/learner-3..5 grants.
-        services.AddScoped<ISubmissionAccessPolicy, UnavailableSubmissionScope>();
+        services.AddScoped<ISubmissionAccessPolicy, Moodle.Infrastructure.Assignments.AssignmentSubmissionAccessPolicy>();
         // CRS has no section model yet; do not infer ownership from synthetic IDs.
         services.AddScoped<ICourseSectionQuery, UnavailableCourseSectionQuery>();
         services.AddScoped<IAssignmentQuery, AssignmentQuery>();
         services.AddScoped<IAssignmentStore, AssignmentStore>();
+        services.AddScoped<Moodle.Infrastructure.Assignments.AssignmentFileWriteScope>();
+        services.AddScoped<IFilePolicy, Moodle.Infrastructure.Assignments.AssignmentFilePolicy>();
         services.AddScoped<AssignmentService>();
         services.AddSingleton(TimeProvider.System);
 
@@ -94,12 +97,19 @@ public static class DependencyInjection
         services.AddSingleton(FileStoreOptions.FromEnvironment());
         services.AddSingleton<IFileStore, LocalDiskFileStore>();
         services.AddScoped<FileConsistencyChecker>();
+        services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>()
+            .GetSection("FileUpload").Get<UploadLimits>() ?? new UploadLimits());
+        services.AddSingleton(sp => sp.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>()
+            .GetSection("ClamAv").Get<ClamAvOptions>() ?? new ClamAvOptions());
+        services.AddSingleton<IVirusScanner, ClamAvVirusScanner>();
+        services.AddScoped<DraftUploadService>();
         services.AddScoped<FileService>();                                  // İrem: gerçek dosya servisi (FR-02, 03, 04, 05, 09)
         services.AddScoped<IFileService>(sp => useDevelopmentFakes(sp)
             ? new FakeFileService(sp.GetRequiredService<IFileStore>()) : sp.GetRequiredService<FileService>());
 
         // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
         services.AddScoped<SeedRunner>();
+        services.AddScoped<ISeedContributor, Moodle.Infrastructure.Assignments.AsgSampleSeedContributor>();
         services.AddScoped<ISeedContributor, CrsSeedContributor>();   // CRS örnek verisi
         services.AddScoped<ISeedContributor, FilesSeedContributor>(); // FILE örnek verisi (İrem)
         return services;

@@ -1,0 +1,20 @@
+@page "/courses/{CourseId:int}/assignments"
+@using Moodle.Web.Assignments
+@inject AsgClient Api
+<h1>Ders ödevleri</h1>
+<p><a href="@($"/courses/{CourseId}")">Derse dön</a> · <a href="@($"/courses/{CourseId}/assignments/new")">Ödev oluştur</a></p>
+@if(error is not null) { <p role="alert">@error</p> }
+else if(items is null) { <p>Yükleniyor…</p> }
+else {
+    <ul>@foreach(var item in items) { <li><a href="@($"/assignments/{item.Id}")">@item.Title</a></li> }</ul>
+    @if(items.Length==0) { <p>Bu derste ödev yok.</p> }
+}
+@code {
+    [Parameter] public int CourseId {get;set;}
+    private AssignmentData[]? items;private string? error;
+    protected override async Task OnParametersSetAsync()
+    {
+        try {items=await Api.SendAsync<AssignmentData[]>(HttpMethod.Get,$"/api/v1/courses/{CourseId}/assignments");}
+        catch(Exception ex) when(ex is AsgClientException or HttpRequestException) {error=ex is AsgClientException ? ex.Message : "Sunucuya ulaşılamadı.";}
+    }
+}

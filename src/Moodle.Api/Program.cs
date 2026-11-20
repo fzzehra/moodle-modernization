@@ -24,6 +24,7 @@ builder.Services.AddGrdApi();
 builder.Services.AddAuthApi();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 builder.Services.AddHttpClient<Moodle.Web.Assignments.AsgClient>(client => client.BaseAddress = new Uri(builder.Configuration["AsgApi:BaseUrl"] ?? "http://localhost:5202")).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false });
 builder.Services.AddCrsApi();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -51,6 +52,8 @@ app.MapCrsEndpoints();
 app.MapGrdEndpoints();
 app.MapAuthEndpoints();
 app.MapFileEndpoints();
+app.MapDraftEndpoints();
+app.MapGet("/api/v1/antiforgery", (HttpContext context, Microsoft.AspNetCore.Antiforgery.IAntiforgery csrf) => Results.Ok(new { token = csrf.GetAndStoreTokens(context).RequestToken }));
 app.MapStaticAssets($"{typeof(Program).Assembly.GetName().Name}.staticwebassets.endpoints.json");
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

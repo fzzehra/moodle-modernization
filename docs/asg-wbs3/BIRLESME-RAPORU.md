@@ -1,3 +1,4 @@
+> **19.11.2026 v2 güncellemesi:** Güncel durum [ASG/FILE teslim raporundadır](../asg-file-wbs3/TESLIM-RAPORU.md). Gerçek AUTH ve aktif CRS öğrenci kapsamı bağlıdır; yalnız gerçek bölüm modeli/ICourseSectionQuery hâlâ engeldir. Manuel kod yazma zorunluluğu kaldırılmıştır. Aşağıdaki önceki rapor tarihsel kayıttır; eski AUTH/manuel bekleme ifadeleri güncel durum sayılmamalıdır. V2 sonuçları ve devri [doğrulama](../asg-file-wbs3/DOGRULAMA.json), [sözleşmeler](../asg-file-wbs3/ENTEGRASYON.md) belgelerindedir. V1 PR #21 korunur, v2 PR açılmadı.
 # PR #21 — origin/main birleşme raporu
 
 18 Kasım 2026. ASG dalı codex/asg-wbs3-implementation, HEAD 317ceb1; merge hedefi origin/main c7a2b66 (CRS fd3e155 / PR #20). Başlangıçta çalışma ağacı temizdi. git fetch origin ardından git merge --no-commit --no-ff origin/main kullanıldı. Rebase/force push yapılmadı. Çözümler index'e alınarak merge commit öncesinde bırakılır; bu çalışma kapsamında commit, push veya PR merge yapılmadı.

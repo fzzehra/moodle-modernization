@@ -10,12 +10,19 @@ namespace Moodle.Infrastructure.Auth;
 /// <see cref="IEnrolmentQuery"/> arayüzü üzerinden) toplar; kararı saf <see cref="CapabilityRules"/> verir.
 /// Askıya alınmış/silinmiş kullanıcı hiçbir yeteneğe sahip değildir (AUTH-BR-02).
 /// </summary>
-public sealed class AuthAccessPolicy(UserManager<AppUser> users, IEnrolmentQuery enrolments) : IAccessPolicy
+public sealed class AuthAccessPolicy(UserManager<AppUser> users, IEnrolmentQuery enrolments, IAssignmentQuery assignments) : IAccessPolicy
 {
     public async Task<bool> HasCapabilityAsync(int userId, string capability, ContextRef context, CancellationToken ct = default)
     {
         var user = await users.FindByIdAsync(userId.ToString());
         if (user is null || user.Suspended || user.Deleted) return false;
+
+        if (context.Level == ContextLevel.Module && capability.StartsWith("mod/assign:", StringComparison.Ordinal))
+        {
+            var assignment = await assignments.FindAsync(context.InstanceId, ct);
+            if (assignment is null) return false;
+            context = ContextRef.ForCourse(assignment.CourseId);
+        }
 
         var systemRoles = (await users.GetRolesAsync(user)).ToHashSet();
 

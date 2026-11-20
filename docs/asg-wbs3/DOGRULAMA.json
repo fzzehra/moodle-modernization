@@ -541,5 +541,25 @@
       "crsTestsUnchangedFromMain": true,
       "unmergedEntries": 0
     }
+  },
+  "v2Update": {
+    "historicalRecordsPreserved": true,
+    "manualDevelopmentObligationRemoved": true,
+    "summary": "../asg-file-wbs3/DOGRULAMA.json",
+    "date": "2026-11-19"
+  },
+  "finalAcceptanceUpdate": {
+    "report": "../asg-file-wbs3/SON-KONTROL.md",
+    "results": "../asg-file-wbs3/DOGRULAMA.json#sonKontrol",
+    "date": "2026-11-20"
+  },
+  "serayFixUpdate": {
+    "fix": "e2b50d0",
+    "dotnetFailed": 0,
+    "dotnetPassed": 708,
+    "date": "2026-11-20",
+    "main": "1424b04",
+    "result": "../asg-file-wbs3/DOGRULAMA.json#serayFixIntegration",
+    "pr": 39
   }
 }

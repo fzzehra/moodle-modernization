@@ -119,7 +119,7 @@ public class AssignmentApiTests(AsgFixture fixture) : IClassFixture<AsgFixture>
         using var teacher = fixture.Client(2);
         foreach (var invalid in new[] { Request() with { Title = " " }, Request() with { SectionId = 9 },
             Request() with { OpensAt = fixture.Clock.Now, DueAt = fixture.Clock.Now.AddMinutes(-1) },
-            Request() with { EnabledSubmissionTypes = ["file"] } })
+            Request() with { EnabledSubmissionTypes = ["unsupported"] } })
             await Error(await teacher.PostAsJsonAsync("/api/v1/courses/1/assignments", invalid), HttpStatusCode.UnprocessableEntity);
         using var student = fixture.Client();
         await Error(await student.PostAsJsonAsync("/api/v1/courses/1/assignments", Request()), HttpStatusCode.Forbidden);

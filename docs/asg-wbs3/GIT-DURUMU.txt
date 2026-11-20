@@ -140,3 +140,202 @@ A  tests/web/crs-browser-smoke.mjs
  tests/web/crs-api.test.mjs                         |  54 +++
  tests/web/crs-browser-smoke.mjs                    |  82 +++++
  65 files changed, 4162 insertions(+), 30 deletions(-)
+
+--- V2 CURRENT INVENTORY; previous content is historical ---
+19.11.2026 Europe/Istanbul
+Branch: codex/asg-file-wbs3-v2
+HEAD/base: 3b9ccd6edc7230d6f17f1f614807bf17134a443b
+V1 PR: #21; v2 PR: none
+Commit/push/PR/merge/rebase/force push: not performed
+Sources, tests and docs intentionally uncommitted; no staging performed.
+
+ M .dockerignore
+ M .gitignore
+ M docker/docker-compose.yml
+ M docs/WBS-3-gelistirme.md
+ M docs/asg-wbs3/BIRLESME-RAPORU.md
+ M docs/asg-wbs3/DOGRULAMA.json
+ M docs/asg-wbs3/ORTAK-SOZLESMELER.md
+ M docs/asg-wbs3/TESLIM-RAPORU.md
+ M docs/asg-wbs3/YZ-KAYDI.md
+ M docs/izlenebilirlik.md
+ M src/Moodle.Api/AssignmentEndpoints.cs
+ M src/Moodle.Api/Program.cs
+ M src/Moodle.Application/Assignments/AssignmentService.cs
+ M src/Moodle.Application/Assignments/Contracts.cs
+ M src/Moodle.Application/Auth/CapabilityRules.cs
+ M src/Moodle.Domain/Assignments/Submission.cs
+ M src/Moodle.Infrastructure/Auth/AuthAccessPolicy.cs
+ M src/Moodle.Infrastructure/DependencyInjection.cs
+ M src/Moodle.Infrastructure/Files/FileService.cs
+ M src/Moodle.Infrastructure/Persistence/AssignmentStore.cs
+ M src/Moodle.Infrastructure/Persistence/Migrations/MoodleDbContextModelSnapshot.cs
+ M src/Moodle.Infrastructure/Persistence/MoodleDbContext.cs
+ M src/Moodle.Web/App.razor
+ M src/Moodle.Web/Assignments/AsgClient.cs
+ M src/Moodle.Web/Layout/NavMenu.razor
+ M src/Moodle.Web/Pages/CourseDetails.razor
+ M src/Moodle.Web/Pages/CreateAssignmentPage.razor
+ M src/Moodle.Web/Pages/SubmissionDetail.razor
+ M src/Moodle.Web/Pages/SubmissionForm.razor
+ M src/Moodle.Web/Pages/SubmissionList.razor
+ M tests/Moodle.IntegrationTests/AsgCrsMergeTests.cs
+ M tests/Moodle.IntegrationTests/AssignmentApiTests.cs
+ M tests/Moodle.IntegrationTests/AssignmentRevisionTests.cs
+ M tests/Moodle.IntegrationTests/FileEndpointTests.cs
+ M tests/Moodle.IntegrationTests/FilesApiFixture.cs
+ M tests/Moodle.IntegrationTests/FilesSeedTests.cs
+ M tests/Moodle.UnitTests/AssignmentServiceTests.cs
+?? docker/docker-compose.v2-test.yml
+?? docs/asg-file-wbs3/
+?? src/Moodle.Api/CookieWriteProtection.cs
+?? src/Moodle.Api/Files/DraftEndpoints.cs
+?? src/Moodle.Application/Files/IVirusScanner.cs
+?? src/Moodle.Application/Files/UploadValidation.cs
+?? src/Moodle.Infrastructure/Assignments/
+?? src/Moodle.Infrastructure/Files/ClamAvVirusScanner.cs
+?? src/Moodle.Infrastructure/Files/DraftUploadService.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.Designer.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.cs
+?? src/Moodle.Web/Pages/CourseAssignments.razor
+?? src/Moodle.Web/wwwroot/asg-files.js
+?? tests/Moodle.IntegrationTests/CleanTestScanner.cs
+?? tests/Moodle.IntegrationTests/FileUploadV2Tests.cs
+?? tests/Moodle.IntegrationTests/VirusScannerTests.cs
+?? tests/Moodle.UnitTests/UploadValidationTests.cs
+?? tests/e2e/
+
+This inventory and docs/asg-wbs3/GIT-DURUMU.txt are also modified by inventory recording.
+
+--- 20.11.2026 FINAL ACCEPTANCE UPDATE ---
+20.11.2026 final acceptance inventory
+Branch: codex/asg-file-wbs3-v2
+HEAD: 3b9ccd6edc7230d6f17f1f614807bf17134a443b
+origin/main checked: a986a0a48b500bb761aa1e8feb5c0dd71fa16939
+No commit/push/PR/merge/rebase/staging. Previous changes preserved.
+LocalDiskFileStore source and original test identical to origin/main.
+
+ M .dockerignore
+ M .gitignore
+ M docker/docker-compose.yml
+ M docs/WBS-3-gelistirme.md
+ M docs/asg-wbs3/BIRLESME-RAPORU.md
+ M docs/asg-wbs3/DOGRULAMA.json
+ M docs/asg-wbs3/GIT-DURUMU.txt
+ M docs/asg-wbs3/ORTAK-SOZLESMELER.md
+ M docs/asg-wbs3/TESLIM-RAPORU.md
+ M docs/asg-wbs3/YZ-KAYDI.md
+ M docs/izlenebilirlik.md
+ M src/Moodle.Api/AssignmentEndpoints.cs
+ M src/Moodle.Api/Program.cs
+ M src/Moodle.Application/Assignments/AssignmentService.cs
+ M src/Moodle.Application/Assignments/Contracts.cs
+ M src/Moodle.Application/Auth/CapabilityRules.cs
+ M src/Moodle.Domain/Assignments/Submission.cs
+ M src/Moodle.Infrastructure/Auth/AuthAccessPolicy.cs
+ M src/Moodle.Infrastructure/DependencyInjection.cs
+ M src/Moodle.Infrastructure/Files/FileService.cs
+ M src/Moodle.Infrastructure/Persistence/AssignmentStore.cs
+ M src/Moodle.Infrastructure/Persistence/Migrations/MoodleDbContextModelSnapshot.cs
+ M src/Moodle.Infrastructure/Persistence/MoodleDbContext.cs
+ M src/Moodle.Web/App.razor
+ M src/Moodle.Web/Assignments/AsgClient.cs
+ M src/Moodle.Web/Layout/NavMenu.razor
+ M src/Moodle.Web/Pages/CourseDetails.razor
+ M src/Moodle.Web/Pages/CreateAssignmentPage.razor
+ M src/Moodle.Web/Pages/SubmissionDetail.razor
+ M src/Moodle.Web/Pages/SubmissionForm.razor
+ M src/Moodle.Web/Pages/SubmissionList.razor
+ M tests/Moodle.IntegrationTests/AsgCrsMergeTests.cs
+ M tests/Moodle.IntegrationTests/AssignmentApiTests.cs
+ M tests/Moodle.IntegrationTests/AssignmentRevisionTests.cs
+ M tests/Moodle.IntegrationTests/FileEndpointTests.cs
+ M tests/Moodle.IntegrationTests/FilesApiFixture.cs
+ M tests/Moodle.IntegrationTests/FilesSeedTests.cs
+ M tests/Moodle.UnitTests/AssignmentServiceTests.cs
+?? docker/docker-compose.v2-test.yml
+?? docs/asg-file-wbs3/
+?? src/Moodle.Api/CookieWriteProtection.cs
+?? src/Moodle.Api/Files/DraftEndpoints.cs
+?? src/Moodle.Application/Files/IVirusScanner.cs
+?? src/Moodle.Application/Files/UploadValidation.cs
+?? src/Moodle.Infrastructure/Assignments/
+?? src/Moodle.Infrastructure/Files/ClamAvVirusScanner.cs
+?? src/Moodle.Infrastructure/Files/DraftUploadService.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.Designer.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.cs
+?? src/Moodle.Web/Pages/CourseAssignments.razor
+?? src/Moodle.Web/wwwroot/asg-files.js
+?? tests/Moodle.IntegrationTests/CleanTestScanner.cs
+?? tests/Moodle.IntegrationTests/FileUploadV2Tests.cs
+?? tests/Moodle.IntegrationTests/VirusScannerTests.cs
+?? tests/Moodle.UnitTests/UploadValidationTests.cs
+?? tests/e2e/
+?? tests/web/asg-files.test.mjs
+
+--- PR #39 integration; earlier entries historical ---
+20.11.2026 PR #39 integration inventory
+Branch: codex/asg-file-wbs3-v2
+HEAD/main: 1424b0401fcce9d66f23b1facdb3837efb0c5d4b
+Fast-forward from 3b9ccd6; no new commit/merge commit created.
+Fix: e2b50d0f83a6ccd43fe4b54dec9360035d95ec50; PR #39
+Verified backup: coverage/pre-main-1424b04 (ignored)
+No staging/push/PR/rebase/force push/main integration.
+
+ M .dockerignore
+ M .gitignore
+ M docker/docker-compose.yml
+ M docs/WBS-3-gelistirme.md
+ M docs/asg-wbs3/BIRLESME-RAPORU.md
+ M docs/asg-wbs3/DOGRULAMA.json
+ M docs/asg-wbs3/GIT-DURUMU.txt
+ M docs/asg-wbs3/ORTAK-SOZLESMELER.md
+ M docs/asg-wbs3/TESLIM-RAPORU.md
+ M docs/asg-wbs3/YZ-KAYDI.md
+ M docs/izlenebilirlik.md
+ M src/Moodle.Api/AssignmentEndpoints.cs
+ M src/Moodle.Api/Program.cs
+ M src/Moodle.Application/Assignments/AssignmentService.cs
+ M src/Moodle.Application/Assignments/Contracts.cs
+ M src/Moodle.Application/Auth/CapabilityRules.cs
+ M src/Moodle.Domain/Assignments/Submission.cs
+ M src/Moodle.Infrastructure/Auth/AuthAccessPolicy.cs
+ M src/Moodle.Infrastructure/DependencyInjection.cs
+ M src/Moodle.Infrastructure/Files/FileService.cs
+ M src/Moodle.Infrastructure/Persistence/AssignmentStore.cs
+ M src/Moodle.Infrastructure/Persistence/Migrations/MoodleDbContextModelSnapshot.cs
+ M src/Moodle.Infrastructure/Persistence/MoodleDbContext.cs
+ M src/Moodle.Web/App.razor
+ M src/Moodle.Web/Assignments/AsgClient.cs
+ M src/Moodle.Web/Layout/NavMenu.razor
+ M src/Moodle.Web/Pages/CourseDetails.razor
+ M src/Moodle.Web/Pages/CreateAssignmentPage.razor
+ M src/Moodle.Web/Pages/SubmissionDetail.razor
+ M src/Moodle.Web/Pages/SubmissionForm.razor
+ M src/Moodle.Web/Pages/SubmissionList.razor
+ M tests/Moodle.IntegrationTests/AsgCrsMergeTests.cs
+ M tests/Moodle.IntegrationTests/AssignmentApiTests.cs
+ M tests/Moodle.IntegrationTests/AssignmentRevisionTests.cs
+ M tests/Moodle.IntegrationTests/FileEndpointTests.cs
+ M tests/Moodle.IntegrationTests/FilesApiFixture.cs
+ M tests/Moodle.IntegrationTests/FilesSeedTests.cs
+ M tests/Moodle.UnitTests/AssignmentServiceTests.cs
+?? docker/docker-compose.v2-test.yml
+?? docs/asg-file-wbs3/
+?? src/Moodle.Api/CookieWriteProtection.cs
+?? src/Moodle.Api/Files/DraftEndpoints.cs
+?? src/Moodle.Application/Files/IVirusScanner.cs
+?? src/Moodle.Application/Files/UploadValidation.cs
+?? src/Moodle.Infrastructure/Assignments/
+?? src/Moodle.Infrastructure/Files/ClamAvVirusScanner.cs
+?? src/Moodle.Infrastructure/Files/DraftUploadService.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.Designer.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.cs
+?? src/Moodle.Web/Pages/CourseAssignments.razor
+?? src/Moodle.Web/wwwroot/asg-files.js
+?? tests/Moodle.IntegrationTests/CleanTestScanner.cs
+?? tests/Moodle.IntegrationTests/FileUploadV2Tests.cs
+?? tests/Moodle.IntegrationTests/VirusScannerTests.cs
+?? tests/Moodle.UnitTests/UploadValidationTests.cs
+?? tests/e2e/
+?? tests/web/asg-files.test.mjs

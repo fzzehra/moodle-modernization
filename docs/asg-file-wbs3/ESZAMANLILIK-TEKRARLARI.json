@@ -1,0 +1,372 @@
+{
+  "date": "2026-11-19",
+  "originMain": "6a4c371",
+  "workingBase": "3b9ccd6",
+  "method": "Eszamanli_ayni_icerik_yazimi_tek_kopya_birakir",
+  "sourceAndTestIdentical": true,
+  "isolated": true,
+  "sourceReadOnly": true,
+  "results": [
+    {
+      "source": "current",
+      "runs": [
+        {
+          "iteration": 1,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+        },
+        {
+          "iteration": 2,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   7"
+        },
+        {
+          "iteration": 3,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   5"
+        },
+        {
+          "iteration": 4,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 5,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+        },
+        {
+          "iteration": 6,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 7,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 8,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 9,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   5"
+        },
+        {
+          "iteration": 10,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   8"
+        }
+      ],
+      "passed": 0,
+      "failed": 10
+    },
+    {
+      "source": "main",
+      "runs": [
+        {
+          "iteration": 1,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+        },
+        {
+          "iteration": 2,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   5"
+        },
+        {
+          "iteration": 3,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 4,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 5,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+        },
+        {
+          "iteration": 6,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 7,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+        },
+        {
+          "iteration": 8,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 9,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+        },
+        {
+          "iteration": 10,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+        }
+      ],
+      "passed": 0,
+      "failed": 10
+    },
+    {
+      "source": "current-tmpfs",
+      "runs": [
+        {
+          "iteration": 1,
+          "outcome": "Passed",
+          "message": null
+        },
+        {
+          "iteration": 2,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 3,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 4,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 5,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   5"
+        },
+        {
+          "iteration": 6,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 7,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 8,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 9,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 10,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        }
+      ],
+      "passed": 1,
+      "failed": 9
+    },
+    {
+      "source": "main-tmpfs",
+      "runs": [
+        {
+          "iteration": 1,
+          "outcome": "Passed",
+          "message": null
+        },
+        {
+          "iteration": 2,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 3,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   4"
+        },
+        {
+          "iteration": 4,
+          "outcome": "Passed",
+          "message": null
+        },
+        {
+          "iteration": 5,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 6,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   5"
+        },
+        {
+          "iteration": 7,
+          "outcome": "Passed",
+          "message": null
+        },
+        {
+          "iteration": 8,
+          "outcome": "Failed",
+          "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+        },
+        {
+          "iteration": 9,
+          "outcome": "Passed",
+          "message": null
+        },
+        {
+          "iteration": 10,
+          "outcome": "Passed",
+          "message": null
+        }
+      ],
+      "passed": 5,
+      "failed": 5
+    }
+  ],
+  "runtime": {
+    "sdk": "10.0.404",
+    "os": "Ubuntu 24.04 linux-x64",
+    "image": "mcr.microsoft.com/dotnet/sdk:10.0",
+    "runtime": "10.0.15"
+  },
+  "primitiveProbe": {
+    "straceInitial": "1 success; rename + link observed",
+    "untracedSuccessCounts": [
+      14,
+      1,
+      1,
+      1,
+      6,
+      6,
+      1,
+      2,
+      3,
+      1
+    ],
+    "path": "coverage/v2-final-check/filemove.strace",
+    "description": "No Moodle code: 20 concurrent File.Move(source,target) calls, overwrite default false",
+    "instrumented": "10 rounds with strace rename delay_enter=100ms: 20 successes each; forced interleaving, not counted as original test"
+  },
+  "latestOriginMain": {
+    "commit": "a986a0a48b500bb761aa1e8feb5c0dd71fa16939",
+    "sourceAndTestIdentical": true,
+    "checkedDate": "2026-11-20",
+    "passed": 4,
+    "failed": 6,
+    "runs": [
+      {
+        "iteration": 1,
+        "outcome": "Failed",
+        "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+      },
+      {
+        "iteration": 2,
+        "outcome": "Failed",
+        "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+      },
+      {
+        "iteration": 3,
+        "outcome": "Passed",
+        "message": null
+      },
+      {
+        "iteration": 4,
+        "outcome": "Failed",
+        "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+      },
+      {
+        "iteration": 5,
+        "outcome": "Passed",
+        "message": null
+      },
+      {
+        "iteration": 6,
+        "outcome": "Passed",
+        "message": null
+      },
+      {
+        "iteration": 7,
+        "outcome": "Failed",
+        "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   2"
+      },
+      {
+        "iteration": 8,
+        "outcome": "Passed",
+        "message": null
+      },
+      {
+        "iteration": 9,
+        "outcome": "Failed",
+        "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+      },
+      {
+        "iteration": 10,
+        "outcome": "Failed",
+        "message": "Assert.Equal() Failure: Values differ\nExpected: 1\nActual:   3"
+      }
+    ]
+  },
+  "afterSerayFix": {
+    "pr": 39,
+    "runs": [
+      {
+        "iteration": 1,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 2,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 3,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 4,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 5,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 6,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 7,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 8,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 9,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 10,
+        "outcome": "Passed"
+      }
+    ],
+    "passed": 10,
+    "fix": "e2b50d0",
+    "failed": 0,
+    "main": "1424b04",
+    "date": "2026-11-20"
+  }
+}

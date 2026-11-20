@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 namespace Moodle.Web.Assignments;
 
 /// <summary>ASG HTTP-only UI boundary. Identity cookies go only to the configured API origin.</summary>
-public sealed class AsgClient(HttpClient client, IHttpContextAccessor context)
+public sealed class AsgClient(HttpClient client, IHttpContextAccessor context, Microsoft.AspNetCore.Antiforgery.IAntiforgery? csrf = null)
 {
     public async Task<T> SendAsync<T>(HttpMethod method, string path, object? body = null)
     {
@@ -17,6 +17,8 @@ public sealed class AsgClient(HttpClient client, IHttpContextAccessor context)
         if (body is not null) request.Content = JsonContent.Create(body);
         var cookie = context.HttpContext?.Request.Headers.Cookie.ToString();
         if (!string.IsNullOrEmpty(cookie)) request.Headers.TryAddWithoutValidation("Cookie", cookie);
+        if (method != HttpMethod.Get && csrf is not null && context.HttpContext is {} http)
+            request.Headers.TryAddWithoutValidation("X-CSRF-TOKEN", csrf.GetAndStoreTokens(http).RequestToken);
         using var response = await client.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
@@ -33,13 +35,13 @@ public sealed class AsgClientException(string message, int status) : Exception(m
     public int Status { get; } = status;
 }
 public sealed record AssignmentData(int Id, int CourseId, int SectionId, string Title, string Instructions,
-    DateTimeOffset? OpensAt, DateTimeOffset? DueAt, DateTimeOffset? CutoffAt, bool RequiresConfirmation);
+    DateTimeOffset? OpensAt, DateTimeOffset? DueAt, DateTimeOffset? CutoffAt, bool RequiresConfirmation, string[]? EnabledSubmissionTypes = null);
 public sealed record Permissions(bool CanSubmit, bool CanGrade, bool CanSave, bool CanSend, string? UnavailableReason);
 public sealed record AssignmentView(AssignmentData Assignment, Permissions Permissions);
-public sealed record SubmissionData(int Id, int LearnerId, string Status, string Text, long Version);
+public sealed record SubmissionData(int Id, int LearnerId, string Status, string Text, long Version, int FileCount = 0);
 public sealed record MySubmission(string Status, SubmissionData? Submission);
 public sealed record SubmissionRow(int LearnerId, string Status, int? SubmissionId,
-    DateTimeOffset? SubmittedAt, DateTimeOffset? UpdatedAt, long Version, bool IsLate);
+    DateTimeOffset? SubmittedAt, DateTimeOffset? UpdatedAt, long Version, bool IsLate, int FileCount = 0);
 public sealed record SubmissionPage(SubmissionRow[] Items, int? NextCursor);
 public static class Labels
 {
@@ -48,3 +50,10 @@ public static class Labels
         "submitted" => "Gönderildi", "draft" => "Taslak", _ => "Teslim edilmedi"
     };
 }
+
+
+public sealed record AssignmentFile(long FileId, string Name, long SizeBytes);
+public sealed record AssignmentFiles(AssignmentFile[] Files);
+
+
+public sealed record FileUploadLimits(long MaxFileBytes, long MaxAreaBytes, int MaxFiles, string[] Extensions);

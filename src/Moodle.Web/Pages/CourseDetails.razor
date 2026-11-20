@@ -23,6 +23,7 @@
             <dt>Bitiş</dt><dd>@CrsDisplay.Date(_course.EndDate)</dd>
         </dl>
         <a href="@($"courses/{CourseId}/participants")">Katılımcıları yönet</a>
+        <a href="@($"/courses/{CourseId}/assignments")">Ödevler</a>
     </section>
     @if (_editor is not null)
     {

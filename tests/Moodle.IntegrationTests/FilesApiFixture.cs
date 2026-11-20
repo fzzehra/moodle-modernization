@@ -36,6 +36,7 @@ public sealed class FilesApiFixture : IAsyncLifetime
             services.RemoveAll<IDbContextOptionsConfiguration<FilesDbContext>>();
             services.AddDbContext<FilesDbContext>(options => options.UseNpgsql(connectionString));
 
+            services.RemoveAll<IVirusScanner>(); services.AddSingleton<IVirusScanner,CleanTestScanner>();
             services.RemoveAll<IFileStore>();
             services.AddSingleton<IFileStore>(new FakeFileStore());
 

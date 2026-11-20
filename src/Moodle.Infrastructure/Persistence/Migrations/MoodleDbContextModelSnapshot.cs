@@ -92,6 +92,9 @@ namespace Moodle.Infrastructure.Persistence.Migrations
                     b.Property<int>("Attempt")
                         .HasColumnType("integer");
 
+                    b.Property<int>("FileCount")
+                        .HasColumnType("integer");
+
                     b.Property<int>("LearnerId")
                         .HasColumnType("integer");
 
@@ -122,7 +125,7 @@ namespace Moodle.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("CK_Submission_State", "(\"Status\" = 'draft' AND \"SubmittedAt\" IS NULL) OR (\"Status\" = 'submitted' AND \"SubmittedAt\" IS NOT NULL)");
 
-                            t.HasCheckConstraint("CK_Submission_Values", "(\"Attempt\" = 0 AND \"LearnerId\" > 0 AND \"Version\" > 0 AND length(btrim(\"Text\")) > 0)");
+                            t.HasCheckConstraint("CK_Submission_Values", "(\"Attempt\" = 0 AND \"LearnerId\" > 0 AND \"Version\" > 0 AND \"FileCount\" >= 0 AND (length(btrim(\"Text\")) > 0 OR \"FileCount\" > 0))");
                         });
                 });
 

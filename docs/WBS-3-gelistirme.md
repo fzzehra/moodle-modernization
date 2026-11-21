@@ -77,12 +77,12 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 **Yapay zekâ kaydı**
 
-**Model ve sürüm:** _Doldurulacak._
-**Kullanılan adım(lar):** _Doldurulacak._
-**Verilen bağlam:** _Doldurulacak._
-**Yapılan iş:** Yukarıdaki dosyalar ve testleri (PR #20).
-**Yapılan düzeltmeler:** _Doldurulacak._ (`CrsService.EnrolAsync` üzerinde "YZ taslağıdır" notu bulunur.)
-**Harcanan süre:** _Doldurulacak._
+**Model ve sürüm:** _Doldurulacak._ Commit (`fd3e155`) ve CRS belgelerinde kullanılan araç/model kaydı yoktur; doğrulanamadı.
+**Kullanılan adım(lar):** _Doldurulacak (doğrulanamadı)._
+**Verilen bağlam:** _Doldurulacak (doğrulanamadı)._
+**Yapılan iş:** Yukarıdaki dosyalar ve testleri (PR #20). Kodun YZ desteğiyle üretildiği kod içi notlarda ve CRS belgelerinde belirtilir (`CrsService` "YZ destekli" yorumları, `docs/crs-veritabani.md`).
+**Yapılan düzeltmeler:** _Doldurulacak (doğrulanamadı)._ (`CrsService.EnrolAsync` üzerinde "YZ taslağıdır" notu bulunur.)
+**Harcanan süre:** PR bazında ayrılmadı; AUTH/CRS WBS-3 toplamına dahildir (§2.3, "Süre", geçici tahmin).
 **Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
 **Kanıt:** PR #20.
 
@@ -288,7 +288,7 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 - **YZ'nin kendi düzelttikleri:** Test dosyasında iki `EF1002` derleme uyarısı (ham SQL ile DDL) giderildi. İki test doğrulaması sadeleştirildi.
 - **İnsan katkısı:** Kodlamadan önce plan aşamasında tasarım kararları verildi (yukarıdaki 3. madde). Kod üzerinde insan düzeltmesi henüz yok; inceleme sonrası güncellenecek.
 
-**Harcanan süre:** _Doldurulacak (insan tarafından; oturum süresi kaydedilmedi)._
+**Harcanan süre:** PR bazında ayrılmadı; AUTH/CRS WBS-3 toplamına dahildir (aşağıda "Süre", geçici tahmin).
 **Elle geliştirme:** Yapılmadı (yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
 **Kanıt:** PR #44 (şube: `sinem/crs-background-delete`, commit `24666ed`).
 
@@ -296,26 +296,26 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 
 **Yapılan iş** (commit `09e9484`, `d1f64c5`, `599d8a5`; 19.11.2026): `crs_record_change` trigger'ı ders ve kayıt değişikliklerini veriyle aynı transaction'da `crs_events` tablosuna yazar (alan değerleri değil alan adları tutulur). `ICrsEventExtension`, `CrsEventExtensionPipeline` ve `CrsEventDispatcher` modüllerin olayları en az bir kez, alındı kaydıyla almasını sağlar. `CrsQueryCache` olay revizyonuna bağlı geçersizleştirme yapar. Değişmeyen kayıt güncellemesi veritabanına yazılmaz. Ayrıntı: `docs/crs-events-extensions.md`, `docs/crs-nfr04-cache.md`, `docs/crs-nfr05.md`.
 **Testler:** `CrsEventExtensionTests`, `CrsNfr04CacheTests`, `CrsNfr05NoopTests` (birim); `CrsEventsPostgresTests`, `CrsNfr04CachePostgresTests`, `CrsNfr05NoopPostgresTests` (entegrasyon).
-**YZ kaydı:** Model ve sürüm, kullanılan adımlar, düzeltmeler ve harcanan süre: _doldurulacak._ İlgili belgeler çalışmanın YZ desteğiyle üretildiğini belirtir. Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #31.
+**YZ kaydı:** Model ve sürüm, kullanılan adımlar ve düzeltmeler: _doldurulacak_ (commit'lerde ve belgelerde araç/model kaydı yok; doğrulanamadı). İlgili belgeler çalışmanın YZ desteğiyle üretildiğini belirtir. Süre: PR bazında ayrılmadı, toplam geçici tahmine dahildir. Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #31.
 
 #### CRS-NFR-03: Yedekleme/geri yükleme sırasında silme koruması (PR #43)
 
 **Yapılan iş** (commit `86d6125`, 20.11.2026): `ICrsCourseOperationRegistry` ve `CrsCourseOperationRegistry` (`RegisterPendingAsync`, `MarkRunningAsync`, `ReleaseAsync`), `crs_course_operations` tablosu; `DeleteCourseAsync` ders satırı kilidi altında bekleyen/devam eden işlem varsa `409 course_operation_in_progress` döner. Ayrıntı: `docs/crs-nfr03-delete-guard.md`.
 **Testler:** `CrsNfr03DeleteGuardTests` (birim), `CrsNfr03DeleteGuardPostgresTests` (entegrasyon).
 **Sınırlılık:** Depoda gerçek bir yedekleme/geri yükleme yürütücüsü yoktur; koruma kayıt arayüzü üzerinden çalışır.
-**YZ kaydı:** Model ve sürüm, kullanılan adımlar, düzeltmeler ve harcanan süre: _doldurulacak._ Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #43.
+**YZ kaydı:** Model ve sürüm, kullanılan adımlar ve düzeltmeler: _doldurulacak_ (commit'te ve `docs/crs-nfr03-delete-guard.md`'de araç/model kaydı yok; belge kodun YZ desteğiyle üretildiğini belirtir). Süre: PR bazında ayrılmadı, toplam geçici tahmine dahildir. Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #43.
 
 #### CRS-FR-07: Kayıt başlangıç ve bitiş zamanının güncellenmesi (PR #45)
 
 **Yapılan iş** (commit `bdf904c`, 21.11.2026): `PATCH /courses/{id}/enrolments/{id}` artık `startsAt` ve `endsAt` alanlarını da kabul eder. Gönderilmeyen alanlar değişmez, açık `null` tarihi temizler. Kayıt oluşturmadaki tarih kuralı `CourseValidation.ValidateEnrolmentDates` olarak ortaklaştırıldı; geçersiz aralık `422` döner ve hiçbir alan yazılmaz. Durum/rol güncellemesi ve mevcut `UpdateEnrolmentAsync(id, suspended, role)` imzası korundu. Blazor katılımcılar ekranında tarih düzenleme yoktur.
-**Testler:** `CrsFr07EnrolmentDatesTests` (birim), `CrsFr07EnrolmentDatesPostgresTests` (entegrasyon). Sonuç: _doldurulacak_ (21.11.2026 koşusunda 863 testten 2'si başarısızdı; son koşu sonucu bu belgeye işlenmedi).
+**Testler:** `CrsFr07EnrolmentDatesTests` (birim, 7 durum), `CrsFr07EnrolmentDatesPostgresTests` (entegrasyon, 4 test). Kayıtlı sonuç: 21.11.2026 genel koşusunda 863 testten 861'i geçti, 2'si başarısız oldu, atlanan 0. Başarısız iki testin adı ve hata mesajı kaydedilmedi. FR-07 test dosyaları PR #45 commit'inden (`bdf904c`) sonra değişmedi. Son koşu sonucu: _doldurulacak._
 
 #### AUTH-FR-06 ve AUTH-FR-09: Hesap kilitleme ve zorunlu parola değişikliği (PR #46)
 
 - **AUTH-FR-06:** İrem'in AUTH teslimindeki (PR #28) kilitleme kuralları (`Lockout.MaxFailedAccessAttempts=5`, 5 dakika) gereksinimi karşılar ve `AuthEndpointTests.Account_locks_out_after_repeated_failed_attempts` ile sınanır; ek kod gerekmedi.
 - **AUTH-FR-09** (commit `ff52c2c`, 21.11.2026): `RequiresPasswordChange` true ise `Login.razor` kullanıcıyı `/change-password?required=true` sayfasına yönlendirir; yeni `ChangePassword.razor` mevcut `POST /api/v1/auth/change-password` ucunu kullanır. `PasswordChangeRequiredMiddleware`, değişiklik tamamlanana kadar `/api/v1/auth/*`, sağlık ve OpenAPI dışındaki API uçlarını `403 password_change_required` ile reddeder; `AuthAccessPolicy` bu kullanıcıya yetki vermez. Bayrak her istekte veritabanından okunduğu için parola değişince erişim aynı oturumda açılır.
 - **Sınırlılık:** Kullanıcı parola sayfası dışındaki bir sayfayı adresle açarsa engel API düzeyinde kalır; sayfa düzeyinde yönlendirme yoktur.
-- **Testler:** `AuthFr09ForcedPasswordTests` (birim ve entegrasyon). Sonuç: _doldurulacak._
+- **Testler:** `AuthFr09ForcedPasswordTests` (birim ve entegrasyon). Önceki çalışma sırasında bildirilen test sonucu: odaklı entegrasyon testleri 29/29 başarılı. Birim testlerinin ayrı sonucu bildirilmedi.
 
 #### CRS olay iletimi, gerçek AUTH–CRS testleri ve M gereksinimleri test kapsamı (PR #47)
 
@@ -324,26 +324,30 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 - `AuthCrsIntegrationTests`: gerçek Identity çerezi, `AuthCurrentUser` ve `AuthAccessPolicy` ile Manager ders oluşturur (201), Student oluşturamaz (403), ders rolü CRS kaydından okunur, askıya alınan kayıt yetkiyi hemen kaldırır.
 - `CrsMRequirementTests`: CRS-FR-01, 02, 04, 05, 06, 08, NFR-01, 02 için veritabanına bağlanmayan birim testleri. `CrsCourseDeletionCleanupTests`: silmede `course.deleted` ve `enrolment.deleted` olaylarının uzantıya ulaşması (senkron ve arka planda silme).
 
-**Testler:** İlgili birim testleri 11/11 geçti; ilgili entegrasyon testleri 37/38 geçti. Başarısız `CrsCourseDeletionCleanupTests` (arka planda silme durumu) testteki bekleme koşulu düzeltildi; düzeltme sonrası sonuç: _doldurulacak._
+**Testler:** Build başarılı. İlgili birim testleri 11/11 geçti (`CrsMRequirementTests`). İlgili entegrasyon testleri 37/38 geçti; `AuthCrsIntegrationTests` ve `CrsCourseDeletionCleanupTests` (senkron silme) geçti, `CrsCourseDeletionCleanupTests` (arka planda silme) `Assert.Contains() Failure: Filter not matched in collection` ile başarısız oldu. Kök neden testin zamanlamasıydı (olaylar uzantıya tek tek teslim edilirken arada denetleniyordu); bekleme koşulu iki olayı birlikte bekleyecek şekilde düzeltildi ve düzeltme PR #47'ye (`20e4804`) dahil edildi. Önceki çalışma sırasında bildirilen test sonucu: daha önce sorun yaşanan iki senaryo ayrı yeniden çalıştırıldığında 2/2 başarılı. Önceki toplu koşuda görülen Docker.DotNet kaynaklı `TaskCanceledException` Testcontainers/Docker altyapısına aittir; üretim kodu hatası olarak değerlendirilmemiştir.
 
 #### Ders detay sayfasından FILE ve GRD bağlantıları
 
-`Pages/CourseDetails.razor`'a "Ders dosyaları" (`/courses/{id}/files`), "Not defteri" (`/courses/{id}/gradebook`) ve "Notlarım" (`/courses/{id}/my-grades`) bağlantıları eklendi. Bağlantılar yalnızca gezinme sağlar; yetki hedef sayfalarda ve API'de denetlenir (mevcut "Ödevler" bağlantısıyla aynı). `CrsBlazorTests.Details_show_category_visibility_dates_and_editable_information` bağlantıları doğrular. **Kanıt:** _PR numarası doldurulacak._
+`Pages/CourseDetails.razor`'a "Ders dosyaları" (`/courses/{id}/files`), "Not defteri" (`/courses/{id}/gradebook`) ve "Notlarım" (`/courses/{id}/my-grades`) bağlantıları eklendi. Bağlantılar yalnızca gezinme sağlar; yetki hedef sayfalarda ve API'de denetlenir (mevcut "Ödevler" bağlantısıyla aynı). `CrsBlazorTests.Details_show_category_visibility_dates_and_editable_information` bağlantıları doğrular. Önceki çalışma sırasında bildirilen test sonucu: `CrsBlazorTests` 14/14 başarılı. Aynı PR'da `docs/izlenebilirlik.md` CRS tablosu, bu bölüm ve `docs/crs-api.md` güncellendi. **Kanıt:** PR #48 (commit `b96f147`).
 
-#### YZ kaydı (PR #45, #46, #47 ve ders detay bağlantıları)
+#### YZ kaydı (PR #45, #46, #47, #48)
 
 **Model ve sürüm:** Claude Code (VS Code eklentisi), model Claude Opus 5.5 (`claude-opus-5-5`).
 **Üretim şekli:** YZ.
 **Kullanılan adım(lar):** Kodun ve gereksinimlerin karşılaştırılması, hedef dilde kod üretme, test senaryosu üretme, belge güncelleme (WBS-2 §4.1).
 **Verilen bağlam:** WBS-1/WBS-2'deki AUTH-FR-06, FR-09, CRS-FR-05–08, NFR-01, NFR-02 tanımları; AUTH, CRS, ASG, GRD ve FILE kodu ve testleri.
-**Prompt özeti:** (1) CRS-FR-07 kayıt tarihlerinin PATCH ile güncellenmesi; (2) AUTH-FR-09 zorunlu parola değişikliği yönlendirmesi ve API engeli; (3) gerçek AUTH–CRS entegrasyon testleri, ders silmede diğer modüller için olay iletimi, kayıt yöntemi analizi ve M gereksinimleri test kapsamı; (4) başarısız `CrsCourseDeletionCleanupTests` için kök neden analizi; (5) ders detay bağlantıları ve bu belge güncellemeleri. Her adımda test ve build kullanıcı tarafından çalıştırıldı; commit/PR kullanıcı tarafından yapıldı.
+**Prompt özeti:** (1) CRS-FR-07 kayıt tarihlerinin PATCH ile güncellenmesi; (2) AUTH-FR-09 zorunlu parola değişikliği yönlendirmesi ve API engeli; (3) gerçek AUTH–CRS entegrasyon testleri, ders silmede diğer modüller için olay iletimi, kayıt yöntemi analizi ve M gereksinimleri test kapsamı; (4) başarısız `CrsCourseDeletionCleanupTests` için kök neden analizi; (5) ders detay bağlantıları ve belge güncellemeleri (PR #48); (6) AUTH/CRS son durum incelemeleri ve bu kayıtların tamamlanması. Her adımda test ve build kullanıcı tarafından çalıştırıldı; commit/PR kullanıcı tarafından yapıldı. YZ yalnızca PR #44'te, kullanıcının izniyle `dotnet build` çalıştırdı; hiçbir adımda test çalıştırmadı.
 **Yapılan düzeltmeler:**
-- YZ'nin kendi düzelttikleri: `CrsCourseDeletionCleanupTests` olayları teslim sırasının ortasında denetliyordu (zamanlama); bekleme koşulu iki olayı birlikte bekleyecek şekilde düzeltildi, doğrulamalar gevşetilmedi.
-- CRS-FR-07 sonrası 2 başarısız test bildirildi; YZ test çıktısına erişemediği için ayrıntı istedi. Bu iki testin adı, nedeni ve düzeltmesi: _doldurulacak._
-- İnsan düzeltmesi: _doldurulacak._
-**Harcanan süre:** _Doldurulacak (insan tarafından)._
+- YZ'nin kendi düzelttikleri: `CrsCourseDeletionCleanupTests` olayları teslim sırasının ortasında denetliyordu (zamanlama); bekleme koşulu iki olayı birlikte bekleyecek şekilde düzeltildi, doğrulamalar gevşetilmedi (PR #47).
+- CRS-FR-07 sonrası genel koşuda 2 başarısız test bildirildi (863 test, 861 geçti). YZ test çıktısına erişemediği için test adlarını ve hata mesajlarını istedi; bu bilgi kayda geçmedi. İki testin adı, nedeni ve düzeltmesi: _doldurulacak (doğrulanamadı)._
+- İnsan düzeltmesi: Kod üzerinde insan düzeltmesi kaydı yoktur (doğrulanamadı). İnsan katkısı görev tanımları, plan aşamasındaki kararlar ve test/build koşturmasıyla sınırlı olarak kayıtlıdır.
+**Harcanan süre:** PR bazında ayrılmadı; aşağıdaki geçici toplam tahmine dahildir.
 **Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
-**Kanıt:** PR #45, #46, #47; ders detay bağlantıları ve belge güncellemesi için PR numarası: _doldurulacak._
+**Kanıt:** PR #45, #46, #47, #48; bu kayıtları tamamlayan belge PR'ı: _doldurulacak._
+
+#### Süre (geçici, 21.11.2026)
+
+Sinem'in WBS-3 AUTH/CRS çalışması için 21.11.2026 itibarıyla geçici tahmin: **yaklaşık 13 saat aktif YZ destekli çalışma + 6 saat test/doğrulama = 19 saat**. Bu süre nihai değildir ve WBS-3 tamamlanınca güncellenecektir. PR bazında dağılım ölçülmediği için verilmemiştir; §3'teki efor sütunları bu tahmin kesinleşince doldurulacaktır.
 
 #### Bilinen sınırlılıklar (§2.3 geneli)
 - **ASG/GRD/FILE ders silme temizliği tamamlanmadı.** CRS, `course.deleted` olayını iletir; ancak ASG (Aslı Ceren), GRD (Fatma Zehra) ve FILE (İrem, Seray) için üretim uzantısı yoktur. Bu modüllerin ders verileri silmeden sonra kalır; dersin varlığını denetledikleri için erişilemez.

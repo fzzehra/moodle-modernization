@@ -29,6 +29,13 @@ public static class CourseValidation
                 "Bitiş tarihi başlangıç tarihinden önce olamaz.");
     }
 
+    // CRS-FR-07 / CRS-BR-08: kayıt oluşturma ve güncelleme aynı tarih kuralını kullanır.
+    public static void ValidateEnrolmentDates(DateTimeOffset? startsAt, DateTimeOffset? endsAt)
+    {
+        if (startsAt.HasValue && endsAt.HasValue && endsAt <= startsAt)
+            throw new ArgumentException("Kayıt tarihleri geçersiz.");
+    }
+
     public static void ValidateRole(string role)
     {
         if (string.IsNullOrWhiteSpace(role) || role.Length > 50 || role.Any(char.IsControl))

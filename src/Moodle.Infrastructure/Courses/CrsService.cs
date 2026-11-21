@@ -282,10 +282,7 @@ public sealed class CrsService(CrsDbContext db)
             x => x.Id == enrolment.CourseId, ct))
             throw new ArgumentException("Ders bulunamadı.");
 
-        if (enrolment.StartsAt.HasValue &&
-            enrolment.EndsAt.HasValue &&
-            enrolment.EndsAt <= enrolment.StartsAt)
-            throw new ArgumentException("Kayıt tarihleri geçersiz.");
+        CourseValidation.ValidateEnrolmentDates(enrolment.StartsAt, enrolment.EndsAt);
 
         if (await db.Enrolments.AnyAsync(
             x => x.CourseId == enrolment.CourseId &&
@@ -297,17 +294,41 @@ public sealed class CrsService(CrsDbContext db)
         return enrolment;
     }
 
-    public async Task UpdateEnrolmentAsync(
+    // Durum ve rol günceller; kayıt tarihleri değişmez.
+    public Task UpdateEnrolmentAsync(
         int id, bool suspended, string role,
-        CancellationToken ct = default)
+        CancellationToken ct = default) =>
+        UpdateEnrolmentCoreAsync(id, suspended, role, updateDates: false, null, null, ct);
+
+    // YZ destekli (Claude Code), CRS-FR-07: durum, rol ve başlangıç/bitiş zamanı birlikte güncellenir.
+    public Task UpdateEnrolmentAsync(
+        int id, bool suspended, string role,
+        DateTimeOffset? startsAt, DateTimeOffset? endsAt,
+        CancellationToken ct = default) =>
+        UpdateEnrolmentCoreAsync(id, suspended, role, updateDates: true, startsAt, endsAt, ct);
+
+    private async Task UpdateEnrolmentCoreAsync(
+        int id, bool suspended, string role, bool updateDates,
+        DateTimeOffset? startsAt, DateTimeOffset? endsAt, CancellationToken ct)
     {
         var enrolment = await db.Enrolments.FindAsync([id], ct)
             ?? throw new KeyNotFoundException("Kayıt bulunamadı.");
 
         CourseValidation.ValidateRole(role);
+        if (updateDates)
+        {
+            startsAt = startsAt?.ToUniversalTime();
+            endsAt = endsAt?.ToUniversalTime();
+            CourseValidation.ValidateEnrolmentDates(startsAt, endsAt);
+        }
 
         enrolment.Suspended = suspended;
         enrolment.Role = role;
+        if (updateDates)
+        {
+            enrolment.StartsAt = startsAt;
+            enrolment.EndsAt = endsAt;
+        }
         await db.SaveChangesAsync(ct);
     }
 

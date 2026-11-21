@@ -106,7 +106,7 @@ Her gereksinim aşağıdaki alanlarla yazılır:
 - Hedef dil ve mimari WBS-2'de seçilir. Bu bölümdeki gereksinimler dilden bağımsız yazılır.
 - Bütün geliştirme ve testler `ortam/ornek-veri.feature` ile üretilen ortak veriyle yapılır.
 - YZ ile üretilen her çıktı insan incelemesinden ve testten geçmeden kabul edilmez; kullanımı WBS-2 §4'e göre kaydedilir.
-- Ekip 5 kişidir; harcanan efor, YZ destekli ve manuel geliştirmenin karşılaştırılması için kayıt altına alınır.
+- Ekip 5 kişidir; bütün kod YZ ile yazılır. YZ ile harcanan gerçek efor, aynı kodun elle yazılsaydı gerektireceği eforun COCOMO tahminiyle karşılaştırılmak üzere kayıt altına alınır.
 
 ### 2.7 SRS'in bölümleri
 
@@ -1398,7 +1398,7 @@ Kullanılan model Claude Sonnet 5 (Claude Code). Bağlam: §4.3 (ADV) analizi, �
 
 ## 6. Ana performans göstergeleri ve kalite kriterleri (Fatma Zehra)
 
-Kriterler geliştirme başlamadan önce tanımlanır ve eski ile yeni sistem aynı koşullarda ölçülür. Pilot projede (eShop) kullanılan 13 kriter Moodle'a uyarlanmış; kullanım kolaylığı, yetkisiz erişim ve YZ/manuel karşılaştırması eklenmiştir. Son sütun ISO/IEC 25010:2023 ürün kalite modelindeki karşılıktır.
+Kriterler geliştirme başlamadan önce tanımlanır ve eski ile yeni sistem aynı koşullarda ölçülür. Pilot projede (eShop) kullanılan 13 kriter Moodle'a uyarlanmış; kullanım kolaylığı, yetkisiz erişim ve YZ eforunun COCOMO elle tahminiyle karşılaştırması eklenmiştir. Son sütun ISO/IEC 25010:2023 ürün kalite modelindeki karşılıktır.
 
 Başarı ölçütlerindeki "≤ eski", yeni sistemin eski sistemden kötü olmaması gerektiğini gösterir. Eski sistemin değerleri WBS-1 §8'deki başlangıç ölçümlerinden alınır.
 
@@ -1425,7 +1425,7 @@ Başarı ölçütlerindeki "≤ eski", yeni sistemin eski sistemden kötü olmam
 | K15 | Kod büyüklüğü | Aynı fonksiyonlar için satır sayısı (üçüncü taraf ve üretilmiş kod hariç) | cloc | ≤ eski (raporlanır) | Bakım yapılabilirlik |
 | **Hızlı dönüşüm** | | | | | |
 | K16 | Efor | Gerçek adam-saat / adam-ay; COCOMO II (baştan yazma ve uyarlama modeli) tahminine oranı | Ekip saat kaydı, COCOMO II | Gerçek efor < baştan yazma tahmini | — (süreç) |
-| K17 | YZ / manuel karşılaştırması | Aynı fonksiyonlar için efor, test ve incelemede bulunan hata / 1.000 satır, yeniden çalışma oranı | YZ kayıt şablonu (WBS-2 §4) | Raporlanır; eşik yok, karşılaştırma amaçlı | — (süreç) |
+| K17 | YZ eforu ve COCOMO elle tahmini karşılaştırması | YZ ile yazılan kod için harcanan gerçek efor ↔ aynı kodun elle yazılsaydı gerektireceği eforun Basic COCOMO (organik) tahmini; YZ kodunda test ve incelemede bulunan hata / 1.000 satır ve yeniden çalışma oranı | YZ kayıt şablonu (WBS-2 §4), PR geçmişi, satır sayımı (boş ve yorum satırları hariç) | Raporlanır; eşik yok, karşılaştırma amaçlı | — (süreç) |
 | K18 | Dağıtılabilirlik | Tek komutla çalışma, imaj boyutu, açılış süresi | Docker Compose | `docker compose up` ile çalışır | Esneklik (taşınabilirlik) |
 
 **K8 hakkında not.** §8'deki başlangıç ölçümlerinde eski sistemin p95 değeri 50 eş zamanlı kullanıcıda 1.249–1.615 ms arasındadır; yani eski sistem 1.000 ms eşiğini zaten aşmaktadır. Bu bir çelişki değildir: K8'in iki koşulu da **yeni sistem** içindir. "p95 ≤ eski" koşulu yeni sistemin en azından eskisi kadar hızlı olmasını, "50 eş zamanlı kullanıcıda p95 ≤ 1.000 ms" koşulu ise eski sisteme göre iyileşme hedefini tanımlar. Karşılaştırma, §8'deki sayfa ve senaryolar yeni sistemde aynı koşullarda ölçülerek yapılır (WBS-6).
@@ -1442,7 +1442,7 @@ Projenin başarısını özetleyen göstergeler; ara ve son raporlarda bu sıray
 6. **SUS puanı ve görev tamamlama oranı** (K11)
 7. **Sürdürülebilirlik derecesi** (K13)
 8. **Efor oranı** (K16): gerçek efor / COCOMO II baştan yazma tahmini
-9. **YZ destekli ve manuel geliştirme arasındaki efor ve hata farkı** (K17)
+9. **YZ ile harcanan gerçek eforun aynı kodun COCOMO elle tahminine oranı; YZ kodunda hata / 1.000 satır ve yeniden çalışma** (K17)
 
 ### 6.3 Ölçüm kuralları
 
@@ -1466,7 +1466,7 @@ Bu bölüm, projenin dayandığı çalışmaları ve mevcut araçları özetler 
 | **GitHub Copilot modernization** (eski adı app modernization) | Java ve .NET uygulamalarını bir sürümden diğerine yükseltir, derleme hatalarını giderir, Azure'a taşımaya yardım eder. Visual Studio, VS Code ve IntelliJ içinde çalışır. | **Aynı dilde sürüm yükseltme** yapar; PHP gibi farklı bir dilden C#'a geçişi kapsamaz. Hedef platformumuz (.NET 10) bu aracın desteklediği ortamdır. |
 | **AWS Transform** (custom) | Kurum çapında kod dönüşümü için ajan tabanlı bir hizmet. Java, Node.js ve Python yükseltmeleri hazırdır; kullanıcı kendi dönüşüm tanımını yazabilir. Windows .NET ve ana bilgisayar (COBOL → Java) iş yükleri için de ayrı kabiliyetleri vardır. | Ticari ve bulut hizmetidir. Dönüşüm kurallarını kullanıcı tanımlar; **PHP'den C#'a hazır tanım bildirilmemiştir**. Müşteri sonuçları üreticinin kendi bildirimidir. |
 | **Google'ın dahili kod göçleri** (Nikolov ve ark., 2025) | Büyük kod tabanında yapay zekâ ile sınıflı değişiklik üretir; AST tabanlı kesin yöntemlerle değişiklikleri bulur ve doğrular, derleme veya test başarısız olursa yapay zekâ ile onarır. Bir deneyim raporudur, kontrollü deney değildir. | Bizim yöntemimize en yakın çalışma: YZ'yi **tek başına bırakmayıp** otomatik doğrulamayla çevreler. Farkımız: tek firmanın dahili altyapısı yerine, 5 kişilik ekibin kendi gereksinimlerine bağlı bir izlenebilirlik matrisi kullanması. |
-| **"Migrating Code At Scale With LLMs At Google"** (2025) | 12 ayda üç geliştiricinin yaptığı 39 göç, 595 kod değişikliği ve 93.574 düzenleme. Geliştiriciler göç süresinin yaklaşık yarıya indiğini tahmin etmiştir. | Süre kazancı **ölçülmemiş, geliştirici tahminidir**. Biz YZ ve elle yazımı aynı işlev için ölçeriz (K17). |
+| **"Migrating Code At Scale With LLMs At Google"** (2025) | 12 ayda üç geliştiricinin yaptığı 39 göç, 595 kod değişikliği ve 93.574 düzenleme. Geliştiriciler göç süresinin yaklaşık yarıya indiğini tahmin etmiştir. | Süre kazancı **ölçülmemiş, geliştirici tahminidir**. Biz YZ ile harcanan eforu kayıtlı süreyle ölçer, aynı kodun elle eforunu COCOMO ile tahmin ederiz (K17). |
 
 ### 7.2 Kod çevirisi araştırmaları
 
@@ -1489,11 +1489,11 @@ Projenin amacı yeni bir çeviri aracı geliştirmek değildir. Özgün katkı, 
 1. **Gerçek ve büyük bir uygulama:** Moodle 5.3.1'in seçilen alt fonksiyonları (AUTH, CRS, ASG, GRD, FILE vb.), sabit bir revizyonda (`cfe123f2`) ve tekrarlanabilir bir ortamda ele alınır.
 2. **Davranışın korunması ölçülür:** Gereksinimler K (korunacak), D (düzeltilecek) ve Y (yeni) olarak sınıflanır; **aynı testler eski ve yeni sistemde çalıştırılır** (K1, K2). Aracın "çalışıyor" demesi yerine test sonucu esas alınır.
 3. **İzlenebilirlik:** Her gereksinim eski koda, yeni koda ve teste bağlanır (WBS-2 §5); YZ'nin yazdığı her satırın bir gereksinime dayandığı gösterilebilir.
-4. **YZ ve elle yazım karşılaştırması:** Her modülden bir işlev YZ ile, bir işlev elle yazılır; efor, hata oranı ve yeniden çalışma ölçülür (WBS-2 §4.4, K17). Google çalışmalarındaki süre kazancı tahminlerinden farklı olarak, burada **aynı ekip, aynı koşul ve kayıtlı süre** vardır.
+4. **YZ eforu ve COCOMO elle tahmini karşılaştırması:** Bütün kod YZ ile yazılır. Her modülde YZ ile harcanan gerçek efor, aynı kodun elle yazılsaydı gerektireceği eforun Basic COCOMO tahminiyle karşılaştırılır; YZ ile yazılan kodda hata oranı ve yeniden çalışma ölçülür (WBS-2 §4.4, K17). Google çalışmalarındaki süre kazancı tahminlerinden farklı olarak, burada YZ tarafındaki efor **kayıtlı süredir** ve elle taraf herkes için aynı kurallarla hesaplanan bir model tahminidir.
 5. **Çok ölçütlü kalite:** İşlevsellikle birlikte güvenlik (CodeQL, ZAP), performans (k6), bakım yapılabilirlik (SonarCloud) ve erişilebilirlik aynı ölçüm hattında karşılaştırılır (WBS-1 §6, K1–K18).
 6. **Hedef dilin gerekçeli seçimi:** Dil seçimi ekip bilgisi, performans ve YZ desteği ölçütleriyle belgelenmiştir (WBS-2 §1).
 
-**Sınırlar (dürüst değerlendirme):** Örneklem küçüktür (5 kişi, birkaç işlev çifti); sonuçlar istatistiksel genelleme değil, **kontrollü vaka çalışması** olarak yorumlanmalıdır. Moodle'ın tamamı kapsam dışıdır. Literatür taraması sistematik değildir; yukarıda eksik kalan çalışmalar olabilir.
+**Sınırlar (dürüst değerlendirme):** Örneklem küçüktür (5 kişi, birkaç modül). Elle efor ölçülmez, COCOMO ile tahmin edilir; COCOMO büyük projeler için geliştirildiğinden küçük kodda tahmin yüksek çıkar. Sonuçlar istatistiksel genelleme değil, **kontrollü vaka çalışması** olarak yorumlanmalıdır. Moodle'ın tamamı kapsam dışıdır. Literatür taraması sistematik değildir; yukarıda eksik kalan çalışmalar olabilir.
 
 ### 7.5 Kaynaklar
 

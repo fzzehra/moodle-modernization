@@ -15,6 +15,12 @@ namespace Moodle.Infrastructure.Files;
 public sealed class LocalDiskFileStore : IFileStore
 {
     private const string TempFolder = ".tmp";
+
+    // Unix'te File.Move(overwrite:false) "var mı kontrol et, sonra rename" yapar; rename hedefi sessizce
+    // ezer. Bu yüzden eşzamanlı yazımlarda birden çok çağrı "yeni" sonucunu alabiliyordu. Aynı özet için
+    // var-mı + taşı adımını kilitle sıraya sokuyoruz (özete göre şeritlenmiş kilitler, bellek büyümez).
+    private static readonly SemaphoreSlim[] MoveLocks =
+        Enumerable.Range(0, 64).Select(_ => new SemaphoreSlim(1, 1)).ToArray();
     private readonly string _root;
 
     public LocalDiskFileStore(FileStoreOptions options)
@@ -50,24 +56,33 @@ public sealed class LocalDiskFileStore : IFileStore
 
             var key = KeyFor(hash);
             var finalPath = PathFor(hash);
-            if (File.Exists(finalPath))
-            {
-                File.Delete(tempPath); // içerik zaten var: tek fiziksel kopya
-                return new StoredBlob(hash, size, key, AlreadyExisted: true);
-            }
-
-            Directory.CreateDirectory(Path.GetDirectoryName(finalPath)!);
+            var gate = MoveLocks[Convert.ToInt32(hash[..2], 16) % MoveLocks.Length];
+            await gate.WaitAsync(ct);
             try
             {
-                File.Move(tempPath, finalPath); // aynı birim üzerinde tek adım
+                if (File.Exists(finalPath))
+                {
+                    File.Delete(tempPath); // içerik zaten var: tek fiziksel kopya
+                    return new StoredBlob(hash, size, key, AlreadyExisted: true);
+                }
+
+                Directory.CreateDirectory(Path.GetDirectoryName(finalPath)!);
+                try
+                {
+                    File.Move(tempPath, finalPath); // aynı birim üzerinde tek adım
+                }
+                catch (IOException) when (File.Exists(finalPath))
+                {
+                    // Başka bir süreç aynı içeriği yazdı; içerik aynı olduğundan onunki kalır.
+                    File.Delete(tempPath);
+                    return new StoredBlob(hash, size, key, AlreadyExisted: true);
+                }
+                return new StoredBlob(hash, size, key, AlreadyExisted: false);
             }
-            catch (IOException) when (File.Exists(finalPath))
+            finally
             {
-                // Aynı içerik eş zamanlı yazıldı; diğeri kazandı.
-                File.Delete(tempPath);
-                return new StoredBlob(hash, size, key, AlreadyExisted: true);
+                gate.Release();
             }
-            return new StoredBlob(hash, size, key, AlreadyExisted: false);
         }
         catch
         {

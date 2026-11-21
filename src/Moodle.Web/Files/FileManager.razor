@@ -1,0 +1,182 @@
+@inherits FilePageBase
+@using Microsoft.AspNetCore.Components.Forms
+
+@* Yeniden kullanılabilir dosya yöneticisi (WBS-2 §3.6.4): liste, indirme, CanWrite ise silme ve yükleme.
+   Yükleme akışı: dosya seç → taslağa yükle (POST /file-drafts, /file-drafts/{id}/files) → Kaydet (commit). *@
+<section class="file-manager" data-testid="file-manager">
+    <FileNotice Loading="Loading" LoadingText="Dosyalar yükleniyor…" Busy="Busy" Error="Error" Success="@Success" OnRetry="RefreshAsync" />
+
+    @if (HasData && _files is not null)
+    {
+        @if (_files.Count == 0)
+        {
+            <p class="crs-panel" data-testid="file-empty">Bu alanda henüz dosya yok.</p>
+        }
+        else
+        {
+            <div class="crs-table-wrap"><table class="file-table">
+                <caption>Dosyalar</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Ad</th><th scope="col">Boyut</th><th scope="col">Eklenme</th>
+                        @if (CanWrite) { <th scope="col">İşlem</th> }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in _files)
+                    {
+                        <tr @key="file.FileId" data-file-id="@file.FileId">
+                            <th scope="row"><a href="@FileApiClient.DownloadUrl(file.FileId)" download="@file.Name" data-testid="download">@file.Name</a></th>
+                            <td>@FileDisplay.Size(file.SizeBytes)</td>
+                            <td>@FileDisplay.Date(file.CreatedAt)</td>
+                            @if (CanWrite)
+                            {
+                                <td><button type="button" class="crs-danger" data-testid="delete" disabled="@(!CanAct)"
+                                            @onclick="() => _pendingDelete = file">Sil</button></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table></div>
+        }
+
+        @if (CanWrite && _pendingDelete is not null)
+        {
+            <CrsConfirm Title="Dosya silinsin mi?" Description="@($"\"{_pendingDelete.Name}\" çöpe taşınacak.")"
+                        ConfirmLabel="Evet, sil" Busy="Busy" OnConfirm="DeleteAsync" OnCancel="() => _pendingDelete = null" />
+        }
+
+        @if (CanWrite)
+        {
+            <section class="crs-panel file-upload" aria-labelledby="file-upload-title" data-testid="upload-panel">
+                <h2 id="file-upload-title">Dosya yükle</h2>
+                @if (_uploadUnavailable)
+                {
+                    <p role="status" class="crs-notice" data-testid="upload-unavailable">Yükleme şu an kullanılamıyor. Dosya listesi ve silme çalışmaya devam ediyor.</p>
+                }
+                else
+                {
+                    <p><label for="file-input-@_id">Dosya seçin</label>
+                        <InputFile id="@($"file-input-{_id}")" OnChange="OnSelected" multiple disabled="@(!CanAct)" /></p>
+                    @if (_selected.Count > 0)
+                    {
+                        <ul data-testid="selected">@foreach (var s in _selected) { <li>@s.Name (@FileDisplay.Size(s.Size))</li> }</ul>
+                    }
+                    @if (_draft.Count > 0)
+                    {
+                        <p>Taslakta bekleyen dosyalar (henüz kaydedilmedi):</p>
+                        <ul data-testid="draft">@foreach (var d in _draft) { <li>@d.Name (@FileDisplay.Size(d.Size))</li> }</ul>
+                    }
+                    <div class="crs-actions">
+                        <button type="button" data-testid="upload" disabled="@(!CanAct || _selected.Count == 0)" @onclick="UploadAsync">Taslağa yükle</button>
+                        <button type="button" class="crs-primary" data-testid="commit" disabled="@(!CanAct || _draft.Count == 0)" @onclick="CommitAsync">Kaydet</button>
+                    </div>
+                }
+            </section>
+        }
+    }
+</section>
+
+@code {
+    private const long MaxUploadBytes = 1024L * 1024 * 1024; // gerçek sınırı sunucu uygular (413)
+    private const int MaxFiles = 20;
+    private readonly string _id = Guid.NewGuid().ToString("N")[..8];
+
+    [Parameter, EditorRequired] public FileAreaRef Area { get; set; } = default!;
+    [Parameter] public bool CanWrite { get; set; }
+    /// <summary>Kaydetme veya silme yetki nedeniyle reddedildi (403/404); üst sayfa yazma denetimlerini gizler.</summary>
+    [Parameter] public EventCallback OnWriteDenied { get; set; }
+
+    private FileAreaRef? _loadedArea;
+    private List<FileItem>? _files;
+    private FileItem? _pendingDelete;
+    private IReadOnlyList<IBrowserFile> _selected = [];
+    private long? _draftId;
+    private readonly List<FileUploadResult> _draft = [];
+    private bool _uploadUnavailable;
+
+    protected override void OnParametersSet()
+    {
+        if (_loadedArea == Area) return;
+        _loadedArea = Area;
+        _draftId = null;
+        _draft.Clear();
+        RequestLoad();
+    }
+
+    protected override async Task LoadAsync() => _files = [.. await Api.ListAsync(Area, ct: Token)];
+
+    private void OnSelected(InputFileChangeEventArgs e) =>
+        _selected = e.FileCount > MaxFiles ? e.GetMultipleFiles(MaxFiles) : e.GetMultipleFiles(e.FileCount);
+
+    private Task UploadAsync() => ExecuteAsync(async () =>
+    {
+        try
+        {
+            _draftId ??= (await Api.CreateDraftAsync(Token)).DraftId;
+            foreach (var file in _selected)
+            {
+                await using var stream = file.OpenReadStream(MaxUploadBytes, Token);
+                _draft.Add(await Api.UploadToDraftAsync(_draftId.Value, file.Name, file.ContentType, stream, Token));
+            }
+            var count = _selected.Count;
+            _selected = [];
+            Success = $"{count} dosya taslağa yüklendi. Kalıcı olarak eklemek için Kaydet'e basın.";
+        }
+        catch (FileApiException ex) when (ex.Code == FileApiClient.UploadUnavailable)
+        {
+            _uploadUnavailable = true;
+            _selected = [];
+        }
+    });
+
+    private async Task CommitAsync()
+    {
+        var denied = false;
+        await ExecuteAsync(async () =>
+        {
+            try
+            {
+                var saved = await Api.CommitAsync(Area, _draftId!.Value, ct: Token);
+                _draftId = null;
+                _draft.Clear();
+                _files = [.. await Api.ListAsync(Area, ct: Token)];
+                Success = $"{saved.Count} dosya kaydedildi.";
+            }
+            catch (FileApiException ex) when (ex.IsDenied)
+            {
+                denied = true;
+                throw;
+            }
+        });
+        if (denied) await OnWriteDenied.InvokeAsync();
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (_pendingDelete is not { } file) return;
+        _pendingDelete = null;
+        var denied = false;
+        await ExecuteAsync(async () =>
+        {
+            try
+            {
+                await Api.DeleteAsync(file.FileId, Token);
+                _files = [.. await Api.ListAsync(Area, ct: Token)];
+                Success = $"\"{file.Name}\" silindi.";
+            }
+            catch (FileApiException ex) when (ex.IsDenied)
+            {
+                // FILE yetkisizlikte de 404 döner: dosya listede duruyorsa yetki yok, durmuyorsa zaten silinmiş.
+                _files = [.. await Api.ListAsync(Area, ct: Token)];
+                if (_files.Any(f => f.FileId == file.FileId))
+                {
+                    denied = true;
+                    throw;
+                }
+                Success = "Dosya zaten silinmiş; liste güncellendi.";
+            }
+        });
+        if (denied) await OnWriteDenied.InvokeAsync();
+    }
+}

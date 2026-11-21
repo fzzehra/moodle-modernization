@@ -39,7 +39,7 @@ Gerekçe:
 4. **Tür güvenliği:** Gereksinim kimliğine bağlı test yazarken derleyici, YZ'nin ürettiği hataların bir kısmını erkenden yakalar.
 5. **Tek dil:** Arka uç ve ön yüz C# olduğundan 5 kişilik ekip tek dilde çalışır; modüller arası geçiş kolay olur.
 
-Risk ve önlem: YZ araçlarının Blazor'daki başarısı React'ten düşük olabilir. Önlem olarak ön yüz bileşenleri küçük tutulur; her bileşen bir API ucuna bağlanır ve YZ çıktısı pilottaki gibi insan incelemesinden geçer. Üretim sütunu (YZ / Manuel / YZ + düzeltme) bu riski ölçer.
+Risk ve önlem: YZ araçlarının Blazor'daki başarısı React'ten düşük olabilir. Önlem olarak ön yüz bileşenleri küçük tutulur; her bileşen bir API ucuna bağlanır ve YZ çıktısı pilottaki gibi insan incelemesinden geçer. Üretim sütunu (YZ / YZ + insan düzeltmesi) bu riski ölçer.
 
 ### 1.4 Seçilen teknoloji yığını
 
@@ -1304,32 +1304,31 @@ Her modül sahibi, WBS-1 §8.5'teki örnekle aynı alanları doldurur. Şablon, 
 
 İnsan ve YZ süreleri ayrı tutulur ve katkı yüzdesi olarak yorumlanmaz (WBS-1 §8.5'teki uygulamayla tutarlı).
 
-### 4.4 Yapay zekâ destekli ile manuel geliştirmenin karşılaştırma tasarımı
+### 4.4 Yapay zekâ destekli geliştirme eforunun COCOMO tahminiyle karşılaştırma tasarımı
 
-**Amaç:** WBS-3'te aynı karmaşıklıktaki işlevlerin YZ destekli ve tamamen manuel geliştirilmesi arasındaki efor, hata ve yeniden çalışma farkını ölçmek (WBS-1 §6, K17).
+> **Not:** 18.11.2026'da hocanın onayıyla yöntem değiştirildi: elle geliştirme yapılmaz, elle efor aynı kod için Basic COCOMO ile tahmin edilir.
 
-**Hangi fonksiyonlar:** Her modülden birer çift, karşılaştırılabilir karmaşıklıkta ve bağımsız çalışabilecek işlev seçilir — örneğin:
-- ASG: teslim kaydetme uç noktası (YZ) ↔ teslim listesi uç noktası (manuel)
-- GRD: not yazma uç noktası (YZ) ↔ kişisel not raporu uç noktası (manuel)
-- FILE: taslak alanına yükleme (YZ) ↔ dosya silme/çöp (manuel)
-- ADV / PLAN: WBS-3/4 kapsamına girerse aynı eşleştirme uygulanır
+**Amaç:** WBS-3'te YZ ile yazılan kod için harcanan gerçek eforu, aynı kodun elle yazılsaydı gerektireceği eforun COCOMO tahminiyle karşılaştırmak; YZ ile yazılan kodda hata oranını ve yeniden çalışmayı ölçmek (WBS-1 §6, K17).
 
-Son seçim, §9'da ilk sürüme alınan modüller netleşince kesinleşir; aday çiftler yukarıdaki gibi modül başına birer örnekle sınırlı tutulur ki karşılaştırma büyük örneklemden değil, kontrollü eşleştirmeden gelsin.
+**Kapsam:** Bütün kod YZ ile yazılır. Her modülün YZ ile yazılan kodu için satır sayısı ölçülür ve aynı kodun COCOMO tahmini hesaplanır.
 
 **Ölçütler:**
 
 | Ölçüt | Tanım | Kaynak |
 | --- | --- | --- |
-| Efor (adam-ay/adam-saat) | Aynı işlev için harcanan insan süresi; YZ'ye "yönlendirme + inceleme" süresi de insan eforuna dahildir, YZ'nin kendi çalışma süresi ayrı kaydedilir | §4.3 kayıt şablonu |
-| Hata oranı | İnceleme ve testte bulunan hata sayısı / 1.000 satır | Kod inceleme notları + CI bulguları (WBS-1 §6, K6) |
-| Yeniden çalışma (re-work) | İlk PR'dan birleşmeye kadar geçen inceleme turu sayısı ve bu turlarda değişen satır oranı | GitHub PR geçmişi |
+| Gerçek efor, YZ ile (adam-saat) | YZ ile yazılan kod için harcanan insan süresi; YZ'ye "yönlendirme + inceleme" süresi de insan eforuna dahildir, YZ'nin kendi çalışma süresi ayrı kaydedilir | §4.3 kayıt şablonu |
+| Satır sayısı | YZ ile yazılan kodun satır sayısı; boş ve yorum satırları hariç | Kod deposu |
+| COCOMO elle tahmini (adam-saat) | Aynı kodun elle yazılsaydı gerektireceği efor: Basic COCOMO (organik), Efor = 2,4 × KLOC^1,05 kişi-ay, 1 kişi-ay = 152 saat | Satır sayısından hesaplanır |
+| Efor oranı | Gerçek efor / COCOMO elle tahmini | Yukarıdaki iki ölçüt |
+| Hata oranı | YZ ile yazılan kodda inceleme ve testte bulunan hata sayısı / 1.000 satır | Kod inceleme notları + CI bulguları (WBS-1 §6, K6) |
+| Yeniden çalışma (re-work) | YZ ile yazılan kodun ilk PR'dan birleşmeye kadar geçen inceleme turu sayısı ve bu turlarda değişen satır oranı | GitHub PR geçmişi |
 
 **Adil karşılaştırma nasıl sağlanır:**
-- İki işlev de aynı güncel gereksinim ve API tasarımından başlar (bayat/eski taslaktan değil).
-- Aynı kabul kriteri ve aynı test seti ile doğrulanır.
-- Mümkünse aynı kişi her iki işlevi de geliştirir (beceri farkını ortadan kaldırmak için); değilse geliştiricilerin deneyim seviyesi not düşülür.
-- Kod inceleyen kişi hangi işlevin YZ destekli olduğunu bilmeden (mümkün olduğunca) inceler; PR açıklamasında bu bilgi inceleme bitene kadar gizlenebilir.
+- Herkes YZ kaydına (§4.3) yalnızca YZ ile harcadığı süreyi yazar; elle efor tahmini kişi bazında yapılmaz.
+- COCOMO hesabı en sonda karşılaştırma raporunda herkes için aynı kurallarla toplu yapılır: aynı model (Basic, organik), aynı katsayılar, aynı saat/kişi-ay dönüşümü ve aynı satır sayma kuralı (boş ve yorum satırları hariç).
 - Süre ölçümü aynı granülerite ile yapılır (§4.3 şablonu); "YZ'yi yönlendirme" süresi de insan eforuna sayılır, yalnızca modelin kendi çalışma süresi ayrı sütunda tutulur.
+- Hata ve yeniden çalışma yalnızca YZ ile yazılan kod için ölçülür; kod aynı güncel gereksinim ve API tasarımından başlar (bayat/eski taslaktan değil), aynı kabul kriteri ve test setiyle doğrulanır.
+- Sınırlılık: COCOMO büyük projeler için geliştirilmiştir; küçük kodda tahmin yüksek çıkar. Oran kesin ölçüm değil, gösterge olarak yorumlanır.
 - Sonuçlar WBS-6'da raporlanır; eşik tanımlanmaz, amaç ölçüp raporlamaktır (WBS-1 §6, K17).
 
 ## 5. İzlenebilirlik yöntemi (Fatma Zehra)
@@ -1347,7 +1346,7 @@ Her gereksinim; eski sistemdeki kaynağına, yeni sistemdeki karşılığına ve
 | Test | Test kimliği; aynı test iki sistemde de çalışır | `T-ASG-01` |
 | Eski sonuç | Testin eski sistemdeki sonucu | Geçti / Kaldı (D sınıfında beklenen) |
 | Yeni sonuç | Testin yeni sistemdeki sonucu | Geliştirmede doldurulur |
-| Üretim | Kod nasıl yazıldı | YZ / Manuel / YZ + düzeltme |
+| Üretim | Kod nasıl yazıldı | YZ / YZ + insan düzeltmesi |
 | PR | Kodun eklendiği pull request | `#12` |
 
 ### 5.2 Kurallar
@@ -1358,7 +1357,7 @@ Her gereksinim; eski sistemdeki kaynağına, yeni sistemdeki karşılığına ve
 4. **Yeni kod, gereksinim kimliğiyle işaretlenir.** Commit mesajında ve pull request açıklamasında ilgili kimlikler yazılır, ör. `ASG-FR-03: teslim kaydetme`.
 5. **D sınıfı gereksinimler** için test eski sistemde **kalır** (hata orada vardır), yeni sistemde **geçer**. Eşleme eShop pilotundaki "beklenen başarısızlık" yöntemiyle yapılır.
 6. **Y sınıfı gereksinimlerin** eski kod referansı yoktur; bu sütuna kaynağı yazılır (ör. kullanıcı ihtiyaçları anketi, §3).
-7. **Üretim sütunu** YZ / manuel karşılaştırması (WBS-1 §6, K17) için kullanılır ve WBS-2 §4'teki YZ kayıt şablonuyla eşleşir.
+7. **Üretim sütunu** YZ çıktısının insan düzeltmesi gerektirip gerektirmediğini gösterir; bütün kod YZ ile yazıldığından elle yazım değeri yoktur. Sütun, YZ kodunda hata ve yeniden çalışma ölçümü (WBS-1 §6, K17) için kullanılır ve WBS-2 §4'teki YZ kayıt şablonuyla eşleşir.
 8. **Herkes sadece kendi modülünün satırlarını** düzenler; matris dosyasında her modülün ayrı başlığı vardır.
 
 ### 5.3 Kontroller

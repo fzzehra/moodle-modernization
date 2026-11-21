@@ -1,0 +1,28 @@
+@page "/courses/{CourseId:int}/files"
+@rendermode InteractiveServer
+@using Moodle.Web.Files
+
+@* FILE-FR-13: ders dosyaları. Yazma yetkisini bildiren bir API alanı yok (WBS-2 §3.6.4); kaydetme veya silme
+   403/404 ile reddedilirse yükleme ve silme denetimleri gizlenir. Okuma yetkisi sunucuda denetlenir. *@
+<PageTitle>Ders dosyaları · Moodle</PageTitle>
+<nav class="crs-breadcrumb" aria-label="Ders gezinme"><a href="courses">Dersler</a><a href="@($"courses/{CourseId}")">Ders #@CourseId</a><span>/ Dosyalar</span></nav>
+<div class="crs-heading"><div><h1>Ders dosyaları</h1><p>Ders #@CourseId</p></div></div>
+<noscript><p>Ders dosyaları için JavaScript'i etkinleştirin.</p></noscript>
+
+<FileManager Area="_area" CanWrite="_canWrite" OnWriteDenied="WriteDenied" />
+
+@code {
+    [Parameter] public int CourseId { get; set; }
+    private FileAreaRef _area = default!;
+    private bool _canWrite = true;
+
+    protected override void OnParametersSet()
+    {
+        var area = FileAreaRef.CourseFiles(CourseId);
+        if (area == _area) return;
+        _area = area;
+        _canWrite = true;
+    }
+
+    private void WriteDenied() => _canWrite = false;
+}

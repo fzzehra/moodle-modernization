@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moodle.Application.Abstractions;
 using Moodle.Application.Assignments;
@@ -97,6 +98,15 @@ public static class DependencyInjection
         services.AddScoped<FileService>();                                  // İrem: gerçek dosya servisi (FR-02, 03, 04, 05, 09)
         services.AddScoped<IFileService>(sp => useDevelopmentFakes(sp)
             ? new FakeFileService(sp.GetRequiredService<IFileStore>()) : sp.GetRequiredService<FileService>());
+        // Fatma Zehra: temizlik görevi (FILE-FR-12). Files:CleanupEnabled / Files:CleanupIntervalMinutes.
+        services.AddScoped<IFileMaintenance, FileMaintenanceService>();
+        services.AddSingleton(sp => FileCleanupOptions.FromConfiguration(sp.GetRequiredService<IConfiguration>()));
+        services.AddHostedService<FileCleanupWorker>();
+        // Fatma Zehra: yönetici dosya ayarları ve ders dosyaları (FILE-FR-13, component="course").
+        services.AddScoped<IFileSettingsService, FileSettingsService>();
+        services.AddScoped<ISiteAdminQuery, IdentitySiteAdminQuery>();
+        services.AddScoped<IFilePolicy, CourseFilePolicy>();
+        services.AddScoped<ISeedContributor, CourseFilesSeedContributor>(); // SENG101 ders dosyası, CRS'den sonra (Order 31)
 
         // Örnek veri yükleyici (Seray). Modüller ISeedContributor kaydederek kendi tablolarına veri yükler.
         services.AddScoped<SeedRunner>();

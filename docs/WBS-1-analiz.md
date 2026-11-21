@@ -1671,7 +1671,7 @@ Belgeler bu bölüm yazılırken birbirine karşı okunmuştur. Bulgular ve soru
 | --- | --- | --- |
 | Gereksinim kimlikleri §2.5 biçimine uygun mu? | Uygun. ADV'de `ADV-BUG` kimlikleri eksik özellikleri gösterir ve Y sınıfı FR'lere kaynak olarak bağlanmıştır; biçimden sapma bilinçlidir | — |
 | Her gereksinimin testi var mı? | FILE-BR-14 dışında var. FILE-BR-14'ün testi WBS-3 2. sürümde yazılacak | İrem |
-| İzlenebilirlik matrisi doldurulmuş mu? | ADV, PLAN, ASG, GRD, FILE dolu. **AUTH ve CRS tabloları boş** | Sinem |
+| İzlenebilirlik matrisi doldurulmuş mu? | Bu bölüm yazıldığında: ADV, PLAN, ASG, GRD, FILE dolu; **AUTH ve CRS tabloları boş**. Güncel durum (21.11.2026): AUTH tablosu WBS-3 AUTH teslimiyle (PR #28) dolduruldu; AUTH-FR-06 ve FR-09 satırları ile CRS tablosunun tüm FR/NFR satırları PR #48 ile eklendi. Bazı satırlarda son test sonuçları henüz işlenmedi | Sinem |
 | Eski sistem test sonuçları yazılmış mı? | AUTH, CRS, ASG, GRD, ADV, PLAN yazılmış. **FILE'ın 31 satırı "Bekliyor"** | Seray |
 | Kullanıcı ihtiyaçları anketi | Tasarlandı, **sonuçlar bekleniyor** (§3.4) | İrem |
 | Literatür taraması | **Boş** (§7) | Seray |

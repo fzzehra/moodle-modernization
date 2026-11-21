@@ -1,3 +1,5 @@
+> **21.11.2026 — güncel son FILE entegrasyonu:** PR #40/#42 main'de; codex/asg-file-final-integration dalında 939/939 .NET, 54/54 JS, Playwright 6 geçti / gerçek CRS bölüm bağımlılığı nedeniyle 2 atlandı. Ortak dosya yöneticisi, süreçler arası PostgreSQL kilidi ve MIME davranışı doğrulandı. Yeni üretim kaynağı değişikliği gerekmedi; testler ve kayıtlar tamamlandı. Commit/push yapılmadı. [Son rapor](SON-FILE-ENTEGRASYONU.md); DOGRULAMA.json → finalFileIntegration. Aşağıdaki önceki durumlar tarihseldir.
+
 > **21.11.2026 — son durum:** Kullanıcı onayıyla temizlik/yükleme veri kaybı düzeltildi. 845/845 .NET ve 54/54 JavaScript geçti; Playwright 4 geçti / CRS bölüm bağımlılığı nedeniyle 2 atlandı. Üç metinsel çakışma çözülmüş durumda; commit/push yapılmadı, merge commit onayı bekleniyor. Ayrıntılar [BIRLESME-65cd11d.md](BIRLESME-65cd11d.md), makine özeti DOGRULAMA.json → main65cd11dLockFix. Aşağıdaki önceki sonuçlar tarihsel kayıttır.
 
 > **20.11.2026 — PR #39 sonrası güncel durum:** Seray e2b50d0 düzeltmesi main 1424b04'ten yeni commit oluşturmadan fast-forward ile alındı; bütün yerel çalışmalar yedeklenip korundu. Eşzamanlılık 10/10, .NET 708/708, JS 23/23 geçti. Playwright 4 geçti / bölüm modeli nedeniyle 2 skip. Önceki kırmızı FileStore sonucu giderilmiştir; aşağıdaki önceki sonuçlar tarihsel kayıttır. [Güncel ayrıntılı sonuç](SON-KONTROL.md), [makine kanıtı](DOGRULAMA.json), [tekrarlar](ESZAMANLILIK-TEKRARLARI.json).
@@ -58,3 +60,10 @@ Fakes yalnız mevcut açık geliştirme ayarı veya test fixture'larında kullan
 - **İrem:** ASG yetenek uyarlaması onayla tamamlandı. Gelecek grup modeli/rol kapsamı ve genel kota/çerez güvenliği kararları ilgili modül sahipleriyle sürdürülmeli; bu çalışma yalnız ASG/draft yazılarına CSRF filtresi ekler.
 - **Fatma Zehra:** ortak dosya yöneticisi ve temizlik entegrasyonu; GRD gerçek E2E kabulü bölüm bağımlılığı açıldıktan sonra yürütülecek. Karşılaştırma işleri bütünüyle kendisine aittir.
 - **Ekip:** dış FK/silme, farklı DB dağıtımı, belirsiz commit sonrası onarım ve deploy antivirüs ayarları. PR öncesinde test başarısızlığı çözülmeli veya ekipçe açık engel olarak kabul edilmeli; gerçek tam E2E başarılı gösterilmemeli.
+
+
+## 21.11.2026 — 02017af sonrası nihai ASG entegrasyonu
+Release başarılı; **501 birim + 494 entegrasyon = 995/995 .NET**, 0 başarısız/atlanan. Önceki 939 test adı yeni TRX içinde korundu. JavaScript **54/54**; Playwright **6 geçti / 2 gerçek CRS bölüm bağımlılığı nedeniyle atlandı**. PostgreSQL 17, gerçek ClamAV temiz/EICAR, beş context migration/snapshot ve HTTP 200/401 kontrolleri geçti.
+Yeni ASG/GRD temizleme testleri: 8/8; gerçek CRS öğrenci rol/tarih/suspension: 6/6; gerçek AUTH HTTP ders silme + DI worker: 1/1. İlk hedefli ASG koşusu 7/7; sonraki test eklenirken namespace derleme hatası düzeltildi, final çözüm build/test geçti.
+91 benzersiz gereksinim, 9 sütun; çakışma işareti/hassas anahtar kalıbı/gereksiz build çıktısı yok. Ham TRX ve loglar ignored coverage/asg-cleanup-regression altındadır.
+[Güncel entegrasyon ve kalan bağımlılıklar](NIHAI-ASG-FILE-ENTEGRASYONU.md), [makine özeti](DOGRULAMA.json) / finalAsgCleanupIntegration. Önceki sonuçlar tarihsel kayıttır.

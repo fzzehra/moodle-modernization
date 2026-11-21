@@ -34,6 +34,10 @@ public sealed class CrsApiFixture : IAsyncLifetime
                 builder.UseSetting(key, value);
             builder.UseEnvironment(environment).ConfigureTestServices(services =>
             {
+                foreach (var descriptor in services.Where(x =>
+                    x.ImplementationType == typeof(Moodle.Infrastructure.Assignments.AsgCourseDeletedExtension) ||
+                    x.ImplementationType == typeof(Moodle.Infrastructure.Grading.GrdCourseDeletedExtension)).ToArray())
+                    services.Remove(descriptor); // This fixture migrates only CRS; full module cleanup has a dedicated fixture.
                 services.RemoveAll<CrsDbContext>();
                 services.RemoveAll<DbContextOptions<CrsDbContext>>();
                 services.RemoveAll<IDbContextOptionsConfiguration<CrsDbContext>>();

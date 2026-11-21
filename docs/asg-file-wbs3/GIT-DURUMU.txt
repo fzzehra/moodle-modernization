@@ -1,77 +1,34 @@
-21.11.2026 main PR #40 integration inventory
-Branch: codex/asg-file-wbs3-v2
-HEAD: aa2e62e (unchanged)
-MERGE_HEAD: 65cd11d (origin/main)
-Initial working tree: clean.
-Method: git merge --no-commit --no-ff origin/main.
-Three text conflicts resolved and staged; merge commit NOT created.
-Cleanup/reupload fix explicitly approved and implemented; 845/845 .NET passed. Merge commit approval pending.
-No push, rebase, force push, main merge or PR merge.
-Current detailed report: BIRLESME-65cd11d.md
-Prior inventory below is historical.
-
-20.11.2026 PR #39 integration inventory
-Branch: codex/asg-file-wbs3-v2
-HEAD/main: 1424b0401fcce9d66f23b1facdb3837efb0c5d4b
-Fast-forward from 3b9ccd6; no new commit/merge commit created.
-Fix: e2b50d0f83a6ccd43fe4b54dec9360035d95ec50; PR #39
-Verified backup: coverage/pre-main-1424b04 (ignored)
-No staging/push/PR/rebase/force push/main integration.
-
- M .dockerignore
- M .gitignore
- M docker/docker-compose.yml
+ M Moodle.slnx
  M docs/WBS-3-gelistirme.md
- M docs/asg-wbs3/BIRLESME-RAPORU.md
- M docs/asg-wbs3/DOGRULAMA.json
- M docs/asg-wbs3/GIT-DURUMU.txt
- M docs/asg-wbs3/ORTAK-SOZLESMELER.md
- M docs/asg-wbs3/TESLIM-RAPORU.md
+ M docs/asg-file-wbs3/DOGRULAMA.json
+ M docs/asg-file-wbs3/ENTEGRASYON.md
+ M docs/asg-file-wbs3/GIT-DURUMU.txt
+ M docs/asg-file-wbs3/SON-KONTROL.md
+ M docs/asg-file-wbs3/TESLIM-RAPORU.md
+ M docs/asg-file-wbs3/TESTLER.md
  M docs/asg-wbs3/YZ-KAYDI.md
  M docs/izlenebilirlik.md
- M src/Moodle.Api/AssignmentEndpoints.cs
- M src/Moodle.Api/Program.cs
- M src/Moodle.Application/Assignments/AssignmentService.cs
- M src/Moodle.Application/Assignments/Contracts.cs
- M src/Moodle.Application/Auth/CapabilityRules.cs
- M src/Moodle.Domain/Assignments/Submission.cs
- M src/Moodle.Infrastructure/Auth/AuthAccessPolicy.cs
  M src/Moodle.Infrastructure/DependencyInjection.cs
- M src/Moodle.Infrastructure/Files/FileService.cs
+ M src/Moodle.Infrastructure/Grading/GrdService.cs
  M src/Moodle.Infrastructure/Persistence/AssignmentStore.cs
  M src/Moodle.Infrastructure/Persistence/Migrations/MoodleDbContextModelSnapshot.cs
  M src/Moodle.Infrastructure/Persistence/MoodleDbContext.cs
- M src/Moodle.Web/App.razor
- M src/Moodle.Web/Assignments/AsgClient.cs
- M src/Moodle.Web/Layout/NavMenu.razor
- M src/Moodle.Web/Pages/CourseDetails.razor
- M src/Moodle.Web/Pages/CreateAssignmentPage.razor
- M src/Moodle.Web/Pages/SubmissionDetail.razor
- M src/Moodle.Web/Pages/SubmissionForm.razor
- M src/Moodle.Web/Pages/SubmissionList.razor
- M tests/Moodle.IntegrationTests/AsgCrsMergeTests.cs
- M tests/Moodle.IntegrationTests/AssignmentApiTests.cs
- M tests/Moodle.IntegrationTests/AssignmentRevisionTests.cs
- M tests/Moodle.IntegrationTests/FileEndpointTests.cs
- M tests/Moodle.IntegrationTests/FilesApiFixture.cs
- M tests/Moodle.IntegrationTests/FilesSeedTests.cs
- M tests/Moodle.UnitTests/AssignmentServiceTests.cs
-?? docker/docker-compose.v2-test.yml
-?? docs/asg-file-wbs3/
-?? src/Moodle.Api/CookieWriteProtection.cs
-?? src/Moodle.Api/Files/DraftEndpoints.cs
-?? src/Moodle.Application/Files/IVirusScanner.cs
-?? src/Moodle.Application/Files/UploadValidation.cs
-?? src/Moodle.Infrastructure/Assignments/
-?? src/Moodle.Infrastructure/Files/ClamAvVirusScanner.cs
-?? src/Moodle.Infrastructure/Files/DraftUploadService.cs
-?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.Designer.cs
-?? src/Moodle.Infrastructure/Persistence/Migrations/20261119151545_AsgFileSubmission.cs
-?? src/Moodle.Web/Pages/CourseAssignments.razor
-?? src/Moodle.Web/wwwroot/asg-files.js
-?? tests/Moodle.IntegrationTests/CleanTestScanner.cs
-?? tests/Moodle.IntegrationTests/FileUploadV2Tests.cs
-?? tests/Moodle.IntegrationTests/VirusScannerTests.cs
-?? tests/Moodle.UnitTests/UploadValidationTests.cs
-?? tests/e2e/
-?? tests/web/asg-files.test.mjs
+ M tests/Moodle.IntegrationTests/CrsApiFixture.cs
+ M tests/Moodle.IntegrationTests/Moodle.IntegrationTests.csproj
+ M tests/e2e/specs/asg-file.spec.mjs
+?? docs/asg-file-wbs3/NIHAI-ASG-FILE-ENTEGRASYONU.md
+?? docs/asg-file-wbs3/PR-TASLAGI.md
+?? docs/asg-file-wbs3/SON-FILE-ENTEGRASYONU.md
+?? src/Moodle.Domain/Assignments/AsgDeletedCourse.cs
+?? src/Moodle.Infrastructure/Assignments/AsgCourseDeletedExtension.cs
+?? src/Moodle.Infrastructure/Assignments/AsgCourseWriteFence.cs
+?? src/Moodle.Infrastructure/Grading/GrdCourseDeletedExtension.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261121173057_AsgDeletedCourses.Designer.cs
+?? src/Moodle.Infrastructure/Persistence/Migrations/20261121173057_AsgDeletedCourses.cs
+?? tests/Moodle.FileConcurrencyProbe/
+?? tests/Moodle.IntegrationTests/AsgCourseDeletionTests.cs
+?? tests/Moodle.IntegrationTests/AsgRealCrsIntegrationTests.cs
+?? tests/Moodle.IntegrationTests/FileCrossProcessTests.cs
+?? tests/Moodle.IntegrationTests/FileMimeIntegrationTests.cs
+
+HEAD 02017af; no commit/push/PR. Stash retained.

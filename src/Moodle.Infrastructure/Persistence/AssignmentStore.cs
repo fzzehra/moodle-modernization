@@ -20,7 +20,12 @@ public sealed class AssignmentStore(MoodleDbContext db, IServiceProvider? servic
     public async Task<IReadOnlyList<Assignment>> ListCourseAsync(int courseId,CancellationToken ct)
         => await Current.Assignments.AsNoTracking().Where(a=>a.CourseId==courseId).OrderBy(a=>a.Id).ToArrayAsync(ct);
     public async Task AddAsync(Assignment assignment, CancellationToken ct)
-        => await InTransactionAsync(null, () => { Current.Assignments.Add(assignment); return Task.FromResult(true); }, ct);
+        => await InTransactionAsync(null, async () =>
+        {
+            await AsgCourseWriteFence.RequireLiveAsync(Current, assignment.CourseId, ct);
+            Current.Assignments.Add(assignment);
+            return true;
+        }, ct);
     public Task<Submission?> FindSubmissionAsync(int assignmentId, int learnerId, CancellationToken ct)
     {
         var query = Current.Submissions.AsQueryable();
@@ -120,8 +125,13 @@ public sealed class AssignmentStore(MoodleDbContext db, IServiceProvider? servic
         try
         {
             if (assignmentId is int id)
+            {
+                var courseId = await isolated.Assignments.Where(a => a.Id == id)
+                    .Select(a => (int?)a.CourseId).SingleOrDefaultAsync(ct) ?? throw AppException.NotFound();
+                await AsgCourseWriteFence.RequireLiveAsync(isolated, courseId, ct);
                 await isolated.Database.ExecuteSqlInterpolatedAsync(
                     $"""SELECT "Id" FROM "Assignments" WHERE "Id" = {id} FOR UPDATE""", ct);
+            }
             var result = await action();
             await isolated.SaveChangesAsync(ct);
             if (owned is not null) await owned.CommitAsync(ct);

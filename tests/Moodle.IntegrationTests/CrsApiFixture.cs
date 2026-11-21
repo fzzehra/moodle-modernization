@@ -24,22 +24,27 @@ public sealed class CrsApiFixture : IAsyncLifetime
 
     public WebApplicationFactory<Program> CreateFactory(
         bool authenticated = true, Func<string, ContextRef, bool>? permission = null,
-        string environment = "Production")
+        string environment = "Production", IReadOnlyDictionary<string, string?>? settings = null, int userId = 42)
     {
         using var db = Database.CreateContext();
         var connectionString = db.Database.GetConnectionString();
-        return _root.WithWebHostBuilder(builder => builder.UseEnvironment(environment).ConfigureTestServices(services =>
+        return _root.WithWebHostBuilder(builder =>
         {
-            services.RemoveAll<CrsDbContext>();
-            services.RemoveAll<DbContextOptions<CrsDbContext>>();
-            services.RemoveAll<IDbContextOptionsConfiguration<CrsDbContext>>();
-            services.AddDbContext<CrsDbContext>(options => options.UseNpgsql(connectionString));
-            services.RemoveAll<ICurrentUser>();
-            services.RemoveAll<IAccessPolicy>();
-            // These stand-ins are registered only in the test host, never in Program.cs.
-            services.AddSingleton<ICurrentUser>(new TestUser(authenticated));
-            services.AddSingleton<IAccessPolicy>(new TestPolicy(permission ?? ((_, _) => true)));
-        }));
+            foreach (var (key, value) in settings ?? new Dictionary<string, string?>())
+                builder.UseSetting(key, value);
+            builder.UseEnvironment(environment).ConfigureTestServices(services =>
+            {
+                services.RemoveAll<CrsDbContext>();
+                services.RemoveAll<DbContextOptions<CrsDbContext>>();
+                services.RemoveAll<IDbContextOptionsConfiguration<CrsDbContext>>();
+                services.AddDbContext<CrsDbContext>(options => options.UseNpgsql(connectionString));
+                services.RemoveAll<ICurrentUser>();
+                services.RemoveAll<IAccessPolicy>();
+                // These stand-ins are registered only in the test host, never in Program.cs.
+                services.AddSingleton<ICurrentUser>(new TestUser(authenticated, userId));
+                services.AddSingleton<IAccessPolicy>(new TestPolicy(userId, permission ?? ((_, _) => true)));
+            });
+        });
     }
 
     public async Task DisposeAsync()
@@ -48,17 +53,17 @@ public sealed class CrsApiFixture : IAsyncLifetime
         await Database.DisposeAsync();
     }
 
-    private sealed class TestUser(bool authenticated) : ICurrentUser
+    private sealed class TestUser(bool authenticated, int userId) : ICurrentUser
     {
         public bool IsAuthenticated => authenticated;
-        public int? UserId => authenticated ? 42 : null;
+        public int? UserId => authenticated ? userId : null;
         public string? Username => authenticated ? "crs-api-test" : null;
     }
 
-    private sealed class TestPolicy(Func<string, ContextRef, bool> permission) : IAccessPolicy
+    private sealed class TestPolicy(int expectedUserId, Func<string, ContextRef, bool> permission) : IAccessPolicy
     {
         public Task<bool> HasCapabilityAsync(int userId, string capability, ContextRef context, CancellationToken ct = default) =>
-            Task.FromResult(userId == 42 && permission(capability, context));
+            Task.FromResult(userId == expectedUserId && permission(capability, context));
     }
 }
 

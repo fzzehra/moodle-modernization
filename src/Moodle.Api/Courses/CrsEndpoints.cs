@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Moodle.Application.Abstractions;
 using Moodle.Application.Courses;
 using Moodle.Application.Errors;
@@ -110,11 +111,34 @@ public static class CrsEndpoints
             return TypedResults.Ok(await service.SaveCourseAsync(course, ct));
         });
 
-        api.MapDelete("/courses/{courseId:int}", async (int courseId, CrsService service, CrsAuthorization auth, CancellationToken ct) =>
+        api.MapDelete("/courses/{courseId:int}", async Task<Results<NoContent, Accepted<CrsCourseDeletionJob>>> (
+            int courseId, CrsService service, CrsCourseDeletionJobs jobs, CrsBackgroundDeletionOptions options,
+            ICurrentUser user, CrsAuthorization auth, CancellationToken ct) =>
         {
+            // Yetki, silme veya kuyruğa alma kabul edilmeden önce denetlenir.
             await auth.RequireAsync("course.delete", ContextRef.ForCourse(courseId), ct);
-            await service.DeleteCourseAsync(courseId, ct);
-            return TypedResults.NoContent();
+            if (!options.Enabled)
+            {
+                await service.DeleteCourseAsync(courseId, ct);
+                return TypedResults.NoContent();
+            }
+            // CRS-FR-11 / CRS-NFR-06: istek token'ı yalnızca kuyruğa almayı kapsar; silmeyi worker yapar.
+            var job = await jobs.EnqueueAsync(courseId, user.UserId, ct);
+            return TypedResults.Accepted($"/api/v1/courses/deletion-jobs/{job.Id}", job);
+        });
+
+        api.MapGet("/courses/deletion-jobs/{jobId:guid}", async (Guid jobId, CrsService service, CrsCourseDeletionJobs jobs,
+            ICurrentUser user, CrsAuthorization auth, CancellationToken ct) =>
+        {
+            var job = await jobs.FindAsync(jobId, ct) ?? throw AppException.NotFound();
+            if (await service.FindCourseAsync(job.CourseId, ct) is not null)
+                await auth.RequireAsync("course.delete", ContextRef.ForCourse(job.CourseId), ct);
+            else if (!(job.RequestedByUserId is int owner && owner == user.UserId
+                || await auth.CanAsync("course.delete", ContextRef.Site, ct)
+                || job.CategoryId is int categoryId && await auth.CanAsync("course.delete", CategoryContext(categoryId), ct)))
+                // Ders silindiyse ders bağlamı yoktur: yalnızca talep sahibi veya sistem/kategori yetkilisi görebilir.
+                throw new AppException("forbidden", "Bu işlem için yetkiniz yok.", 403);
+            return TypedResults.Ok(job);
         });
 
         api.MapGet("/courses/{courseId:int}/enrolments", async (int courseId, CrsService service, CrsAuthorization auth, CancellationToken ct) =>

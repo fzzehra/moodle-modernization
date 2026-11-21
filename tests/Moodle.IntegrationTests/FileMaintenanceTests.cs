@@ -240,7 +240,7 @@ public sealed class FileMaintenanceTests(FilesPostgresFixture fixture) : IClassF
         new(db, store, _clock, NullLogger<FileMaintenanceService>.Instance);
 
     private FileService Files(FilesDbContext db) =>
-        new(db, _store, new FilePolicyRegistry([new UserFilePolicy()]), _clock);
+        new(db, _store, new FilePolicyRegistry([new UserFilePolicy()]), _clock, new DraftUploadService(db, _store, new CleanTestScanner(), new UploadLimits(), _clock));
 
     private static FileArea PrivateArea(int owner) => new(owner, "user", "private", 0);
 

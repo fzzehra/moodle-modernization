@@ -61,7 +61,7 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
     [Fact]
     public async Task FILE_FR_13_T_FILE_05_duzenleyen_ogretmen_ders_dosyasi_ekler_ve_siler()
     {
-        var fileId = await TeacherAddsAsync("hafta1.pdf", "Hafta 1 notları");
+        var fileId = await TeacherAddsAsync("hafta1.txt", "Hafta 1 notları");
         var teacher = Factory(EditingTeacher).CreateClient();
         Assert.Contains(await ListAsync(teacher), f => f.FileId == fileId);
 
@@ -72,7 +72,7 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
     [Fact]
     public async Task FILE_FR_13_T_FILE_03_ogrenci_ders_dosyasini_listeler_ve_indirir()
     {
-        var fileId = await TeacherAddsAsync("SENG101 Ders Notları.pdf", "ders notu içeriği");
+        var fileId = await TeacherAddsAsync("SENG101 Ders Notları.txt", "ders notu içeriği");
         var student = Factory(Student).CreateClient();
 
         Assert.Contains(await ListAsync(student), f => f.FileId == fileId);
@@ -84,37 +84,37 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
     [Fact]
     public async Task FILE_FR_13_T_FILE_05_ogrenci_ders_dosyasi_ekleyemez_ve_silemez()
     {
-        var fileId = await TeacherAddsAsync("odev-aciklama.pdf", "açıklama");
+        var fileId = await TeacherAddsAsync("odev-aciklama.txt", "açıklama");
         var factory = Factory(Student);
         var student = factory.CreateClient();
 
         await AssertErrorAsync(await student.DeleteAsync($"/api/v1/files/{fileId}"), HttpStatusCode.NotFound, "not_found");
-        var draftId = await DraftWithFileAsync(factory, Student, "ogrenci.pdf", "öğrenci dosyası");
+        var draftId = await DraftWithFileAsync(factory, Student, "ogrenci.txt", "öğrenci dosyası");
         await AssertErrorAsync(await CommitAsync(student, draftId, AreaUrl), HttpStatusCode.NotFound, "not_found");
 
         var names = (await ListAsync(student)).Select(f => f.Name).ToList();
-        Assert.Contains("odev-aciklama.pdf", names);
-        Assert.DoesNotContain("ogrenci.pdf", names);
+        Assert.Contains("odev-aciklama.txt", names);
+        Assert.DoesNotContain("ogrenci.txt", names);
     }
 
     [Fact]
     public async Task FILE_FR_13_duzenleme_yetkisiz_ogretmen_okur_ama_yazamaz()
     {
-        var fileId = await TeacherAddsAsync("asistan-okur.pdf", "okunur");
+        var fileId = await TeacherAddsAsync("asistan-okur.txt", "okunur");
         var factory = Factory(Teacher);
         var assistant = factory.CreateClient();
 
         Assert.Contains(await ListAsync(assistant), f => f.FileId == fileId);
         Assert.Equal(HttpStatusCode.OK, (await assistant.GetAsync($"/api/v1/files/{fileId}/content")).StatusCode);
         await AssertErrorAsync(await assistant.DeleteAsync($"/api/v1/files/{fileId}"), HttpStatusCode.NotFound, "not_found");
-        var draftId = await DraftWithFileAsync(factory, Teacher, "asistan.pdf", "asistan dosyası");
+        var draftId = await DraftWithFileAsync(factory, Teacher, "asistan.txt", "asistan dosyası");
         await AssertErrorAsync(await CommitAsync(assistant, draftId, AreaUrl), HttpStatusCode.NotFound, "not_found");
     }
 
     [Fact]
     public async Task FILE_FR_13_FILE_BR_11_kayitsiz_kullanici_ders_dosyalarini_goremez()
     {
-        var fileId = await TeacherAddsAsync("gizli.pdf", "kayıtlılara özel");
+        var fileId = await TeacherAddsAsync("gizli.txt", "kayıtlılara özel");
         var outsider = Factory(NotEnrolled).CreateClient();
 
         await AssertErrorAsync(await outsider.GetAsync($"{AreaUrl}/files"), HttpStatusCode.NotFound, "not_found");
@@ -127,7 +127,7 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
     public async Task FILE_FR_13_yonetici_kayitli_olmadan_ders_dosyasi_ekler()
     {
         var factory = Factory(Manager);
-        var draftId = await DraftWithFileAsync(factory, Manager, "yonetici.pdf", "yönetici dosyası");
+        var draftId = await DraftWithFileAsync(factory, Manager, "yonetici.txt", "yönetici dosyası");
         Assert.Equal(HttpStatusCode.OK, (await CommitAsync(factory.CreateClient(), draftId, AreaUrl)).StatusCode);
     }
 
@@ -136,7 +136,7 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
     {
         var hiddenArea = $"/api/v1/file-areas/{HiddenCourseId}/course/files/0";
         var teacherFactory = Factory(EditingTeacher);
-        var draftId = await DraftWithFileAsync(teacherFactory, EditingTeacher, "gizli-ders.pdf", "gizli ders notu");
+        var draftId = await DraftWithFileAsync(teacherFactory, EditingTeacher, "gizli-ders.txt", "gizli ders notu");
         var commit = await CommitAsync(teacherFactory.CreateClient(), draftId, hiddenArea);
         Assert.Equal(HttpStatusCode.OK, commit.StatusCode);
         var fileId = (await commit.Content.ReadFromJsonAsync<FileList>())!.Files.Single().FileId;
@@ -159,7 +159,7 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
         var factory = Factory(SiteAdmin);
         var missingArea = $"/api/v1/file-areas/{MissingCourseId}/course/files/0";
         await AssertErrorAsync(await factory.CreateClient().GetAsync($"{missingArea}/files"), HttpStatusCode.NotFound, "not_found");
-        var draftId = await DraftWithFileAsync(factory, SiteAdmin, "yok.pdf", "yok");
+        var draftId = await DraftWithFileAsync(factory, SiteAdmin, "yok.txt", "yok");
         await AssertErrorAsync(await CommitAsync(factory.CreateClient(), draftId, missingArea), HttpStatusCode.NotFound, "not_found");
     }
 }
@@ -204,7 +204,9 @@ public sealed class CourseFilesSeedTests(FilesPostgresFixture files, CrsPostgres
         {
             await using var filesDb = files.CreateContext();
             await using var crsDb = crs.CreateContext();
-            var service = new FileService(filesDb, new FakeFileStore(), new FilePolicyRegistry([new UserFilePolicy(), policy]), TimeProvider.System);
+            var store = new FakeFileStore();
+            var uploads = new DraftUploadService(filesDb, store, new CleanTestScanner(), new UploadLimits(), TimeProvider.System);
+            var service = new FileService(filesDb, store, new FilePolicyRegistry([new UserFilePolicy(), policy]), TimeProvider.System, uploads);
             await new CourseFilesSeedContributor(service, crsDb).SeedAsync(data);
         }
 

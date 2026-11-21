@@ -23,7 +23,7 @@ public sealed class MoodleDbContext(DbContextOptions<MoodleDbContext> options) :
         var s = model.Entity<Submission>();
         s.ToTable("Submissions", t => {
             t.HasCheckConstraint("CK_Submission_State", """("Status" = 'draft' AND "SubmittedAt" IS NULL) OR ("Status" = 'submitted' AND "SubmittedAt" IS NOT NULL)""");
-            t.HasCheckConstraint("CK_Submission_Values", """("Attempt" = 0 AND "LearnerId" > 0 AND "Version" > 0 AND length(btrim("Text")) > 0)""");
+            t.HasCheckConstraint("CK_Submission_Values", """("Attempt" = 0 AND "LearnerId" > 0 AND "Version" > 0 AND "FileCount" >= 0 AND (length(btrim("Text")) > 0 OR "FileCount" > 0))""");
         });
         s.HasKey(x => x.Id);
         s.HasOne<Assignment>().WithMany().HasForeignKey(x => x.AssignmentId).OnDelete(DeleteBehavior.Restrict);

@@ -13,11 +13,11 @@ else if (data.Items.Length == 0) { <p>Bu görünümde öğrenci bulunamadı.</p>
 else
 {
     <table>
-        <thead><tr><th>Öğrenci kimliği</th><th>Durum</th><th>Gönderme (UTC)</th><th>Gecikme</th><th>Teslim</th></tr></thead>
+        <thead><tr><th>Öğrenci kimliği</th><th>Durum</th><th>Gönderme (UTC)</th><th>Gecikme</th><th>Dosya sayısı</th><th>Teslim</th></tr></thead>
         <tbody>@foreach (var row in data.Items)
         {
             <tr><td>@row.LearnerId</td><td>@Labels.Status(row.Status)</td><td>@row.SubmittedAt?.ToString("u")</td><td>@(row.IsLate ? "Geç" : "—")</td>
-            <td>@if (row.SubmissionId is int sid) { <a href="@($"/assignments/{Id}/submissions/{sid}")">Aç</a> }</td></tr>
+            <td>@row.FileCount</td><td>@if (row.SubmissionId is int sid) { <a href="@($"/assignments/{Id}/submissions/{sid}")">Aç</a> }</td></tr>
         }</tbody>
     </table>
     @if (data.NextCursor is int next) { <a href="@($"/assignments/{Id}/submissions?cursor={next}&status={Uri.EscapeDataString(Status ?? "")}")">Sonraki sayfa</a> }

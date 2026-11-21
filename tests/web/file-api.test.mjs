@@ -42,6 +42,11 @@ test("settings save sends the supplied JSON with PUT and never synthesizes crede
 test("upload posts FormData with the file and extra fields, without a manual Content-Type", async () => {
     let options;
     globalThis.fetch = async (url, init) => {
+        if (url.pathname === "/app/api/v1/antiforgery") {
+            assert.equal(init.credentials, "same-origin");
+            assert.equal(init.redirect, "error");
+            return { status: 200, text: async () => '{"token":"csrf-test"}' };
+        }
         assert.equal(url.pathname, "/app/api/v1/file-drafts/55/files");
         options = init;
         return { status: 201, text: async () => '{"fileId":3}' };
@@ -53,7 +58,7 @@ test("upload posts FormData with the file and extra fields, without a manual Con
     assert.equal(options.method, "POST");
     assert.equal(options.credentials, "same-origin");
     assert.equal(options.redirect, "error");
-    assert.deepEqual(options.headers, { Accept: "application/json" });
+    assert.deepEqual(options.headers, { Accept: "application/json", "X-CSRF-TOKEN": "csrf-test" });
     assert.ok(options.body instanceof FormData);
     const file = options.body.get("file");
     assert.equal(file.name, "Ödev açıklaması.txt");
@@ -76,7 +81,13 @@ for (const [path, method] of [
     ["/app/api/v1/admin/file-maintenance/run", "POST"]
 ]) {
     test(`allowed FILE request: ${method} ${path}`, async () => {
-        globalThis.fetch = async () => ({ status: 200, text: async () => "{}" });
+        globalThis.fetch = async (url, options) => {
+            if (url.pathname.endsWith("/antiforgery"))
+                return { status: 200, text: async () => '{"token":"csrf-test"}' };
+            if (method !== "GET" && path.includes("/file-drafts"))
+                assert.equal(options.headers["X-CSRF-TOKEN"], "csrf-test");
+            return { status: 200, text: async () => "{}" };
+        };
         assert.equal((await send(path, method, null)).status, 200);
     });
 }
@@ -110,3 +121,16 @@ test("network failures are not replaced by a fake success response", async () =>
     globalThis.fetch = async () => { throw new Error("network down"); };
     await assert.rejects(send("/app/api/v1/users/me/quota", "GET", null), /network down/);
 });
+
+for (const body of ['{}', '{"token":""}', '{"token":42}']) {
+    test('draft writes stop when antiforgery token is invalid: ' + body, async () => {
+        let calls = 0;
+        globalThis.fetch = async url => {
+            calls++;
+            assert.equal(url.pathname, "/app/api/v1/antiforgery");
+            return { status: 200, text: async () => body };
+        };
+        await assert.rejects(send("/app/api/v1/file-drafts", "POST", null), /Antiforgery token unavailable/);
+        assert.equal(calls, 1);
+    });
+}

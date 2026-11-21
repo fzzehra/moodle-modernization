@@ -7,7 +7,9 @@ public static class AssignmentEndpoints
 {
     public static void MapAssignmentEndpoints(this WebApplication app)
     {
-        var api = app.MapGroup("/api/v1").WithTags("ASG");
+        var api = app.MapGroup("/api/v1").WithTags("ASG").AddEndpointFilter<CookieWriteProtection>();
+        api.MapGet("/courses/{courseId:int}/assignments",(int courseId,AssignmentService service,CancellationToken ct)
+            => service.CourseAssignmentsAsync(courseId,ct)).Errors(401,404,500);
         api.MapPost("/courses/{courseId:int}/assignments", async (int courseId, CreateAssignment body, AssignmentService service, CancellationToken ct) =>
         {
             var result = await service.CreateAsync(courseId, body, ct);
@@ -21,7 +23,7 @@ public static class AssignmentEndpoints
         {
             var result = await service.SaveAsync(id, body, ct);
             return result.Created ? Results.Created($"/api/v1/assignments/{id}/my-submission", result.Submission) : Results.Ok(result.Submission);
-        }).Produces<Submission>(200).Produces<Submission>(201).Errors(400, 401, 403, 404, 409, 415, 422, 500);
+        }).Produces<Submission>(200).Produces<Submission>(201).Errors(400, 401, 403, 404, 409, 415, 422, 500, 503);
         api.MapPost("/assignments/{id:int}/my-submission/submit",
             (int id, SubmitSubmission body, AssignmentService service, CancellationToken ct) => service.SubmitAsync(id, body, ct))
             .Errors(400, 401, 403, 404, 409, 415, 500);

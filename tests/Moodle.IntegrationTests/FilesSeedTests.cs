@@ -8,8 +8,12 @@ namespace Moodle.IntegrationTests;
 
 public sealed class FilesSeedTests(FilesPostgresFixture fixture) : IClassFixture<FilesPostgresFixture>
 {
-    private static FileService BuildService(FilesDbContext db) =>
-        new(db, new FakeFileStore(), new FilePolicyRegistry([new UserFilePolicy()]), TimeProvider.System);
+    private static FileService BuildService(FilesDbContext db)
+    {
+        var store=new FakeFileStore();
+        return new(db,store,new FilePolicyRegistry([new UserFilePolicy()]),TimeProvider.System,
+            new DraftUploadService(db,store,new CleanTestScanner(),new UploadLimits(),TimeProvider.System));
+    }
 
     [Fact]
     public async Task Ornek_dosya_yuklenir_ve_tekrar_calistirma_yinelenen_kayit_birikmez()

@@ -57,8 +57,9 @@ public sealed class FileBlazorHostingTests(FileHostingFactory factory) : IClassF
         var settings = await Assert.ThrowsAsync<FileApiException>(() => client.SettingsAsync());
         Assert.Equal(HttpStatusCode.Unauthorized, settings.Status);
 
-        // Yükleme uçları henüz yok (Aslı Ceren): arayüz "yükleme kullanılamıyor" olarak gösterir.
+        // Birleşmiş v2 yükleme uçları anonim kullanıcıyı 401 ile reddeder.
         var draft = await Assert.ThrowsAsync<FileApiException>(() => client.CreateDraftAsync());
-        Assert.Equal(FileApiClient.UploadUnavailable, draft.Code);
+        Assert.Equal(HttpStatusCode.Unauthorized, draft.Status);
+        Assert.Equal("not_authenticated", draft.Code);
     }
 }

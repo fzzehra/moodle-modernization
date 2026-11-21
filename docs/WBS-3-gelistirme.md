@@ -59,6 +59,10 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 ### 1.4 Ödev ve teslim – ASG ve uçtan uca akış testi (Aslı Ceren)
 
+19.11.2026: V1 PR #21 geçmişi korunmuştur. Güncel main 3b9ccd6 üzerinde gerçek AUTH/CRS bağlantısı tamamlandı: ASG yetenekleri, ödev→ders bağlamı, aktif/yükümlü öğrenci ve ortak liste/ayrıntı kapsamı. Ders sayfası gerçek CourseId ile ASG listesine gider. CRS bölüm modeli bulunmadığından oluşturma ve güvenli ortak ASG seed reddedilir; Sinem bağımlılığıdır. Tam Playwright A kabulü bu nedenle engellidir. Ayrıntılar: [v2 teslimi](asg-file-wbs3/TESLIM-RAPORU.md), [test sonuçları](asg-file-wbs3/DOGRULAMA.json).
+
+Manuel kod yazma zorunluluğu kullanıcı tarafından kaldırılmıştır; geçmiş üretim kayıtları değişmez. Bu çalışmada ayrı manuel/YZ üretim veya karşılaştırma çalışması yürütülmedi.
+
 ### 1.5 Değerlendirme – GRD (Fatma Zehra)
 
 **Kapsam:** GRD-FR-01, FR-02, FR-03, BR-01, BR-02, NFR-01 (WBS-1 §4.5, WBS-2 §3.5).
@@ -260,6 +264,14 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 **Kanıt:** PR açıldığında doldurulacak (şube: `sinem/crs-background-delete`).
 
 ### 2.4 Dosya yükleme, antivirüs, ödeve dosya teslimi ve uçtan uca test (Aslı Ceren)
+
+**20.11.2026 güncellemesi:** Seray PR #39 / e2b50d0 main 1424b04 üzerinden fast-forward ile alındı; yerel çalışmalar korundu, yeni commit oluşturulmadı. Eşzamanlılık 10/10, .NET 708/708, JavaScript 23/23 geçti. Playwright 4 geçti / gerçek CRS bölüm modeli nedeniyle 2 skip. Önceki FileStore hatası giderildi; aşağıdaki 19.11 sonuçları tarihseldir. [Son kontrol](asg-file-wbs3/SON-KONTROL.md).
+
+19.11.2026: FILE-FR-01/07/08/10/11, FILE-BR-06/07/08/09 için gerçek taslak HTTP uçları, sahiplik, benzersiz ad, sunucu sınırları, ad/tür/içerik doğrulaması ve ClamAV INSTREAM eklendi. Kullanıcı onaylı varsayılanlar PDF/PNG/JPEG/TXT, 10 dosya ve toplam 50 MiB; ayarlanabilir, WBS sayısal sabiti değildir. İrem'in FileService ve Seray'ın deposu kullanılır. Onaylı yeni sözleşme IVirusScanner; mevcut ortak FILE arayüzleri korunur.
+
+ASG metin/dosya türlerini destekler; dosya taşıması ve sürümlü teslim aynı PostgreSQL transaction/savepoint'inde yapılır. Dosya read policy ortak ASG kapsamına bağlıdır; doğrudan FILE write ile sürüm/pencere kontrolü atlanamaz. Blazor yükleme/tarama/dosya listesi/indirme ve hata gösterimi eklendi. Ortak dosya yöneticisi gelene kadar yalnız ASG adaptörü kullanılır.
+
+Son .NET: 358/358 entegrasyon geçti; birim 337 geçti, değiştirilmemiş LocalDiskFileStore eşzamanlılık testi başarısız. 21 JS geçti. Test başarısızlığı gizlenmedi. Tam A/B E2E gerçek CRS bölüm modeline bağlıdır. [Teslim](asg-file-wbs3/TESLIM-RAPORU.md), [entegrasyon devri](asg-file-wbs3/ENTEGRASYON.md), [çalıştırma ve gerçek sonuçlar](asg-file-wbs3/TESTLER.md). V2 PR henüz yoktur.
 
 ### 2.5 Temizlik görevi, ders dosyaları ve rapor (Fatma Zehra)
 

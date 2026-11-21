@@ -5,14 +5,21 @@
 @if (error is not null) { <p role="alert">@error</p> }
 else if (data is null) { <p>Yükleniyor…</p> }
 else { <p>@Labels.Status(data.Status)</p><pre style="white-space: pre-wrap">@data.Text</pre> }
+@if (files is not null) {
+    <ul>@foreach(var file in files.Files) { <li><a href="@($"/api/v1/files/{file.FileId}/content?download=true")">@file.Name</a> (@file.SizeBytes bayt)</li> }</ul>
+}
 @code {
     [Parameter] public int Id { get; set; }
     [Parameter] public int SubmissionId { get; set; }
     private SubmissionData? data;
     private string? error;
+    private AssignmentFiles? files;
     protected override async Task OnParametersSetAsync()
     {
-        try { data = await Api.SendAsync<SubmissionData>(HttpMethod.Get, $"/api/v1/assignments/{Id}/submissions/{SubmissionId}"); }
+        try {
+            data = await Api.SendAsync<SubmissionData>(HttpMethod.Get, $"/api/v1/assignments/{Id}/submissions/{SubmissionId}");
+            if(data.FileCount>0) files=await Api.SendAsync<AssignmentFiles>(HttpMethod.Get,$"/api/v1/file-areas/{Id}/mod_assign/submission/{SubmissionId}/files");
+        }
         catch (Exception ex) when (ex is AsgClientException or HttpRequestException)
         { error = ex is AsgClientException ? ex.Message : "Sunucuya ulaşılamadı."; }
     }

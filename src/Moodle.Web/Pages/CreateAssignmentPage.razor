@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject AsgClient Api
 <h1>Ödev oluştur</h1>
-<p>Ders: @CourseId. Tarihleri UTC olarak girin. Bu sürüm metin teslimini destekler.</p>
+<p>Ders: @CourseId. Tarihleri UTC olarak girin. Metin ve dosya teslimi desteklenir.</p>
 @if (error is not null) { <p role="alert">@error</p> }
 @if (created is not null) { <p role="status">Ödev oluşturuldu. <a href="@($"/assignments/{created.Id}")">Ödevi aç</a></p> }
 <EditForm Model="Form" OnValidSubmit="Create" FormName="createAssignment">
@@ -16,6 +16,8 @@
     <p><label>Son teslim (UTC) <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="Form!.DueAt" /></label></p>
     <p><label>Kesim (UTC) <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="Form!.CutoffAt" /></label></p>
     <p><label><InputCheckbox @bind-Value="Form!.RequiresConfirmation" /> Gönderme onayı gerekli</label></p>
+    <p><label><InputCheckbox @bind-Value="Form!.TextEnabled" /> Metin teslimi</label>
+    <label><InputCheckbox @bind-Value="Form!.FileEnabled" /> Dosya teslimi</label></p>
     <button type="submit">Oluştur</button>
 </EditForm>
 @code {
@@ -30,7 +32,7 @@
         try {
             created = await Api.SendAsync<AssignmentData>(HttpMethod.Post, $"/api/v1/courses/{CourseId}/assignments",
                 new { Form!.SectionId, Form.Title, Form.Instructions, opensAt = Utc(Form.OpensAt),
-                    dueAt = Utc(Form.DueAt), cutoffAt = Utc(Form.CutoffAt), Form.RequiresConfirmation, enabledSubmissionTypes = new[] { "text" } });
+                    dueAt = Utc(Form.DueAt), cutoffAt = Utc(Form.CutoffAt), Form.RequiresConfirmation, enabledSubmissionTypes = Form.FileEnabled ? (Form.TextEnabled ? new[] { "text", "file" } : new[] { "file" }) : new[] { "text" } });
         }
         catch (Exception ex) when (ex is AsgClientException or HttpRequestException)
         { error = ex is AsgClientException ? ex.Message : "Sunucuya ulaşılamadı."; }
@@ -44,5 +46,7 @@
         public DateTime? DueAt { get; set; }
         public DateTime? CutoffAt { get; set; }
         public bool RequiresConfirmation { get; set; }
+        public bool TextEnabled { get; set; } = true;
+        public bool FileEnabled { get; set; }
     }
 }

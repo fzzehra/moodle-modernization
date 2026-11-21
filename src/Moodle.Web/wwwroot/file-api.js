@@ -30,6 +30,17 @@ async function request(url, init, timeoutMs) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
+        // Draft writes share cookie-based antiforgery protection.
+        const draftRoot = new URL("api/v1/file-drafts", document.baseURI);
+        if (init.method !== "GET" && (url.pathname === draftRoot.pathname || url.pathname.startsWith(draftRoot.pathname + "/"))) {
+            const csrf = await fetch(new URL("api/v1/antiforgery", document.baseURI), {
+                credentials: "same-origin", redirect: "error", cache: "no-store", signal: controller.signal
+            });
+            if (csrf.status !== 200) throw new Error("Antiforgery token unavailable");
+            const { token } = JSON.parse(await csrf.text());
+            if (typeof token !== "string" || !token) throw new Error("Antiforgery token unavailable");
+            init = { ...init, headers: { ...init.headers, "X-CSRF-TOKEN": token } };
+        }
         const response = await fetch(url, {
             ...init,
             credentials: "same-origin",

@@ -60,3 +60,15 @@ Kullanıcı temiz ASG dalında origin/main merge'ini --no-commit/--no-ff ile yet
 İlk birleşik koşum 263, son koşum üç yeni PostgreSQL birleşme vakasıyla 266 .NET testi geçti; ayrıca 7 Node testi geçti. Önceki 117 ASG testi testName karşılaştırmasında korunuyor. Release build 0 uyarı/hata; Docker/Compose ve HTTP kontrolleri başarılı. psql meta-komutu escape hatası salt okunur SQL tekrarında çözüldü; önceki otomatik onay kotası engeli sonraki kullanıcı talimatıyla yapılan tekrar denemede kalktı.
 
 Kod ve belgeler YZ ajanıyla düzenlendi; manuel/YZ karşılaştırması karşılanmadı, efor uydurulmadı. Playwright kapsam dışı, uzak CI/CodeQL yok. Bu turda merge commit/push/force push/PR merge yapılmadı. Önceki ASG commit/push kullanıcı tarafından tur öncesinde yapılmıştı.
+
+## 19.11.2026 — güncel kapsam ve v2 geliştirmesi
+
+Kullanıcı manuel kod yazma zorunluluğunun kaldırıldığını bildirdi. Yukarıdaki kayıtlar geçmiş çalışmayı anlatır; yeni manuel üretim veya karşılaştırma iddiası yoktur. COCOMO, SLOC/KLOC, karşılaştırma raporu ve kod incelemesi kapsam dışında bırakıldı. Gerçek AUTH ASG uyarlaması, IVirusScanner ve yapılandırılabilir başlangıç sınırları kullanıcı onayıyla geliştirildi. Kod/test/dokümantasyon YZ desteğiyle üretildi. Son gerçek test sonuçları docs/asg-file-wbs3/DOGRULAMA.json içindedir; başarısız test ve bölüm nedeniyle engelli tam E2E gizlenmedi. Commit, push veya PR yapılmadı. İnsan eforu/çalışma süresi ölçülmedi, uydurulmadı.
+
+## 20.11.2026 — son kabul doğrulaması
+
+Mevcut dal ve güncel main izole kopyalarıyla fiziksel depo testi tekrarlandı; kod/test değiştirilmedi. Linux/.NET File.Move davranışı Moodle bağımsız tanı programıyla ayrıştırıldı. ASG yükleme sırasında Kaydet'in kilitlenmesi ve 409 sonrası dosya taslağı listesinin korunması düzeltildi; kabul testleri genişletildi. Güncel ayrıntılar docs/asg-file-wbs3/SON-KONTROL.md ve DOGRULAMA.json sonKontrol alanındadır. COCOMO/karşılaştırma, manuel geliştirme ve ekip kod incelemesi yapılmadı; commit/push/PR/merge yapılmadı.
+
+## 20.11.2026 — Seray düzeltmesini alma
+
+Kullanıcı isteğiyle main'deki e2b50d0 / PR #39 doğrulandı. Tüm commit edilmemiş çalışmalar hash doğrulamalı yedeklendi; dal yeni commit oluşturmadan 1424b04'e fast-forward edildi. Ortak iki belge mevcut ekip kayıtlarıyla birleştirildi. Seray'ın kodu/testi değiştirilmeden 10 tekrar ve tam regresyon yeniden çalıştırıldı; güncel sonuçlar asg-file-wbs3/DOGRULAMA.json serayFixIntegration alanındadır. COCOMO, karşılaştırma, manuel geliştirme ve ekip kod incelemesi yapılmadı. Commit/push/PR/main'e birleştirme yapılmadı.

@@ -62,7 +62,7 @@ public sealed class FileWebClientTests
         using var handler = Handler(request => (request.Method, request.PathAndQuery) switch
         {
             ("POST", DraftsPath) => Json(new FileDraftInfo(55, DateTimeOffset.UnixEpoch), HttpStatusCode.Created),
-            ("POST", DraftFilesPath) => Json(new FileUploadResult(3, "yeni.txt", 5, "text/plain", new string('c', 64)), HttpStatusCode.Created),
+            ("POST", DraftFilesPath) => Json(new { fileId = 3, name = "yeni.txt", sizeBytes = 5, mimeType = "text/plain", contentHash = new string('c', 64) }, HttpStatusCode.Created),
             ("POST", CommitPath) => List(Uploaded),
             _ => Error(HttpStatusCode.NotFound, "not_found"),
         });
@@ -73,6 +73,7 @@ public sealed class FileWebClientTests
         var saved = await client.CommitAsync(Area, draft.DraftId);
 
         Assert.Equal(3, uploaded.FileId);
+        Assert.Equal(5, uploaded.Size);
         Assert.Equal([Uploaded], saved);
         var requests = handler.Requests.ToArray();
         Assert.Equal(new FileWebRequest("POST", DraftsPath, null), requests[0]);

@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moodle.Application.Files;
@@ -15,6 +16,7 @@ namespace Moodle.Infrastructure.Files;
 /// <item>Boşa düştüğü an (<c>OrphanedAt</c>) çöp bekleme süresinden eski içerikler silinir. <c>file_blob</c> satırı
 /// <c>FOR UPDATE</c> ile kilitlenir; kullanım (etkin veya çöpteki herhangi bir kayıt) ve <c>OrphanedAt</c> aynı işlemde
 /// yeniden denetlenir; hâlâ sahipsizse satır silinir, işlem onaylandıktan sonra disk dosyası silinir (FILE-BR-03, FILE-BUG-04).
+/// İçerik bazlı oturum kilidi bu iki adım boyunca yükleyicinin transaction kilidiyle aynı anahtarı kullanır.
 /// Diskten silme başarısız olursa satır geri gelmez; hata günlüğe ve sonuca yazılır, <see cref="FileConsistencyChecker"/>
 /// raporunda "dosya var, kayıt yok" olarak görünür.</item>
 /// </list>
@@ -136,26 +138,38 @@ public sealed class FileMaintenanceService(
         var purged = 0;
         foreach (var hash in candidates)
         {
-            bool deleted;
-            await using (var tx = await db.Database.BeginTransactionAsync(ct))
-            {
-                deleted = await TryDeleteBlobRowAsync(hash, retentionHours, now, ct);
-                if (deleted) await tx.CommitAsync(ct);
-                else await tx.RollbackAsync(ct);
-            }
-            if (!deleted) continue;
-            purged++;
-
-            // Satır silindi ve işlem onaylandı; disk ondan sonra silinir. Başarısızlıkta satır geri gelmez:
-            // en kötü sonuç diskte kayıtsız içeriktir (güvenle silinebilir, tutarlılık raporunda görünür).
+            // Same bigint key as DraftUploadService. Session lock spans the DB commit AND disk delete;
+            // otherwise an upload can reuse content between those two operations and lose its file.
+            var contentLockKey = BinaryPrimitives.ReadInt64BigEndian(Convert.FromHexString(hash));
+            await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_lock({contentLockKey})", ct);
             try
             {
-                await store.DeleteAsync(hash, ct);
+                bool deleted;
+                await using (var tx = await db.Database.BeginTransactionAsync(ct))
+                {
+                    deleted = await TryDeleteBlobRowAsync(hash, retentionHours, now, ct);
+                    if (deleted) await tx.CommitAsync(ct);
+                    else await tx.RollbackAsync(ct);
+                }
+                if (!deleted) continue;
+                purged++;
+
+                // Satır silindi ve işlem onaylandı; disk ondan sonra silinir. Başarısızlıkta satır geri gelmez:
+                // en kötü sonuç diskte kayıtsız içeriktir (güvenle silinebilir, tutarlılık raporunda görünür).
+                try
+                {
+                    await store.DeleteAsync(hash, ct);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogError(ex, "İçerik {ContentHash} veritabanından silindi ama diskten silinemedi.", hash);
+                    errors.Add($"{hash}: veritabanından silindi ama diskten silinemedi ({ex.Message}).");
+                }
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            finally
             {
-                logger.LogError(ex, "İçerik {ContentHash} veritabanından silindi ama diskten silinemedi.", hash);
-                errors.Add($"{hash}: veritabanından silindi ama diskten silinemedi ({ex.Message}).");
+                // Cancellation must not leave a session-level lock on this open connection.
+                await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_unlock({contentLockKey})", CancellationToken.None);
             }
         }
         return purged;

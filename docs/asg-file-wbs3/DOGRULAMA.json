@@ -1,0 +1,752 @@
+{
+  "date": "2026-11-19",
+  "timezone": "Europe/Istanbul",
+  "branch": "codex/asg-file-wbs3-v2",
+  "baseCommit": "3b9ccd6",
+  "pr": null,
+  "baseline": {
+    "unitPassed": 319,
+    "integrationPassed": 338
+  },
+  "finalDotnet": [
+    {
+      "file": "_c77aa5be59d2_2026-11-19_15_34_15_net10.0.trx",
+      "total": 338,
+      "passed": 337,
+      "failed": 1,
+      "notExecuted": 0
+    },
+    {
+      "file": "_c77aa5be59d2_2026-11-19_15_34_19_net10.0.trx",
+      "total": 358,
+      "passed": 358,
+      "failed": 0,
+      "notExecuted": 0
+    }
+  ],
+  "coverage": [
+    {
+      "file": "coverage/v2-final-linux/438decf6-5547-46a3-b62b-f8be649c45b6/coverage.cobertura.xml",
+      "lineRate": "0.20879999999999999",
+      "branchRate": "0.38280000000000003",
+      "packages": [
+        {
+          "name": "Moodle.Api",
+          "lineRate": "0.0818",
+          "branchRate": "0.1033"
+        },
+        {
+          "name": "Moodle.Web",
+          "lineRate": "0.6651",
+          "branchRate": "0.574"
+        },
+        {
+          "name": "Moodle.Application",
+          "lineRate": "0.8067",
+          "branchRate": "0.775"
+        },
+        {
+          "name": "Moodle.Domain",
+          "lineRate": "0.43799999999999994",
+          "branchRate": "1"
+        },
+        {
+          "name": "Moodle.Infrastructure",
+          "lineRate": "0.07730000000000001",
+          "branchRate": "0.16329999999999997"
+        }
+      ]
+    },
+    {
+      "file": "coverage/v2-final-linux/a49eeb31-54a5-48fa-9621-bcf21382fb2d/coverage.cobertura.xml",
+      "lineRate": "0.8508",
+      "branchRate": "0.5583",
+      "packages": [
+        {
+          "name": "Moodle.Api",
+          "lineRate": "0.777",
+          "branchRate": "0.5764"
+        },
+        {
+          "name": "Moodle.Web",
+          "lineRate": "0.45399999999999996",
+          "branchRate": "0.2991"
+        },
+        {
+          "name": "Moodle.Application",
+          "lineRate": "0.8844",
+          "branchRate": "0.765"
+        },
+        {
+          "name": "Moodle.Domain",
+          "lineRate": "0.9256",
+          "branchRate": "1"
+        },
+        {
+          "name": "Moodle.Infrastructure",
+          "lineRate": "0.9329000000000001",
+          "branchRate": "0.6859000000000001"
+        }
+      ]
+    }
+  ],
+  "javaScript": {
+    "failed": 0,
+    "passed": 21
+  },
+  "playwright": {
+    "passed": 4,
+    "failed": 0,
+    "skipped": 2,
+    "reason": "Real CRS section model missing",
+    "firstAttempt": "3 passed, 1 failed at prerendered login before interactive hydration, 2 skipped; test now waits for server render acknowledgement"
+  },
+  "knownFailure": "LocalDiskFileStoreTests.Eszamanli_ayni_icerik_yazimi_tek_kopya_birakir: expected 1 AlreadyExisted=false, actual 3; unchanged upstream source/test",
+  "blocked": [
+    "Real CRS section model/query",
+    "Full real A/B acceptance",
+    "Real ASG shared sample seed"
+  ],
+  "environmentFailures": [
+    "Container socket execution initially rejected; user then explicitly approved constrained read-only source execution",
+    "Windows UNC DLL load blocked by Application Control; not successful test run"
+  ],
+  "deliveryChecks": {
+    "newBuildOutputsInDelivery": "none",
+    "clamav": "healthy, real clean/EICAR passed",
+    "postgresVersion": 17,
+    "dockerComposeBuild": "passed",
+    "releaseBuild": "passed",
+    "conflictMarkers": "none",
+    "dockerComposeConfig": "passed",
+    "http": {
+      "/api/v1/openapi.json": 200,
+      "/api/v1/health": 200,
+      "/login": 200,
+      "/api/v1/file-drafts/limits": 401,
+      "/courses": 200
+    },
+    "credentialPatterns": "no matches",
+    "architecture": "5 passed",
+    "baselineTestMethodsMissing": 0,
+    "gitDiffCheck": "passed"
+  },
+  "sonKontrol": {
+    "reportDate": "2026-11-20",
+    "testEvidenceDate": "2026-11-19",
+    "originMainChecked": "a986a0a",
+    "dotnet": [
+      {
+        "file": "_011e6723dd30_2026-11-19_15_52_58_net10.0.trx",
+        "total": 343,
+        "passed": 342,
+        "failed": 1,
+        "notExecuted": 0
+      },
+      {
+        "file": "_011e6723dd30_2026-11-19_15_53_01_net10.0.trx",
+        "total": 365,
+        "passed": 365,
+        "failed": 0,
+        "notExecuted": 0
+      }
+    ],
+    "categories": {
+      "T_FILE_01": [
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_01_one_MiB_PDF_is_private_and_keeps_original_bytes",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_01_09_owner_only_and_concurrent_names",
+          "outcome": "Passed"
+        }
+      ],
+      "T_FILE_09": [
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_09_duplicate_names_keep_extension_and_original",
+          "outcome": "Passed"
+        }
+      ],
+      "T_FILE_11": [
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_11_server_limit_and_area_count",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_11_database_limit_is_stricter_than_server_limit",
+          "outcome": "Passed"
+        }
+      ],
+      "T_FILE_12": [
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_invalid_names_are_rejected(name: \"../a.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_invalid_names_are_rejected(name: \"a/b.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_invalid_names_are_rejected(name: \"a:evil.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_invalid_names_are_rejected(name: \"\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_name_length_boundary",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_invalid_names_are_rejected(name: \"a\\\\b.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_invalid_names_are_rejected(name: \".\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_12_invalid_names_are_rejected(name: \"a\\0.txt\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"bad.exe\", data: \"MZ\", status: 415)",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"../bad.txt\", data: \"text\", status: 400)",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_HTTP_name_length_boundary(length: 256, expected: 400)",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"bad.pdf\", data: \"text\", status: 415)",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"empty.txt\", data: \"\", status: 400)",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_HTTP_name_length_boundary(length: 255, expected: 201)",
+          "outcome": "Passed"
+        }
+      ],
+      "T_FILE_13": [
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_allowed_signatures_have_server_derived_MIME(name: \"a.jpg\", hex: \"ffd8ffe0\", expected: \"image/jpeg\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_extension_and_signature_must_match(name: \"image.png\", content: \"%PDF-1.7\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_allowed_signatures_have_server_derived_MIME(name: \"a.png\", hex: \"89504e470d0a1a0a\", expected: \"image/png\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_extension_and_signature_must_match(name: \"image.jpg\", content: \"text\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_extension_and_signature_must_match(name: \"report.pdf\", content: \"plain text\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_allowed_signatures_have_server_derived_MIME(name: \"a.txt\", hex: \"74657874\", expected: \"text/plain\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_allowed_signatures_have_server_derived_MIME(name: \"a.pdf\", hex: \"255044462d312e37\", expected: \"application/pdf\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_extension_and_signature_must_match(name: \"report.exe\", content: \"MZ\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.UnitTests.UploadValidationTests.T_FILE_13_allowed_signatures_have_server_derived_MIME(name: \"a.jpeg\", hex: \"ffd8ffe0\", expected: \"image/jpeg\")",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_13_folder_and_non_UTF8_text_rejected(name: \"folder/\", expected: 400)",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_13_folder_and_non_UTF8_text_rejected(name: \"invalid.txt\", expected: 415)",
+          "outcome": "Passed"
+        }
+      ],
+      "T_FILE_14": [
+        {
+          "testName": "Moodle.IntegrationTests.VirusScannerTests.T_FILE_14_timeout_denies",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.VirusScannerTests.T_FILE_14_real_ClamAV_clean_and_EICAR",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.VirusScannerTests.T_FILE_14_unavailable_daemon_denies",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_14_scanner_rejection_never_writes_durable_content(unavailable: True, status: 503)",
+          "outcome": "Passed"
+        },
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_14_scanner_rejection_never_writes_durable_content(unavailable: False, status: 422)",
+          "outcome": "Passed"
+        }
+      ],
+      "Area_total": [
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Area_total_boundary_uses_server_configuration",
+          "outcome": "Passed"
+        }
+      ],
+      "Concurrent_file": [
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Concurrent_file_saves_commit_once_and_retain_losing_draft",
+          "outcome": "Passed"
+        }
+      ],
+      "Real_cookie_SSR": [
+        {
+          "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Real_cookie_SSR_file_form_conflict_list_detail_and_download",
+          "outcome": "Passed"
+        }
+      ],
+      "ASG_upload": []
+    },
+    "javaScript": {
+      "passed": 23,
+      "failed": 0
+    },
+    "concurrencyEvidence": "ESZAMANLILIK-TEKRARLARI.json",
+    "playwright": {
+      "date": "2026-11-20",
+      "skipped": 2,
+      "failed": 0,
+      "passed": 4,
+      "reason": "Real CRS section model + ICourseSectionQuery + valid SENG101 section ID unavailable"
+    },
+    "notes": [
+      "Previous delivery fields above are historical",
+      "Only failure is unchanged LocalDiskFileStore concurrency test",
+      "No commit/push/PR/merge"
+    ],
+    "releaseDockerBuild": "passed 2026-11-20"
+  },
+  "latestVerification": "serayFixIntegration",
+  "serayFixIntegration": {
+    "date": "2026-11-20",
+    "fixCommit": "e2b50d0f83a6ccd43fe4b54dec9360035d95ec50",
+    "pullRequest": 39,
+    "main": "1424b04",
+    "integration": "fast-forward; no new commit; unstaged work retained",
+    "previousHead": "3b9ccd6",
+    "backup": "coverage/pre-main-1424b04",
+    "backupHashesVerified": true,
+    "originalSourceAndTestUnmodified": true,
+    "repeats": [
+      {
+        "iteration": 1,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 2,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 3,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 4,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 5,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 6,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 7,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 8,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 9,
+        "outcome": "Passed"
+      },
+      {
+        "iteration": 10,
+        "outcome": "Passed"
+      }
+    ],
+    "dotnet": [
+      {
+        "file": "_71b88c7de0d3_2026-11-20_20_45_48_net10.0.trx",
+        "total": 343,
+        "passed": 343,
+        "failed": 0,
+        "notExecuted": 0
+      },
+      {
+        "file": "_71b88c7de0d3_2026-11-20_20_45_48_net10.0[1].trx",
+        "total": 365,
+        "passed": 365,
+        "failed": 0,
+        "notExecuted": 0
+      }
+    ],
+    "proof": [
+      {
+        "testName": "Moodle.UnitTests.ArchitectureTests.Web_diger_Moodle_katmanlarina_bagli_degildir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.ArchitectureTests.Domain_hicbir_katmana_bagli_degildir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.Silme_icerigi_kaldirir_ve_listeden_dusurur",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.ArchitectureTests.Application_EF_Core_gibi_veri_erisim_paketlerine_bagli_degildir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.FILE_NFR_02_yazma_yarida_kesilirse_depoda_yarim_dosya_kalmaz",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.Olmayan_icerik_icin_null_doner",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.Gecersiz_ozet_reddedilir_yol_gecisi_olmaz(hash: \"BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB4\"···)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.Gecersiz_ozet_reddedilir_yol_gecisi_olmaz(hash: \"ba7816bf\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.SHA256_ozeti_ve_ab_cd_yolu_uretilir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.Eszamanli_ayni_icerik_yazimi_tek_kopya_birakir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.Gecersiz_ozet_reddedilir_yol_gecisi_olmaz(hash: \"../../etc/passwd\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.ArchitectureTests.Application_yalnizca_Domaine_baglidir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.FILE_BR_01_ayni_icerik_tek_fiziksel_kopya_olarak_saklanir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.ArchitectureTests.Infrastructure_Api_ve_Webe_bagli_degildir",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.UnitTests.LocalDiskFileStoreTests.Yazilan_icerik_aynen_geri_okunur",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.File_save_preserves_draft_when_assignment_rejects(reason: \"closed\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Area_total_boundary_uses_server_configuration",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_13_folder_and_non_UTF8_text_rejected(name: \"invalid.txt\", expected: 415)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_01_one_MiB_PDF_is_private_and_keeps_original_bytes",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"../bad.txt\", data: \"text\", status: 400)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_11_server_limit_and_area_count",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Real_AUTH_course_list_and_evaluator_scope_reject_foreign_teacher",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"empty.txt\", data: \"\", status: 400)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.File_save_preserves_draft_when_assignment_rejects(reason: \"locked\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.VirusScannerTests.T_FILE_14_timeout_denies",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.VirusScannerTests.T_FILE_14_real_ClamAV_clean_and_EICAR",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Failed_store_result_rolls_back_metadata_and_new_content",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Real_cookie_SSR_file_form_conflict_list_detail_and_download",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_14_scanner_rejection_never_writes_durable_content(unavailable: True, status: 503)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"bad.exe\", data: \"MZ\", status: 415)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Real_AUTH_file_submission_scope_version_and_atomic_rollback",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_11_database_limit_is_stricter_than_server_limit",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_HTTP_name_length_boundary(length: 256, expected: 400)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Concurrent_file_saves_commit_once_and_retain_losing_draft",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.GrdPostgresTests.Migration_is_applied_and_creates_grd_tables",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.AsgCrsMergeTests.Both_contexts_migrate_in_either_order_and_snapshots_match(asgFirst: True)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_13_rejected_input_creates_no_entries(name: \"bad.pdf\", data: \"text\", status: 415)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_13_folder_and_non_UTF8_text_rejected(name: \"folder/\", expected: 400)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.File_save_preserves_draft_when_assignment_rejects(reason: \"disabled\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.Cookie_writes_require_CSRF",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_01_09_owner_only_and_concurrent_names",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.CrsPostgresTests.Migration_and_course_category_enrolment_CRUD_work_on_PostgreSQL",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_12_HTTP_name_length_boundary(length: 255, expected: 201)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileUploadV2Tests.T_FILE_14_scanner_rejection_never_writes_durable_content(unavailable: False, status: 422)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.AsgCrsMergeTests.Both_contexts_migrate_in_either_order_and_snapshots_match(asgFirst: False)",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.VirusScannerTests.T_FILE_14_unavailable_daemon_denies",
+        "outcome": "Passed"
+      }
+    ],
+    "javaScript": {
+      "failed": 0,
+      "passed": 23
+    },
+    "playwright": {
+      "skipped": 2,
+      "reason": "CRS section model and real ICourseSectionQuery unavailable",
+      "passed": 4,
+      "failed": 0
+    },
+    "releaseBuild": "passed",
+    "composeConfig": "passed",
+    "composeBuild": "passed",
+    "http": {
+      "openapi": 200,
+      "login": 200,
+      "health": 200,
+      "courses": 200,
+      "anonymousDraftLimits": 401
+    },
+    "remaining": [
+      "Real CRS section validation",
+      "Real creation/shared ASG seed and complete A/B acceptance",
+      "Shared file manager handoff when available"
+    ],
+    "note": "Static storage locks are process-local; cross-process sharing is not claimed as verified",
+    "finalGitChecks": {
+      "buildOutputs": "none in delivery candidates",
+      "conflictMarkers": "none in changed delivery files",
+      "seraySourceAndTestDiff": "empty against HEAD",
+      "whitespace": "passed",
+      "credentialPatterns": "no matches in changed delivery files",
+      "newCommitCreated": false,
+      "stagedFiles": 0
+    }
+  },
+  "main65cd11dMerge": {
+    "date": "2026-11-21",
+    "branch": "codex/asg-file-wbs3-v2",
+    "head": "aa2e62e",
+    "mergeHead": "65cd11d",
+    "upstreamPR": 40,
+    "state": "merge pending; textual conflicts resolved; data integrity fix approval required",
+    "dotnet": {
+      "unitPassed": 436,
+      "integrationPassed": 406,
+      "integrationFailed": 1,
+      "total": 843,
+      "passed": 842,
+      "skipped": 0,
+      "failures": [
+        "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file"
+      ]
+    },
+    "prior708MissingTests": [],
+    "javaScript": {
+      "failed": 0,
+      "passed": 54
+    },
+    "playwright": {
+      "reason": "Real CRS section model and ICourseSectionQuery unavailable",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 2
+    },
+    "releaseBuild": "passed; one existing xUnit2031 warning",
+    "compose": "build/start passed; PostgreSQL 17 and ClamAV healthy",
+    "http": {
+      "health": 200,
+      "openapi": 200,
+      "courses": 200,
+      "login": 200,
+      "anonymousDraftLimits": 401
+    },
+    "fileSnapshot": "passed on PostgreSQL 17",
+    "matrix": {
+      "rows": 55,
+      "lostChangedCells": 0
+    },
+    "pendingApproval": "Shared content lock in FileMaintenanceService across blob row removal and physical delete",
+    "commitCreated": false,
+    "pushPerformed": false,
+    "evidence": [
+      "coverage/v2-merge-final",
+      "coverage/v2-merge-race",
+      "coverage/v2-merge-65cd11d",
+      "coverage/playwright"
+    ]
+  },
+  "main65cd11dLockFix": {
+    "date": "2026-11-21",
+    "authorization": "User approved shared cleanup/upload content locking and regression tests",
+    "state": "All checks complete; merge commit approval pending",
+    "head": "aa2e62e",
+    "mergeHead": "65cd11d",
+    "dotnet": {
+      "unitPassed": 436,
+      "total": 845,
+      "skipped": 0,
+      "failed": 0,
+      "integrationPassed": 409
+    },
+    "previous708MissingTests": [],
+    "regressions": [
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file(deletion: \"cancelled\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file(deletion: \"success\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.FILE_snapshot_matches_model_after_main_merge",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file(deletion: \"failure\")",
+        "outcome": "Passed"
+      }
+    ],
+    "javaScript": {
+      "passed": 54,
+      "failed": 0
+    },
+    "playwright": {
+      "passed": 4,
+      "skipped": 2,
+      "failed": 0,
+      "reason": "Real CRS section model and ICourseSectionQuery unavailable"
+    },
+    "releaseBuild": "passed; one existing xUnit2031 warning",
+    "compose": "build and startup passed",
+    "http": {
+      "anonymousDraftLimits": 401,
+      "openapi": 200,
+      "login": 200,
+      "health": 200,
+      "courses": 200
+    },
+    "postgres": "17; migrations and FILE snapshot passed",
+    "clamAV": "real clean/EICAR, timeout and unavailable tests passed",
+    "remaining": [
+      "CRS section model and real ICourseSectionQuery",
+      "Full Playwright A/B acceptance after CRS dependency",
+      "User approval before merge commit"
+    ],
+    "evidence": "coverage/v2-merge-lock",
+    "commitCreated": false,
+    "pushPerformed": false
+  }
+}

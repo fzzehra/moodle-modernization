@@ -37,7 +37,7 @@ public class AssignmentServiceTests
         Assert.Equal(422, (await Assert.ThrowsAsync<AppException>(() => Service.CreateAsync(1,
             Request with { OpensAt = clock.Now, CutoffAt = clock.Now.AddSeconds(-1) }))).StatusCode);
         Assert.Equal(422, (await Assert.ThrowsAsync<AppException>(() => Service.CreateAsync(1,
-            Request with { EnabledSubmissionTypes = ["file"] }))).StatusCode);
+            Request with { EnabledSubmissionTypes = ["unsupported"] }))).StatusCode);
     }
     [Theory]
     [InlineData(true, "draft")] [InlineData(false, "submitted")]
@@ -160,10 +160,11 @@ public class AssignmentServiceTests
         using var provider=new ServiceCollection().AddInfrastructure().BuildServiceProvider();
         using var scope=Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.CreateScope(provider);
         var query=Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<IAssignmentLearnerQuery>(scope.ServiceProvider);
-        var access=Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService<ISubmissionAccessPolicy>(scope.ServiceProvider);
+        var access=new ServiceCollection().AddInfrastructure().Last(d=>d.ServiceType==typeof(ISubmissionAccessPolicy));
         Assert.IsType<Moodle.Infrastructure.Courses.CrsService>(query);
         Assert.Empty(await new UnavailableSubmissionScope().ListRequiredLearnerIdsAsync(1));
-        Assert.False(await access.CanAssessLearnerAsync(2,1,1,3));
+        Assert.Equal(typeof(Moodle.Infrastructure.Assignments.AssignmentSubmissionAccessPolicy),access.ImplementationType);
+        Assert.False(await new UnavailableSubmissionScope().CanAssessLearnerAsync(2,1,1,3));
     }    [Theory]
     [InlineData(2,1,1,3,true)]
     [InlineData(2,1,1,2,false)]

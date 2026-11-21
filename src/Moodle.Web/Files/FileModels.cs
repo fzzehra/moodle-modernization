@@ -26,7 +26,7 @@ public sealed record FileListResponse(List<FileItem> Files);
 public sealed record FileDraftInfo(long DraftId, DateTimeOffset ExpiresAt);
 
 /// <summary><c>POST /file-drafts/{id}/files</c> yanıtı. <c>Name</c> sunucunun kaydettiği gerçek addır (FILE-FR-07).</summary>
-public sealed record FileUploadResult(long FileId, string Name, long Size, string MimeType, string ContentHash);
+public sealed record FileUploadResult(long FileId, string Name, [property: System.Text.Json.Serialization.JsonPropertyName("sizeBytes")] long Size, string MimeType, string ContentHash);
 
 public sealed record FileQuota(long LimitBytes, long UsedBytes, bool Unlimited);
 

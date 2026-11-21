@@ -45,6 +45,7 @@ public class AsgCrsMergeTests
         services.AddDbContext<MoodleDbContext>(o=>o.UseNpgsql(postgres.GetConnectionString()));
         services.AddScoped<ICurrentUser>(_=>new Evaluator());
         services.AddScoped<IAccessPolicy>(_=>new ModulePolicy());
+        services.AddScoped<ISubmissionAccessPolicy, UnavailableSubmissionScope>(); // Explicit unavailable AUTH scenario; real integration is covered by V2 tests.
         using var provider=services.BuildServiceProvider();
         using var scope=provider.CreateScope();
         var sp=scope.ServiceProvider;

@@ -28,6 +28,7 @@ public static class CapabilityRules
         "course.role.assign",
         "course.role.assign:" + EditingTeacher, "course.role.assign:" + Teacher, "course.role.assign:" + Student,
         "grade.edit", "grade.view", "grade.viewall",
+        "mod/assign:view", "mod/assign:submit", "mod/assign:grade", "mod/assign:addinstance", "moodle/course:manageactivities",
     ];
 
     /// <param name="capability">Yetenek adı (ör. <c>course.update</c>, <c>course.role.assign:Teacher</c>).</param>
@@ -46,6 +47,10 @@ public static class CapabilityRules
 
         return capability switch
         {
+            "mod/assign:view" => isSiteManager || isEnrolled,
+            "mod/assign:submit" => courseRole == Student,
+            "mod/assign:grade" => isSiteManager || isAnyTeacher,
+            "mod/assign:addinstance" or "moodle/course:manageactivities" => isSiteManager || isEditingTeacher,
             // Herkese açık: kategori listesi ve görünür ders listesi gizli değildir (WBS-1 §4.1 ile uyumlu;
             // Moodle'da da misafir/öğrenci kategori ve görünür dersleri görebilir).
             "category.view" => true,

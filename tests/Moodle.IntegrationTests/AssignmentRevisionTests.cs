@@ -194,7 +194,7 @@ public class AssignmentRevisionTests(AsgFixture fixture) : IClassFixture<AsgFixt
             ("/api/v1/courses/{courseId}/assignments","post",[400,401,403,404,415,422,500]),
             ("/api/v1/assignments/{id}","get",[401,404,500]),
             ("/api/v1/assignments/{id}/my-submission","get",[401,403,404,500]),
-            ("/api/v1/assignments/{id}/my-submission","put",[400,401,403,404,409,415,422,500]),
+            ("/api/v1/assignments/{id}/my-submission","put",[400,401,403,404,409,415,422,500,503]),
             ("/api/v1/assignments/{id}/my-submission/submit","post",[400,401,403,404,409,415,500]),
             ("/api/v1/assignments/{id}/submissions","get",[400,401,403,404,422,500]),
             ("/api/v1/assignments/{id}/submissions/{submissionId}","get",[401,403,404,500])

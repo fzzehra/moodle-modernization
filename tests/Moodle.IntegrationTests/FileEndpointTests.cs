@@ -33,7 +33,7 @@ public sealed class FileEndpointTests(FilesApiFixture fixture) : IClassFixture<F
     public async Task Commit_moves_draft_files_to_target_area()
     {
         using var factory = fixture.CreateFactory(userId: 101);
-        var (draftId, _) = await SeedDraftFileAsync(factory, 101, "rapor.pdf", Guid.NewGuid().ToString());
+        var (draftId, _) = await SeedDraftFileAsync(factory, 101, "rapor.pdf", "%PDF-1.7 "+Guid.NewGuid().ToString());
         using var client = factory.CreateClient();
 
         var commit = await client.PostAsJsonAsync("/api/v1/file-areas/101/user/private/0/commit", new CommitRequest(draftId));

@@ -13,7 +13,7 @@ namespace Moodle.Infrastructure.Files;
 /// silme ve çöp (FR-05, BR-13, 14), kullanıcı kotası (FR-09, BR-10) ve kota hesabı hatasının (BUG-01)
 /// yeni sistemde tekrarlanmaması.
 /// </summary>
-public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicyRegistry policies, TimeProvider clock) : IFileService
+public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicyRegistry policies, TimeProvider clock, DraftUploadService uploads) : IFileService
 {
     public async Task<DraftInfo> CreateDraftAsync(int userId, CancellationToken ct = default)
     {
@@ -25,42 +25,13 @@ public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicy
         return new DraftInfo(draft.DraftId, now.AddHours(settings.DraftTtlHours));
     }
 
-    public async Task<FileMeta> AddToDraftAsync(
-        int userId, long draftId, string name, Stream content,
+    public async Task<FileMeta> AddToDraftAsync(int userId, long draftId, string name, Stream content,
         string path = "/", bool overwrite = false, CancellationToken ct = default)
     {
-        var draft = await RequireOwnDraftAsync(userId, draftId, ct);
-        var area = DraftArea(userId, draftId);
-
-        // FILE-BR-06: geçersiz/boş ad reddedilir. Ad benzersizleştirme (FR-07) Aslı Ceren'in kapsamıdır;
-        // burada yalnızca çakışma reddedilir (overwrite istenmedikçe).
-        if (string.IsNullOrWhiteSpace(name) || name.Length > 255 || name.Any(char.IsControl))
-            throw AppException.Validation("invalid_name", "Geçersiz dosya adı.");
-
-        var existing = await FindEntryAsync(area, path, name, ct);
-        if (existing is not null)
-        {
-            if (!overwrite) throw AppException.Conflict("name_conflict", "Bu ad bu konumda zaten kullanılıyor.");
-            await SoftDeleteAsync(existing, ct);
-        }
-
-        var blob = await store.WriteAsync(content, ct);
-        if (blob.SizeBytes == 0) throw AppException.Validation("empty_file", "Boş dosya yüklenemez.");
-        await EnsureBlobRowAsync(blob, ct);
-
-        var entry = new FileEntry
-        {
-            ContentHash = blob.ContentHash, ContextId = area.ContextId, Component = area.Component,
-            Area = area.Area, ItemId = area.ItemId, Path = path, Name = name, OwnerUserId = userId,
-            SizeBytes = blob.SizeBytes, MimeType = "application/octet-stream", Status = "active",
-            CreatedAt = clock.GetUtcNow(), UpdatedAt = clock.GetUtcNow(),
-        };
-        db.Entries.Add(entry);
-        draft.LastActivityAt = clock.GetUtcNow();
-        await db.SaveChangesAsync(ct);
-        return ToMeta(entry);
+        var (used,limit)=await GetQuotaAsync(userId,ct);
+        return await uploads.AddAsync(userId,draftId,name,content,path,overwrite,ct,
+            limit<=0 ? long.MaxValue : Math.Max(0,limit-used));
     }
-
     public async Task<IReadOnlyList<FileMeta>> ListDraftAsync(int userId, long draftId, string path = "/", CancellationToken ct = default)
     {
         await RequireOwnDraftAsync(userId, draftId, ct);

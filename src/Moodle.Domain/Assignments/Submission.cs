@@ -5,6 +5,7 @@ public sealed class Submission
     public int Id { get; set; }
     public int AssignmentId { get; set; }
     public int LearnerId { get; set; }
+    public int FileCount { get; set; }
     public int Attempt { get; set; }
     public string Status { get; set; } = "draft";
     public string Text { get; set; } = "";

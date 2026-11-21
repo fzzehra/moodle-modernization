@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moodle.Application.Abstractions;
+using Moodle.Application.Courses;
 using Moodle.Domain.Courses;
 using Moodle.Infrastructure.Courses;
 
@@ -40,6 +41,9 @@ public sealed class CrsApiFixture : IAsyncLifetime
                 services.AddDbContext<CrsDbContext>(options => options.UseNpgsql(connectionString));
                 services.RemoveAll<ICurrentUser>();
                 services.RemoveAll<IAccessPolicy>();
+                // CRS testleri yalnızca kendi kaydettikleri uzantıları görür. FILE/ASG/GRD uzantılarının
+                // tabloları bu test veritabanında olmadığından course.deleted sonsuza kadar yeniden denenir.
+                services.RemoveAll<ICrsEventExtension>();
                 // These stand-ins are registered only in the test host, never in Program.cs.
                 services.AddSingleton<ICurrentUser>(new TestUser(authenticated, userId));
                 services.AddSingleton<IAccessPolicy>(new TestPolicy(userId, permission ?? ((_, _) => true)));

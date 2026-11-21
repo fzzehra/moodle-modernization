@@ -173,6 +173,92 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 ### 2.3 AUTH ve CRS'nin kalan gereksinimleri (Sinem)
 
+#### CRS-FR-11 / CRS-NFR-06: Arka planda ders silme
+
+> Bu geliştirme **YZ destekli** yapılmıştır (Claude Code, Claude Opus 5.5). Kod, testler ve bu bölüm YZ tarafından üretildi; elle geliştirilmiş olarak raporlanmamalıdır.
+
+**Kapsam:** CRS-FR-11 (D/C), CRS-NFR-06 (D/C), CRS-BR-11 (WBS-1 §4.2, WBS-2 §3.2.3 ve §3.2.5). Moodle'daki karşılığı `public/lib/moodlelib.php`, `delete_course()`.
+
+**Davranış**
+- `Crs:BackgroundDeletion:Enabled` ayarı varsayılan olarak `false`'tur. Kapalıyken `DELETE /api/v1/courses/{courseId}` önceden olduğu gibi senkron siler ve `204` döner.
+- Ayar açıkken talep `crs_course_deletion_jobs` tablosuna kalıcı olarak yazılır. API `202 Accepted`, iş bilgisi ve `Location: /api/v1/courses/deletion-jobs/{jobId}` döner. İşin durumu `GET /api/v1/courses/deletion-jobs/{jobId}` ile sorgulanır.
+- İş durumları Pending (1), Running (2), Succeeded (3) ve Failed (4) şeklindedir. Deneme sayısı, başlama ve bitiş zamanı, hata kodu ve güvenli hata mesajı saklanır.
+- Yetki her zaman kabulden önce denetlenir (`course.delete`, ders bağlamı). Yetkisiz kullanıcı `403`, kimliksiz kullanıcı `401` alır ve iş kaydı oluşmaz.
+- Durum sorgusunun yetkisi dersin var olup olmamasına göre değişir:
+  - **Ders hâlâ varsa:** ders bağlamında `course.delete` gerekir.
+  - **Ders silinmişse:** ders bağlamı artık yoktur. Durumu yalnızca talebi yapan kullanıcı (`RequestedByUserId`) veya sistem ya da kategori düzeyinde `course.delete` yetkisi olan kullanıcı görebilir. Kategori, silme anında iş kaydına yazılır.
+- Ayarlar: `Crs:BackgroundDeletion:PollIntervalMilliseconds` (varsayılan 5000, en az 10; testlerde 50) ve `Crs:BackgroundDeletion:MaxAttempts` (varsayılan 3).
+
+**Yazılanlar**
+
+| Katman | Dosyalar |
+| --- | --- |
+| Veri | `src/Moodle.Infrastructure/Courses/Migrations/20261121000100_CrsCourseDeletionJobs.cs` (+ `.Designer.cs`): ham SQL ile yazıldı, mevcut CRS migration'larıyla aynı kalıpta. `crs_courses` tablosuna FK yoktur, iş geçmişi silmeden sonra da kalır. Bekleyen veya çalışan işler için `("CourseId") WHERE "State" IN (1,2)` kısmi unique index'i var. `Down`, aktif iş varken tabloyu silmeyi reddeder. |
+| Kuyruk | `src/Moodle.Infrastructure/Courses/CrsCourseDeletionJobs.cs`: `CrsBackgroundDeletionOptions`, `CrsCourseDeletionJobState`, `CrsCourseDeletionJob`, `CrsCourseDeletionRules` (hata sınıflandırması), `CrsCourseDeletionJobs` (`EnqueueAsync`, `FindAsync`) |
+| İşleyici | `src/Moodle.Infrastructure/Courses/CrsCourseDeletionProcessor.cs`: `CrsCourseDeletionProcessor` (`RecoverAsync`, `ProcessNextAsync`, `CountActiveAsync`), `CrsCourseDeletionWorker` (`BackgroundService`) |
+| API | `src/Moodle.Api/Courses/CrsEndpoints.cs`: `DELETE /courses/{courseId}` ayara göre `204` veya `202` döner; yeni uç `GET /courses/deletion-jobs/{jobId:guid}` |
+| Kayıt | `src/Moodle.Infrastructure/DependencyInjection.cs` (CRS bölümü, 5 satır) |
+| Test altyapısı | `tests/Moodle.IntegrationTests/CrsApiFixture.cs`: `CreateFactory`'ye isteğe bağlı `settings` ve `userId` parametreleri eklendi. Varsayılanlar eski davranışı korur. |
+
+**Testler:** 15 birim test durumu (`CrsBackgroundDeletionTests`) ve 17 PostgreSQL entegrasyon testi (Testcontainers, PostgreSQL 17) yazıldı: `CrsBackgroundDeletionPostgresTests` (9) ve `CrsBackgroundDeletionApiTests` (8). Test adlarında gereksinim kimlikleri geçer. Senaryolar:
+- ayar kapalıyken senkron `204`
+- ayar açıkken `202`, `Location` ve worker'ın işi tamamlaması
+- aynı ders için ikinci talebin mevcut işi döndürmesi
+- NFR-03 engeli: kuyruğa almada `409`, kuyruğa aldıktan sonra kayıt yapılırsa işin kalıcı olarak Failed olması
+- `course_not_found` hatasının ayrı bir transaction'da kaydedilmesi
+- beklenmeyen hatada tekrar deneme ve ardından Failed, exception metni kaydedilmeden
+- açılış kurtarması ve SKIP LOCKED
+- aynı veritabanında iki ayrı host ile yeniden başlatma
+- yetkisiz silme ve durum sorgusu
+
+Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yoklama kullanılır. **Test sonuçları (21.11.2026):** Bu geliştirmenin birim testleri ve ilgili entegrasyon testleri başarılı. Genel regresyon (`dotnet test Moodle.slnx`): 852 başarılı, 0 başarısız, 0 atlanan; test süresi 413,1 saniye, toplam komut süresi 430,3 saniye. Build: 0 hata, yeni kodda 0 uyarı.
+
+**Tasarım kararları**
+- **Mevcut silme yeniden yazılmadı.** Worker `CrsService.DeleteCourseAsync` metodunu çağırır. Böylece NFR-03'teki ders satırı kilidi (`WithCourseLockAsync`), aktif işlem kontrolü, cascade, `crs_record_change` trigger'ının ürettiği `course.deleted` ve `enrolment.deleted` olayları ve bu olaylara bağlı cache geçersizleştirmesi olduğu gibi korunur. `DeleteCourseAsync` HTTP kullanıcı bağlamına bağlı değildir; talep sahibi yalnızca iz kaydı için `RequestedByUserId` alanında saklanır.
+- **Kuyruğa alma.** `WithCourseLockAsync` içinde yapılır. Ders yoksa `404` döner. NFR-03 ön kontrolü engel bulursa `409 course_operation_in_progress` döner. Bekleyen veya çalışan iş varsa yeni iş açılmaz, mevcut iş döndürülür. Aynı ders kilidi eşzamanlı talepleri sıraya koyar; kısmi unique index son güvencedir.
+- **Atomik sahiplenme.** `UPDATE … WHERE "Id" = (SELECT … WHERE "State" = 1 … FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING` tek ifadedir ve hemen commit edilir. Birden çok örnek aynı işi alamaz.
+- **Silme ve başarı kaydı tek transaction'dadır.** Worker önce iş satırını, sonra ders satırını kilitler, ardından `DeleteCourseAsync` çağrılır (dış transaction'a katılır). İşin Succeeded olarak işaretlenmesi de aynı commit'tedir. Ders silindiği hâlde iş Running ya da Failed görünemez. Kilit sırası her zaman iş satırı → ders satırıdır; kuyruğa alma iş satırını kilitlemediği için kilitlenme (deadlock) oluşmaz.
+- **Hata kaydı ayrı bir transaction'dadır.** NFR-03 engeli veya bulunamayan ders durumunda silme transaction'ı geri alınır, change tracker temizlenir ve iş yeni bir transaction'da güncellenir.
+
+  | Hata | Kod | Sonuç |
+  | --- | --- | --- |
+  | NFR-03 engeli | `course_operation_in_progress` | Hemen Failed, tekrar denenmez. Kullanıcı yedekleme/geri yükleme bitince yeniden talep eder. |
+  | Diğer CRS çakışmaları | `course_deletion_conflict` | Hemen Failed |
+  | Ders bulunamadı | `course_not_found` | Hemen Failed |
+  | Beklenmeyen hata | `deletion_failed` | `Attempts < MaxAttempts` ise Pending'e döner, aksi hâlde Failed |
+
+  Veritabanına yalnızca koda karşılık gelen sabit Türkçe mesaj yazılır. Exception metni (SQL, bağlantı bilgisi) yalnızca `ILogger` ile loglanır.
+- **Yeniden başlatma.** İş kalıcı tabloda tutulduğu için kaybolmaz. Worker açılışta Running'de kalmış işleri `FOR UPDATE SKIP LOCKED` ile Pending'e döndürür; başka bir örneğin o anda işlediği iş kilitli olduğundan atlanır. Kurtarma başarısız olursa her turda yeniden denenir. Uygulama düzgün kapanırken yarıda kalan iş Pending'e döner ve deneme hakkı tüketilmez. Çökme durumunda ise yarıda kalan deneme sayılır.
+- **HTTP isteğinden bağımsızlık.** İsteğin `CancellationToken` değeri yalnızca kuyruğa almayı kapsar. Worker yalnızca uygulamanın durma token'ını kullanır ve her iş için `CreateAsyncScope` ile ayrı bir scope (`CrsDbContext`, `CrsService`) açar.
+- **Ayar kapalıyken bekleyen iş varsa** worker açılışta bir uyarı loglar ve çıkar. İşler, ayar yeniden açılınca işlenir.
+
+**Bilinen sınırlamalar**
+- **İş kuyruğa alındıktan sonra yedekleme/geri yükleme kaydı yapılabiliyor.** `ICrsCourseOperationRegistry.RegisterPendingAsync` bekleyen silme işlerini bilmiyor. Bu bir tutarlılık riski oluşturmaz: worker NFR-03 kontrolünü silme kilidi altında yeniden yapar ve iş `course_operation_in_progress` ile Failed olur. NFR-03 koduna dokunmamak için bu davranış değiştirilmedi.
+- **Ayar kapalıyken bekleyen işler işlenmez.** Bu sırada ders senkron yoldan silinirse, ayar açıldığında iş `course_not_found` ile Failed olur.
+- **Çökme döngüsü sınırlanmıyor.** Deneme sınırı yalnızca beklenmeyen hatalar için geçerlidir. İşlenirken sürekli çöken bir süreç aynı işi her açılışta yeniden dener; çökme ile kurtarma arasında bir deneme sınırı yoktur.
+- **Bekleyen işin iptali yok.** Bekleyen bir silme işini iptal eden bir uç yok; WBS-2'de tanımlanmamıştı.
+- **Durum sorgusunda varlık bilgisi.** Ders silinmişse yetki kategori düzeyinde denetlenir. Kategori de silinmişse yalnızca talep sahibi ve sistem düzeyi yetkilisi işi görebilir. Bilinmeyen `jobId` için `403` yerine `404` döner; rastgele GUID'ler tahmin edilemediği için bunun bilgi sızıntısı riski ihmal edilebilir.
+- **Kullanıcı arayüzü değiştirilmedi.** Blazor ders silme ekranı `202` yanıtını henüz ayrıca göstermiyor. Arayüz, ayar açıkken yalnızca isteğin başarılı olduğunu görür.
+
+**Yapay zekâ kaydı**
+
+**Model ve sürüm:** Claude Code (VS Code eklentisi), model Claude Opus 5.5 (`claude-opus-5-5`).
+**Üretim şekli:** YZ. Görev listesinde bu iş için karşılaştırma çifti **"arka planda silme elle"** olarak tanımlanmıştı; ekip kararıyla elle değil **YZ destekli** geliştirildi. Bu nedenle bu iş için elle geliştirme verisi yoktur. Kod incelemesinde insan düzeltmesi yapılırsa üretim şekli "YZ + düzeltme" olarak güncellenecektir.
+**Kullanılan adım(lar):** Kodun anlaşılması, uygulama planı, hedef dilde kod üretme, test senaryosu üretme, belge taslağı (WBS-2 §4.1).
+**Verilen bağlam:** WBS-1 ve WBS-2'deki CRS-FR-11 ve CRS-NFR-06 tanımları; `CrsEndpoints.cs`, `CrsService.cs`, `CrsCourseOperationRegistry.cs` (NFR-03), `Program.cs`, `DependencyInjection.cs`, CRS migration'ları ve testleri; `FileCleanupWorker` (mevcut arka plan görevi deseni).
+**Prompt özeti:**
+1. **İlk prompt:** Ders silmeyi yapılandırmaya bağlı olarak asenkron arka plan göreviyle yürüt. Kapalıyken senkron davranışı koru, açıkken kalıcı kayıt tut ve `202` dön. `BackgroundService` mevcut `DeleteCourseAsync` metodunu kullansın. Durum takibi, NFR-03 koruması ve yarış durumları, kabulden önce yetkilendirme, HTTP token'ından bağımsızlık ve iş başına scope, yeniden başlatmaya dayanıklılık ve güvenli hata kaydı olsun. Olaylar ve cache korunsun. Birim ve PostgreSQL testleri ile izlenebilirlik ve WBS-3 belgeleri yazılsın. Test çalıştırılmasın, commit/push/PR yapılmasın.
+2. **Ek kararlar:** Ayar adı; `202` ile `jobId` ve `Location`; durum ucu; aynı ders için tekil aktif iş (kısmi unique index); kuyruğa almada NFR-03 ön kontrolü ve asıl kontrolün worker kilidi altında yapılması; deneme sayısı ve sonuç durumlarının tanımı; açılışta Running → Pending; `FOR UPDATE SKIP LOCKED`; yeni migration; zaman aşımlı yoklama; iki host ile yeniden başlatma testi. Kodlamadan önce plan sunulup onay beklendi.
+3. **Plan onayı ve eklemeler:** NFR-03 engelinde kalıcı Failed. Kuyruk sonrası yedekleme açığının yalnızca belgelenmesi. Ayar kapalıyken açılışta uyarı. Silinmiş ders için durum sorgusu yetkisi (talep sahibi veya sistem/kategori `course.delete`) ve bunun testleri. Hata kaydının ayrı transaction'da yapılması ve testi. Designer dosyasında `[DbContext]` ve `[Migration]` attribute'ları. Ayrı belge yerine sınırlamaların bu bölüme yazılması.
+
+**Yapılan düzeltmeler:**
+- **YZ'nin kendi düzelttikleri:** Test dosyasında iki `EF1002` derleme uyarısı (ham SQL ile DDL) giderildi. İki test doğrulaması sadeleştirildi.
+- **İnsan katkısı:** Kodlamadan önce plan aşamasında tasarım kararları verildi (yukarıdaki 3. madde). Kod üzerinde insan düzeltmesi henüz yok; inceleme sonrası güncellenecek.
+
+**Harcanan süre:** PR açıldığında doldurulacak (oturum süresi insan tarafından eklenecek).
+**Elle geliştirme:** Yapılmadı (bkz. üretim şekli). COCOMO karşılaştırması henüz hazırlanmadı (§3).
+**Kanıt:** PR açıldığında doldurulacak (şube: `sinem/crs-background-delete`).
+
 ### 2.4 Dosya yükleme, antivirüs, ödeve dosya teslimi ve uçtan uca test (Aslı Ceren)
 
 ### 2.5 Temizlik görevi, ders dosyaları ve rapor (Fatma Zehra)

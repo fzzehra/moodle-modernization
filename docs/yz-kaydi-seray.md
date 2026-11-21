@@ -34,7 +34,7 @@ WBS-2 §4.3 şablonuna göre. Süre canlı tutulmamıştır: **YZ ile çalışma
 
 ## Elle yazım eforu tahmini (COCOMO)
 
-Hoca yönergesine göre elle yazım eforu ölçülmez, tahmin edilir. Basic COCOMO (organik), `Efor = 2,4 × KLOC^1,05` kişi-ay, 152 saat/kişi-ay. Satır sayısı boş ve yorum satırları hariç.
+Hiçbir işlev elle yazılmaz (hoca kararı, 18.11.2026): karşılaştırma, YZ ile harcanan gerçek süre ile aynı kodun elle yazılsaydı gerektireceği eforun tahmini arasındadır. COCOMO hesabı raporda herkes için aynı kurallarla toplu yapılır; aşağıdaki tablo ön tahmindir. Basic COCOMO (organik), `Efor = 2,4 × KLOC^1,05` kişi-ay, 152 saat/kişi-ay. Satır sayısı boş ve yorum satırları hariç.
 
 | İş | Satır | Tahmini elle efor |
 | --- | --- | --- |
@@ -42,6 +42,7 @@ Hoca yönergesine göre elle yazım eforu ölçülmez, tahmin edilir. Basic COCO
 | Mimari testi | 42 | ~13 saat |
 | Tohumlama iskeleti (`Seeding/`) | 119 | ~39 saat |
 | CRS tohumlama (`CrsSeedContributor`) | 73 | ~23 saat |
+| `FileCourseDeletedExtension` | 30 | ~9 saat |
 
 COCOMO büyük projeler için geliştirilmiştir; bu kadar küçük kodda tahminler yüksek çıkar. Rakamlar karşılaştırma için göstergedir, kesin ölçüm değildir.
 
@@ -54,3 +55,13 @@ COCOMO büyük projeler için geliştirilmiştir; bu kadar küçük kodda tahmin
 **Yapılan düzeltmeler:** Beklenen sonuçlardan biri yanlış çıktı: T-FILE-02'de "taslak alanı temizlenir" beklenmişti, Moodle taslağı kaydetmeden sonra silmiyor (cron 4 gün sonra siliyor); sonuç "beklenenden farklı" yazıldı. İlk betikte dosya sahibi (`userid`) kaydı ve `get_unused_filename` argümanları hatalıydı, düzeltildi. k6'da önce yanlış dosya yolu kullanıldı (HTTP 500), düzeltildi. k6 ölçümünde 50 kullanıcı tek oturumu paylaştı; bu sınır dokümanda belirtildi. İnsan düzeltmesi: yok.
 **Harcanan süre:** İnsan: ~1 saat (tahmin) · YZ ile çalışma: ~0,7 saat (oturum kaydı, alt sınır)
 **Kanıt:** `docs/WBS-1-analiz.md` §4.6.10, `docs/izlenebilirlik.md` (FILE satırları)
+
+## 5. `course.deleted` dinleyicisi (FILE ↔ CRS)
+
+**Model ve sürüm:** Claude Sonnet 5.5 (Claude Code)
+**Kullanılan adım(lar):** Kod üretimi, test yazımı
+**Verilen bağlam:** CRS'nin `ICrsEventExtension` altyapısı, `CourseFilePolicy`, `FileService`
+**Yapılan iş:** `FileCourseDeletedExtension` ve gerçek PostgreSQL ile 4 entegrasyon testi
+**Yapılan düzeltmeler:** Düzeltme gerekmedi. İnsan düzeltmesi: yok.
+**Harcanan süre:** İnsan: ~0,3 saat (tahmin) · YZ ile çalışma: ~0,3 saat (tahmin; oturum kaydı alt sınırı ~0,1 saat)
+**Kanıt:** `seray/file-course-deleted`

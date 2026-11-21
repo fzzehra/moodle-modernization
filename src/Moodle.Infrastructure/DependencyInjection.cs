@@ -82,6 +82,8 @@ public static class DependencyInjection
         services.AddScoped<CrsEventExtensionPipeline>();
         services.AddScoped<CrsEventDispatcher>();
         services.AddHostedService<CrsEventDispatchWorker>();
+        // FILE: course.deleted olayında ders dosyalarını çöpe taşır (Seray). ASG ve GRD kendi uzantılarını aynı şekilde kaydeder.
+        services.AddScoped<ICrsEventExtension, FileCourseDeletedExtension>();
 
         // Real CRS data must never inherit the synthetic evaluator-2/learner-3..5 grants.
         services.AddScoped<ISubmissionAccessPolicy, Moodle.Infrastructure.Assignments.AssignmentSubmissionAccessPolicy>();

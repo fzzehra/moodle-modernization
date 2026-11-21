@@ -1,3 +1,5 @@
+> **21.11.2026 — son durum:** Kullanıcı onayıyla temizlik/yükleme veri kaybı düzeltildi. 845/845 .NET ve 54/54 JavaScript geçti; Playwright 4 geçti / CRS bölüm bağımlılığı nedeniyle 2 atlandı. Üç metinsel çakışma çözülmüş durumda; commit/push yapılmadı, merge commit onayı bekleniyor. Ayrıntılar [BIRLESME-65cd11d.md](BIRLESME-65cd11d.md), makine özeti DOGRULAMA.json → main65cd11dLockFix. Aşağıdaki önceki sonuçlar tarihsel kayıttır.
+
 # 20.11.2026 — Seray PR #39 entegrasyonu
 
 Düzeltme `e2b50d0f83a6ccd43fe4b54dec9360035d95ec50`, main birleşmesi `1424b04` / PR #39. ASG geliştirme dalı 3b9ccd6'dan 1424b04'e `git merge --ff-only origin/main` ile ilerletildi; yeni commit/merge commit üretilmedi. Önce bütün yerel değişiklikler coverage/pre-main-1424b04/working-tree altında yedeklendi ve SHA-256 manifest'i doğrulandı. İki ortak belge ayrı kopyalarda üç yönlü birleştirildi; izlenebilirlikte gelen eski-sonuç sütunu ile yerel ASG/FILE geliştirme sütunları birlikte korundu. Diğer yerel dosyalar hash ile değişmeden korundu.

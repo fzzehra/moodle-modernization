@@ -189,6 +189,59 @@ Son .NET: 358/358 entegrasyon geçti; birim 337 geçti, değiştirilmemiş Local
 
 ### 2.5 Temizlik görevi, ders dosyaları ve rapor (Fatma Zehra)
 
+**Kapsam:** FILE-FR-12, FR-13; FILE-BR-04, BR-05; FILE-BUG-02, BUG-03, BUG-04 (WBS-1 §4.6, WBS-2 §3.6). Yönetici dosya ayarları ve bakım ucu, ortak dosya yöneticisi bileşeni.
+
+**Yazılanlar**
+
+| Katman | Dosyalar |
+| --- | --- |
+| Uygulama (sözleşmeler ve saf kurallar) | `src/Moodle.Application/Files/`: `IFileMaintenance.cs` (`FileMaintenanceResult`), `FileRetentionRules.cs`, `IFileSettingsService.cs` (`FileSettings` ve doğrulaması, `ISiteAdminQuery`) |
+| Veri ve servis | `src/Moodle.Infrastructure/Files/`: `FileMaintenanceService`, `FileCleanupWorker` (`FileCleanupOptions`), `FileSettingsService`, `IdentitySiteAdminQuery`, `CourseFilePolicy`, `CourseFilesSeedContributor`; `FileEntryDeletedAtIndex` geçişi; `FileService.cs`'te 4 satır (FILE-BUG-02, aşağıda) |
+| API | `src/Moodle.Api/Files/FileAdminEndpoints.cs`: `GET`/`PUT /api/v1/admin/file-settings`, `POST /api/v1/admin/file-maintenance/run`. Ders dosyaları için mevcut FILE uçları kullanılır: `GET /api/v1/file-areas/{courseId}/course/files/0/files`, `POST .../commit`, `GET /api/v1/files/{id}/content`, `DELETE /api/v1/files/{id}` |
+| Sayfalar | `src/Moodle.Web/Files/` (`FileApiClient`, `FileModels`, `FilePageBase`, `FileBrowserHttpHandler`, `FileNotice.razor`, `FileManager.razor`), `wwwroot/file-api.js`; `/courses/{courseId}/files` (`Pages/CourseFiles.razor`), `/admin/files` (`Pages/AdminFileSettings.razor`); `NavMenu.razor`'a "Dosya ayarları" bağlantısı |
+| Kayıt | `DependencyInjection.cs` (FILE bölümü), `Program.cs` (`AddFileAdminApi`, `MapFileAdminEndpoints`, `AddFileWeb`) |
+
+**Testler:** Bu çalışmada 93 birim testi (`FileRetentionRulesTests`, `FileCleanupWorkerTests`, `CourseFilePolicyTests`, `FileWebClientTests`, `FileBlazorTests`), 40 entegrasyon testi (Testcontainers ile PostgreSQL 17: `FileMaintenanceTests`, `FileAdminEndpointTests`, `SiteAdminQueryTests`, `CourseFileEndpointTests`, `CourseFilesSeedTests`, `FileBlazorHostingTests`) ve 28 Node testi (`tests/web/file-api.test.mjs`) eklendi. Test adlarında gereksinim kimlikleri geçer. Tüm paket 412 birim, 378 entegrasyon ve 49 Node testiyle yeşil.
+
+**Tasarım kararları ve belgeden sapmalar**
+- **Temizlik sırası ve danışma kilidi.** `FileMaintenanceService.RunAsync` sırasıyla şunları yapar: (1) son etkinliği taslak süresinden eski taslakları ve taslak kayıtlarını siler (FILE-BUG-02); (2) çöpe atıldığı andan itibaren bekleme süresi dolan kayıtları kalıcı siler (FILE-BUG-03); (3) boşa düştüğü andan itibaren bekleme süresi dolan içeriğin `file_blob` satırını `FOR UPDATE` ile kilitler, kullanımı ve `OrphanedAt`'i aynı işlemde yeniden denetler, satırı siler ve işlem onaylandıktan sonra dosyayı diskten siler (FILE-BUG-04). Diskten silme başarısız olursa satır geri gelmez; hata günlüğe ve sonuca yazılır, `FileConsistencyChecker` raporunda görünür. Her çalıştırma `pg_try_advisory_lock` ile korunur; kilit başka bir örnekteyse tur atlanır. Arka plan görevi `Files:CleanupIntervalMinutes` (varsayılan 60) aralıkla çalışır, `Files:CleanupEnabled=false` ile kapatılır, testlerde kapalıdır.
+- **FILE-BUG-02 için İrem'in koduna 4 satırlık değişiklik.** `FileService.cs`'te `DeleteFromDraftAsync` ve `CommitAsync` artık taslağın `LastActivityAt` alanını günceller (2 satır değişti, 2 satır eklendi). Listeleme etkinlik sayılmaz; kaydetmeden sonra taslak satırı silinmez. Dosyada başka satır değiştirilmedi.
+- **Kalıcı silinen kayıtların içeriğine `OrphanedAt` yazılır.** Temizlik bir kaydı kalıcı silince içeriği kullanan etkin kayıt kalmadıysa içerik o andan boşa düşmüş sayılır. Böyle yapılmasaydı süresi dolan taslaktaki içerik hiç silinmezdi.
+- **Ayarlar ve bakım ucu yalnızca site yöneticisine (`SiteAdmin`) açık.** `IAccessPolicy` `SiteAdmin` ile `Manager`'ı ayırmadığından AUTH dosyalarına dokunmadan `IdentitySiteAdminQuery` yazıldı (ASP.NET Identity `UserManager`, rol adı `CapabilityRules.SiteAdmin`; askıdaki veya silinmiş kullanıcı yönetici sayılmaz). Bakım ucu WBS-2 §3.6.4'e uygun olarak `202` döner; gövdede `purgedEntries` ve `errors` alanları da vardır. Temizlik başka yerde yürürken dönen `409 maintenance_running` WBS-2'nin hata tablosunda yoktu, eklendi. Geçersiz ayar `422` (ayar değişmez), bilinmeyen alan `400` döner.
+- **Ders dosyası yetkisi (`CourseFilePolicy`).** Yönetici (`course.managefiles` yeteneği; şu an `CapabilityRules`'ta tanımlı olmadığından yalnızca yöneticiye açık) veya düzenleyen öğretmen (`EditingTeacher`) yazar; düzenleme yetkisiz öğretmen (`Teacher`) ve öğrenci yazamaz (Moodle'daki `moodle/course:managefiles`, WBS-1 §4.6.7). Öğretmenler ve yönetici okur; öğrenci yalnızca ders görünürse okur. Reddedilen erişim FILE'ın kuralı gereği 404'tür (FILE-BR-11). Rol `IEnrolmentQuery` ile ayrıca denetlenir; politika AUTH'taki değişikliğe bağımlı değildir.
+- **Yükleme bileşeni WBS-2 §3.6 sözleşmesine göre yazıldı.** `FileManager` dosyayı taslağa yükler (`POST /file-drafts`, `POST /file-drafts/{id}/files`) ve "Kaydet" ile kalıcı alana kaydeder (`commit`). Yükleme uçları (Aslı Ceren) gelene kadar 404/405 alınır ve "Yükleme şu an kullanılamıyor" uyarısı gösterilir; liste, indirme ve silme çalışmaya devam eder.
+
+**Sınırlılıklar**
+- **Yükleme tarafında kapanmayan FILE-BUG-04 yarış durumu.** Yükleme içeriğin diskte olduğunu görüp yazmayı atladıktan hemen sonra temizlik aynı içeriği silerse, yükleme yeni bir `file_blob` satırı ekler ve kaydı olup dosyası olmayan içerik oluşur (tutarlılık raporunda görünür). Tam çözüm için yükleme tarafında (`FileService.EnsureBlobRowAsync` ve depoya yazma; İrem ve Aslı Ceren'in kodu) aynı kilidin alınması gerekir.
+- **Örnek veride `SiteAdmin` yok.** `yonetici1` yalnızca `Manager` olduğundan örnek veriyle `/admin/files` herkese "yetkiniz yok" gösterir.
+- **Yazma yetkisi baştan bilinmiyor.** WBS-2'de yazma yetkisini bildiren bir alan olmadığından ders dosyaları sayfasında yükleme ve silme denetimleri önce görünür; kaydetme veya silme 403/404 alınca gizlenir. Öğrenci denetimleri bir kez görür.
+- **Yüklemede veri iki kez yol alır.** Dosya içeriği tarayıcıdan sunucuya (`InputFile`), sonra yeniden tarayıcıya gider ve oradan `fetch` ile API'ye gönderilir. Küçük ve orta boyutlu dosyalar için yeterlidir.
+- **Tüm dosyalar `application/octet-stream` türüyle kaydedilir.** `FileService` türü algılamıyor; tür algılama yükleme kapsamındadır (Aslı Ceren).
+- **Ders sayfasından bağlantı yok.** Ders sayfası (CRS, Sinem) değiştirilmediği için `/courses/{courseId}/files` şimdilik yalnızca adresle açılır.
+
+**Yapay zekâ kaydı**
+
+**Model ve sürüm:** Claude Code (Claude Opus 5.5, düşünme seviyesi: Medium). Adım promptları ve çıktıların incelenmesi için ayrıca Claude (claude.ai) sohbet asistanı kullanıldı.
+**Kullanılan adım(lar):** Kodun anlaşılması, hedef dilde kod üretme, test senaryosu üretme (WBS-2 §4.1).
+**Verilen bağlam:** WBS-1 §4.6, WBS-2 §3.6, birleşmiş FILE kodu (Seray: altyapı ve depo; İrem: kaydetme, indirme, silme, kota), AUTH'un yetki yapısı (`CapabilityRules`, `AuthAccessPolicy`), CRS ve GRD'nin API ve Web desenleri.
+**Yapılan iş:** Dört adımda: (1) mevcut FILE ve AUTH kodunun incelenmesi; (2) temizlik görevi, arka plan görevi ve FILE-BUG-02/03/04 düzeltmeleri; (3) yönetici ayarları, bakım ucu, ders dosyası politikası ve örnek veri; (4) dosya yöneticisi bileşeni, ders dosyaları ve yönetici sayfaları; her adımın testleriyle birlikte.
+**Yapılan düzeltmeler:**
+- Yapay zekânın kendi düzelttikleri (toplam 4): 3. adımda örnek PDF'in `/Length` değeri yanlış hesaplanmıştı ve bir test dosyasında kullanılmayan `using` vardı. 4. adımda bUnit testlerinde eksik `using` build hatası verdi; ayrıca `/admin/files` barındırma testi, Blazor'un prerender'da Türkçe karakterleri HTML kodlaması (`ı` → `&#x131;`) yüzünden başarısız oldu ve test, HTML'i çözerek karşılaştıracak şekilde düzeltildi.
+- İnsan incelemesi: 1 davranış düzeltmesi istendi. Gizli derste öğrenci ders dosyalarını okuyabiliyordu; Moodle'a uygun olarak engellendi.
+
+**Harcanan süre:** Adım süreleri toplamı yaklaşık 1,0 saat (20.11.2026). Süreler Claude Code'un çalışmasını ve insanın prompt hazırlama, okuma ve karar verme süresini birlikte içerir; modelin kendi çalışma süresi ayrıca ölçülmedi. Belge adımları bu süreye dahil değildir.
+
+| Adım | İş | Süre |
+| --- | --- | --- |
+| 1 | İnceleme | 22:30–22:41 (~11 dk) |
+| 2 | Temizlik görevi ve FILE-BUG-02/03/04 | 22:43–23:00 (~17 dk) |
+| 3 | Yönetici ayarları, bakım ucu, ders dosyaları | 23:02–23:17 (~15 dk) |
+| 4 | Dosya yöneticisi bileşeni ve sayfalar | 23:18–23:37 (~19 dk) |
+
+**Elle geliştirme:** Yapılmadı; efor Basic COCOMO ile raporda toplu hesaplanır (§3).
+
+**Kanıt:** PR #__
+
 ## 3. Yapay zekâ destekli geliştirme ve COCOMO elle tahmini karşılaştırması
 
 Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Bütün kod YZ ile yazılır; YZ ile harcanan gerçek efor, aynı kodun elle yazılsaydı gerektireceği eforun Basic COCOMO tahminiyle karşılaştırılır (organik, Efor = 2,4 × KLOC^1,05 kişi-ay, 1 kişi-ay = 152 saat; satır sayısı boş ve yorum satırları hariç). Efor, hata ve inceleme verileri herkesin yapay zekâ kaydından ve PR geçmişinden alınır. Satır sayısı ve COCOMO sütunları en sonda herkes için aynı kurallarla toplu doldurulur.
@@ -205,7 +258,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Bütün kod YZ ile y
 | FILE | Altyapı (§2.1) | | ~1 | | | 2‡ | | | §2.1 |
 | FILE | Kaydetme, indirme, silme ve kota (§2.2) | | ~0,5 | | | 2§ | | 1 | PR (şube: `irem/file-wbs3-2surum`); `ManualQuotaCalculator.cs`¶ |
 | FILE | Yükleme ve antivirüs (§2.4) | | | | | | | | |
-| FILE | Temizlik görevi ve ders dosyaları (§2.5) | | | | | | | | |
+| FILE | Temizlik görevi ve ders dosyaları (§2.5) | | ~1,0 | | | 4△ | | 1 | §2.5 |
 | ASG | Ödeve dosya teslimi (§2.4) | | | | | | | | |
 | AUTH ve CRS | Kalan gereksinimler (§2.3) | | | | | | | | |
 
@@ -213,6 +266,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Bütün kod YZ ile y
 § İlk derlemede iki hata (yanlış tam nitelikli tür adı, `Task`/`ValueTask` uyuşmazlığı); ikinci denemede derlendi ve tüm testler ilk çalıştırmada geçti.
 ◊ §1.5'teki YZ kaydında YZ'nin kendi düzelttiği maddelerden sayılmıştır: geçişin gereksiz iki indeks nedeniyle yeniden üretilmesi, test verisindeki hata mesajı, bir testte dizi karşılaştırma biçimi, sayfa adımında iki derleme öncesi düzeltme, bir test verisi tür hatası ve bir gerçek hata (`422` yanıtında puan alanının ekran okuyucuya geçersiz bildirilmemesi). İnsan incelemesinde koda düzeltme gerekmedi. İnceleme turu sayısı kayıtta yok. Süre, Claude Code'un çalışmasını ve insan süresini birlikte içerir.
 ‡ §2.1'deki YZ kaydından: seed verisini okuyan testin çalışma zamanı modelinde kırılması ve sahte dosya politikasının üretimde kayıtlı kalması (fail-closed kalıbına çevrildi). İnsan düzeltmesi yok. İnceleme turu sayısı kayıtta yok. Efor, kayıttaki "YZ ile çalışma: ~1 saat (oturum kaydı, alt sınır)" değeridir. Kayıtta ayrıca "İnsan: ~1 saat (tahmin)" yazılıdır.
+△ §2.5'teki YZ kaydında YZ'nin kendi düzelttikleri: örnek PDF'in `/Length` hesabı, kullanılmayan `using`, eksik `using` (build hatası) ve Türkçe karakter kodlaması nedeniyle başarısız olan barındırma testi. İnsan incelemesinde ayrıca 1 davranış düzeltmesi istendi (gizli derste öğrencinin ders dosyalarını okuması); bu sayıya dahil değildir.
 ¶ Bu dosyalar da aynı oturumda YZ ile üretilmiştir; incelemede ve testte hata bulunmamıştır (0 hata, 1 tur). Modülün YZ kodu olarak satır sayımına dahil edilir.
 
 **Yorum:** Doldurulduktan sonra yazılacak.

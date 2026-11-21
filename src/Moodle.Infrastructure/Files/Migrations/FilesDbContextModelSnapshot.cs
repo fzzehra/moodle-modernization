@@ -161,6 +161,8 @@ namespace Moodle.Infrastructure.Files.Migrations
 
                     b.HasIndex("ContentHash");
 
+                    b.HasIndex("DeletedAt");
+
                     b.HasIndex("OwnerUserId", "Component");
 
                     b.HasIndex("Component", "Area", "ContextId", "ItemId");

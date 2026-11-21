@@ -1,3 +1,5 @@
+> **21.11.2026 — son durum:** Kullanıcı onayıyla temizlik/yükleme veri kaybı düzeltildi. 845/845 .NET ve 54/54 JavaScript geçti; Playwright 4 geçti / CRS bölüm bağımlılığı nedeniyle 2 atlandı. Üç metinsel çakışma çözülmüş durumda; commit/push yapılmadı, merge commit onayı bekleniyor. Ayrıntılar [BIRLESME-65cd11d.md](BIRLESME-65cd11d.md), makine özeti DOGRULAMA.json → main65cd11dLockFix. Aşağıdaki önceki sonuçlar tarihsel kayıttır.
+
 # Güncel sonuç — Seray PR #39 sonrası, 20.11.2026
 
 **Fiziksel depo eşzamanlılık hatasının önceki regresyon engeli giderildi.** Seray'ın `e2b50d0f83a6ccd43fe4b54dec9360035d95ec50` düzeltmesi PR #39 ile main `1424b04` içine alınmıştır. Geliştirme dalı 3b9ccd6'dan bu main commit'ine **fast-forward** edildi; yeni commit veya merge commit oluşturulmadı. Yerel ASG/FILE çalışmalarının tamamı hash doğrulamalı yedeklendi (`coverage/pre-main-1424b04`), ortak WBS-3 ve izlenebilirlik belgeleri gelen ekip kayıtlarıyla birleştirildi. Diğer yerel kaynak/test dosyaları yedekle birebir korundu. Seray'ın kodu ve mevcut testi değiştirilmedi.

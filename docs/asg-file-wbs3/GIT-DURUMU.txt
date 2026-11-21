@@ -1,3 +1,15 @@
+21.11.2026 main PR #40 integration inventory
+Branch: codex/asg-file-wbs3-v2
+HEAD: aa2e62e (unchanged)
+MERGE_HEAD: 65cd11d (origin/main)
+Initial working tree: clean.
+Method: git merge --no-commit --no-ff origin/main.
+Three text conflicts resolved and staged; merge commit NOT created.
+Cleanup/reupload fix explicitly approved and implemented; 845/845 .NET passed. Merge commit approval pending.
+No push, rebase, force push, main merge or PR merge.
+Current detailed report: BIRLESME-65cd11d.md
+Prior inventory below is historical.
+
 20.11.2026 PR #39 integration inventory
 Branch: codex/asg-file-wbs3-v2
 HEAD/main: 1424b0401fcce9d66f23b1facdb3837efb0c5d4b

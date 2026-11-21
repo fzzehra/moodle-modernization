@@ -1,0 +1,80 @@
+@page "/admin/files"
+@rendermode InteractiveServer
+@using Moodle.Web.Files
+@inherits FilePageBase
+
+@* Yönetici dosya ayarları ve temizlik (WBS-2 §3.6.4; FILE-FR-12; FILE-BR-04, 05, 08, 10). Yalnızca site yöneticisi;
+   sınırlar sunucuda denetlenir, 422 mesajı forma döner. *@
+<PageTitle>Dosya ayarları · Moodle</PageTitle>
+<div class="crs-heading"><div><h1>Dosya ayarları</h1><p>Yalnızca site yöneticisi değiştirebilir.</p></div></div>
+<FileNotice Loading="Loading" LoadingText="Dosya ayarları yükleniyor…" Busy="Busy" Error="Error" Success="@Success" OnRetry="RefreshAsync" />
+<noscript><p>Dosya ayarları için JavaScript'i etkinleştirin.</p></noscript>
+
+@if (HasData && _model is not null)
+{
+    <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="file-settings" class="crs-panel crs-form-grid">
+        <p>
+            <label for="max-file-bytes">Dosya başına en büyük boyut (bayt)</label>
+            <InputNumber id="max-file-bytes" @bind-Value="_model.MaxFileBytes" />
+            <span class="crs-muted">Şu an: @FileDisplay.Size(_model.MaxFileBytes)</span>
+        </p>
+        <p>
+            <label for="user-quota-bytes">Kullanıcı kotası (bayt, 0 = sınırsız)</label>
+            <InputNumber id="user-quota-bytes" @bind-Value="_model.UserQuotaBytes" />
+        </p>
+        <p>
+            <label for="draft-ttl-hours">Taslak süresi (saat, son etkinlikten itibaren)</label>
+            <InputNumber id="draft-ttl-hours" @bind-Value="_model.DraftTtlHours" />
+        </p>
+        <p>
+            <label for="trash-retention-hours">Çöp bekleme süresi (saat, çöpe atıldığı andan itibaren)</label>
+            <InputNumber id="trash-retention-hours" @bind-Value="_model.TrashRetentionHours" />
+        </p>
+        <div class="crs-actions">
+            <button type="submit" class="crs-primary" data-testid="save-settings" disabled="@(!CanAct)">Kaydet</button>
+        </div>
+    </EditForm>
+
+    <section class="crs-panel" aria-labelledby="maintenance-title">
+        <h2 id="maintenance-title">Temizlik</h2>
+        <p>Süresi dolan taslakları, bekleme süresi dolan çöp kayıtlarını ve kullanılmayan içerikleri hemen siler.</p>
+        <button type="button" data-testid="run-maintenance" disabled="@(!CanAct)" @onclick="RunAsync">Temizliği şimdi çalıştır</button>
+        @if (_result is not null)
+        {
+            <dl class="crs-details" data-testid="maintenance-result">
+                <dt>Silinen taslak</dt><dd data-testid="expired-drafts">@_result.ExpiredDrafts</dd>
+                <dt>Kalıcı silinen kayıt</dt><dd data-testid="purged-entries">@_result.PurgedEntries</dd>
+                <dt>Silinen içerik</dt><dd data-testid="purged-blobs">@_result.PurgedBlobs</dd>
+            </dl>
+            @if (_result.Errors.Count == 0)
+            {
+                <p data-testid="maintenance-no-errors">Hata yok.</p>
+            }
+            else
+            {
+                <p>Temizlik şu hatalarla tamamlandı:</p>
+                <ul data-testid="maintenance-errors">@foreach (var e in _result.Errors) { <li>@e</li> }</ul>
+            }
+        }
+    </section>
+}
+
+@code {
+    private FileSettingsModel? _model;
+    private FileMaintenanceResult? _result;
+
+    protected override async Task LoadAsync() => _model = FileSettingsModel.From(await Api.SettingsAsync(Token));
+
+    private Task SaveAsync() => ExecuteAsync(async () =>
+    {
+        _model = FileSettingsModel.From(await Api.SaveSettingsAsync(_model!.ToDto(), Token));
+        Success = "Dosya ayarları kaydedildi.";
+    });
+
+    private Task RunAsync() => ExecuteAsync(async () =>
+    {
+        _result = null;
+        _result = await Api.RunMaintenanceAsync(Token);
+        Success = "Temizlik tamamlandı.";
+    });
+}

@@ -48,6 +48,7 @@ public sealed class FilesDbContext(DbContextOptions<FilesDbContext> options) : D
                 .IsUnique().HasFilter("\"DeletedAt\" IS NULL");
             e.HasIndex(x => new { x.Component, x.Area, x.ContextId, x.ItemId });
             e.HasIndex(x => x.ContentHash);          // içerik kullanımda mı sorgusu
+            e.HasIndex(x => x.DeletedAt);            // temizlik görevi süresi dolan çöp kayıtlarını bu dizinle bulur (FILE-BUG-03)
             e.HasIndex(x => new { x.OwnerUserId, x.Component }); // kota hesabı
         });
 

@@ -13,6 +13,7 @@ using Moodle.Infrastructure.Auth;
 using Moodle.Web;
 using Moodle.Web.Auth;
 using Moodle.Web.Crs;
+using Moodle.Web.Files;
 using Moodle.Web.Grd;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,11 +28,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
 builder.Services.AddHttpClient<Moodle.Web.Assignments.AsgClient>(client => client.BaseAddress = new Uri(builder.Configuration["AsgApi:BaseUrl"] ?? "http://localhost:5202")).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false });
 builder.Services.AddCrsApi();
+builder.Services.AddFileAdminApi();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddCrsWeb();
 builder.Services.AddGrdWeb();
 builder.Services.AddAuthWeb();
+builder.Services.AddFileWeb();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
@@ -54,6 +57,7 @@ app.MapAuthEndpoints();
 app.MapFileEndpoints();
 app.MapDraftEndpoints();
 app.MapGet("/api/v1/antiforgery", (HttpContext context, Microsoft.AspNetCore.Antiforgery.IAntiforgery csrf) => Results.Ok(new { token = csrf.GetAndStoreTokens(context).RequestToken }));
+app.MapFileAdminEndpoints();
 app.MapStaticAssets($"{typeof(Program).Assembly.GetName().Name}.staticwebassets.endpoints.json");
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

@@ -633,5 +633,120 @@
       "newCommitCreated": false,
       "stagedFiles": 0
     }
+  },
+  "main65cd11dMerge": {
+    "date": "2026-11-21",
+    "branch": "codex/asg-file-wbs3-v2",
+    "head": "aa2e62e",
+    "mergeHead": "65cd11d",
+    "upstreamPR": 40,
+    "state": "merge pending; textual conflicts resolved; data integrity fix approval required",
+    "dotnet": {
+      "unitPassed": 436,
+      "integrationPassed": 406,
+      "integrationFailed": 1,
+      "total": 843,
+      "passed": 842,
+      "skipped": 0,
+      "failures": [
+        "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file"
+      ]
+    },
+    "prior708MissingTests": [],
+    "javaScript": {
+      "failed": 0,
+      "passed": 54
+    },
+    "playwright": {
+      "reason": "Real CRS section model and ICourseSectionQuery unavailable",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 2
+    },
+    "releaseBuild": "passed; one existing xUnit2031 warning",
+    "compose": "build/start passed; PostgreSQL 17 and ClamAV healthy",
+    "http": {
+      "health": 200,
+      "openapi": 200,
+      "courses": 200,
+      "login": 200,
+      "anonymousDraftLimits": 401
+    },
+    "fileSnapshot": "passed on PostgreSQL 17",
+    "matrix": {
+      "rows": 55,
+      "lostChangedCells": 0
+    },
+    "pendingApproval": "Shared content lock in FileMaintenanceService across blob row removal and physical delete",
+    "commitCreated": false,
+    "pushPerformed": false,
+    "evidence": [
+      "coverage/v2-merge-final",
+      "coverage/v2-merge-race",
+      "coverage/v2-merge-65cd11d",
+      "coverage/playwright"
+    ]
+  },
+  "main65cd11dLockFix": {
+    "date": "2026-11-21",
+    "authorization": "User approved shared cleanup/upload content locking and regression tests",
+    "state": "All checks complete; merge commit approval pending",
+    "head": "aa2e62e",
+    "mergeHead": "65cd11d",
+    "dotnet": {
+      "unitPassed": 436,
+      "total": 845,
+      "skipped": 0,
+      "failed": 0,
+      "integrationPassed": 409
+    },
+    "previous708MissingTests": [],
+    "regressions": [
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file(deletion: \"cancelled\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file(deletion: \"success\")",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.FILE_snapshot_matches_model_after_main_merge",
+        "outcome": "Passed"
+      },
+      {
+        "testName": "Moodle.IntegrationTests.FileMergeCompatibilityTests.Cleanup_and_reupload_of_same_content_preserve_new_file(deletion: \"failure\")",
+        "outcome": "Passed"
+      }
+    ],
+    "javaScript": {
+      "passed": 54,
+      "failed": 0
+    },
+    "playwright": {
+      "passed": 4,
+      "skipped": 2,
+      "failed": 0,
+      "reason": "Real CRS section model and ICourseSectionQuery unavailable"
+    },
+    "releaseBuild": "passed; one existing xUnit2031 warning",
+    "compose": "build and startup passed",
+    "http": {
+      "anonymousDraftLimits": 401,
+      "openapi": 200,
+      "login": 200,
+      "health": 200,
+      "courses": 200
+    },
+    "postgres": "17; migrations and FILE snapshot passed",
+    "clamAV": "real clean/EICAR, timeout and unavailable tests passed",
+    "remaining": [
+      "CRS section model and real ICourseSectionQuery",
+      "Full Playwright A/B acceptance after CRS dependency",
+      "User approval before merge commit"
+    ],
+    "evidence": "coverage/v2-merge-lock",
+    "commitCreated": false,
+    "pushPerformed": false
   }
 }

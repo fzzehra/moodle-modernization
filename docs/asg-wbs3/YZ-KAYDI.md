@@ -1,5 +1,21 @@
 # ASG WBS-3 — Yapay zekâ ve efor kaydı
 
+
+## 22.11.2026 — güncel süre ve teslim kapanış kaydı
+
+**Gerçek aktif YZ çalışma süresi: Kullanıcı doğrulaması bekleniyor.** Kullanıcı ek doğrulanmış kaydı olmadığını bildirdi; aktif süreye rastgele saat atanmadı.
+
+Yerel ASG/FILE sohbetindeki 26 tamamlanmış turun **kayıtlı işlem süresi 5 saat 19 dakika 16 saniyedir** (19.156.067 ms). Bu değer araç/test/onay beklemesi içerebilir ve **aktif YZ eforu değildir**. Tamamlanmış kayıtlar 17.11.2026 13:22:52–22.11.2026 00:20:12 (Europe/Istanbul) aralığındadır; aradaki tüm takvim süresi toplanmadı.
+
+Araç aralıklarını yaklaşık çıkarma sonucu **yaklaşık 3 saat 42 dakika** kalır. Bu artık da aktif model ölçümü veya güvenilir bir sınır değildir; süre alanını doldurmak için kullanılmadı. Ayrı ortam kurulum sohbeti (7 tur, kayıtlı işlem süresi 1:30:39), yedi Guardian alt oturumu ve açık olan bu araştırma turu ASG toplamına eklenmedi. Eksik/dış oturumlar için tam kapsama iddiası yoktur.
+
+[Yöntem, kaynaklar ve 26 tur dökümü](YZ-SURE-DEGERLENDIRMESI.md) · [Makine kanıtı](YZ-SURE-KANITI.json).
+
+PR #52 main **129235f** içinde; uzak main aynı commit'tir. Teslim commit'i a7eb58e ile main arasında kaynak/test/Docker farkı yoktur. Önceki gerçek doğrulama **1008/1008 .NET, 54/54 JS, 9/9 Playwright** ve PostgreSQL 17/ClamAV/Compose/migration sonuçları korunur. Bu belge çalışmasında testler tekrar çalıştırılmadı.
+
+Güncel yöntemde manuel kodlama/efor karşılaştırması yapılmaz; bu tur Basic COCOMO hesabı yapılmadı. Aşağıdaki eski tarihler o günün bağlamıdır; süre ve teslim için bu üst kayıt geçerlidir. Bağımsız ASG/FILE teknik görev kalmadı; kesin aktif efor alanı doğrulanamıyor.
+
+
 17 Kasım 2026, Europe/Istanbul. Kullanıcı: Aslı Ceren Can. Başlangıç: `db2948e4aa542b227a83a41b71b97b90d36d0863`; dal: `codex/asg-wbs3-implementation`.
 
 **Model ve sürüm:** OpenAI Codex masaüstü ajanı, GPT-6 tabanlı. Kesin alt model/sürüm ve düşünme seviyesi bu oturumda doğrulanabilir metadata olarak sunulmadı; tahmin edilmedi.
@@ -51,7 +67,7 @@ Kullanıcı IAssignmentLearnerQuery.ListRequiredLearnerIdsAsync ve ISubmissionAc
 
 20 yeni vaka eklendi; önceki 97 testin adları son TRX ile karşılaştırıldı, eksik 0. İlk kapsam turu 110, son Release/Coverlet turu 117 (52 birim/mimari + 65 PostgreSQL entegrasyon) başarılı; bu onay sonrası turlarda test başarısızlığı yok. Yeni DI ile Docker build/Compose ve dört HTTP yoklaması başarılı. Kanıt coverage/scope-delivery; önceki 54 ve 97 tarihsel sonuçları korundu.
 
-Kod, test ve belgeler YZ ajanıyla üretildi. İnsan incelemesi yapılmış sayılmadı; manuel karşılaştırma karşılanmadı, süre tahmin edilmedi. Playwright kapsam dışı; uzak CI/CodeQL yok. Commit/push/PR/merge yapılmadı. İrem/Sinem geçiş belgesi ORTAK-SOZLESMELER.md olarak eklendi.
+Kod, test ve belgeler YZ ajanıyla üretildi. İnsan incelemesi yapılmış sayılmadı; ayrı manuel karşılaştırma yapılmadı (güncel teslim şartı değildir), süre tahmin edilmedi. Playwright kapsam dışı; uzak CI/CodeQL yok. Commit/push/PR/merge yapılmadı. İrem/Sinem geçiş belgesi ORTAK-SOZLESMELER.md olarak eklendi.
 
 ## PR #21 merge çözümü — 18 Kasım 2026
 
@@ -59,7 +75,7 @@ Kullanıcı temiz ASG dalında origin/main merge'ini --no-commit/--no-ff ile yet
 
 İlk birleşik koşum 263, son koşum üç yeni PostgreSQL birleşme vakasıyla 266 .NET testi geçti; ayrıca 7 Node testi geçti. Önceki 117 ASG testi testName karşılaştırmasında korunuyor. Release build 0 uyarı/hata; Docker/Compose ve HTTP kontrolleri başarılı. psql meta-komutu escape hatası salt okunur SQL tekrarında çözüldü; önceki otomatik onay kotası engeli sonraki kullanıcı talimatıyla yapılan tekrar denemede kalktı.
 
-Kod ve belgeler YZ ajanıyla düzenlendi; manuel/YZ karşılaştırması karşılanmadı, efor uydurulmadı. Playwright kapsam dışı, uzak CI/CodeQL yok. Bu turda merge commit/push/force push/PR merge yapılmadı. Önceki ASG commit/push kullanıcı tarafından tur öncesinde yapılmıştı.
+Kod ve belgeler YZ ajanıyla düzenlendi; ayrı manuel/YZ karşılaştırması yapılmadı (güncel teslim şartı değildir), efor uydurulmadı. Playwright kapsam dışı, uzak CI/CodeQL yok. Bu turda merge commit/push/force push/PR merge yapılmadı. Önceki ASG commit/push kullanıcı tarafından tur öncesinde yapılmıştı.
 
 ## 19.11.2026 — güncel kapsam ve v2 geliştirmesi
 

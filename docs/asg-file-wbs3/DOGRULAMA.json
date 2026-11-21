@@ -954,5 +954,145 @@
     },
     "yzTime": "Ölçülmedi / kullanıcı tarafından doldurulacak",
     "evidence": "coverage/asg-cleanup-regression"
+  },
+  "currentGithubVerification": {
+    "main": "a21e18a",
+    "mainNewCommits": [],
+    "branch": "codex/asg-file-final-verification",
+    "openPrs": [
+      50
+    ],
+    "mergedPrs": [
+      42,
+      51
+    ],
+    "dotnet": {
+      "total": 995,
+      "passed": 995,
+      "failed": 0
+    },
+    "unit": 501,
+    "integration": 494,
+    "previous995Retained": true,
+    "javascript": {
+      "passed": 54,
+      "failed": 0
+    },
+    "playwright": {
+      "passed": 7,
+      "skipped": 2,
+      "failed": 0,
+      "reason": "Real CRS section model unavailable"
+    },
+    "release": "passed",
+    "postgres": "17 passed",
+    "clamav": "real clean/EICAR passed",
+    "snapshots": "all five passed",
+    "compose": "passed",
+    "http": {
+      "health": 200,
+      "login": 200,
+      "courses": 200,
+      "openapi": 200,
+      "anonymousDraftLimits": 401
+    },
+    "siteAdmin": "real Identity isolated fixture passed, deleted after run; sample seed account absent",
+    "initialFailures": "Two SiteAdmin fixture login failures; ValueGeneratedNever ID=0 caused claim failure; corrected positive ID",
+    "evidence": "coverage/current-verification",
+    "commitPushPr": "not performed"
+  },
+  "asgCrsWbsDecision": {
+    "branch": "codex/asg-file-final-verification",
+    "testedHead": "a21e18a",
+    "fetchedMain": "4d53353",
+    "mergedIntoWorkingBranch": false,
+    "openPrs": [],
+    "pr50": "merged into origin/main; not tested on this branch",
+    "decision": "B: section relationship required by ASG-FR-01 / T-ASG-02 and WBS-2 3.4.1/2",
+    "sectionContractNamedInWbs2": false,
+    "generalAssignmentUpdateDeleteRequired": false,
+    "productionCodeChanged": false,
+    "dotnet": {
+      "passed": 995,
+      "failed": 0,
+      "skipped": 0,
+      "unit": 501,
+      "integration": 494
+    },
+    "javascript": {
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0
+    },
+    "playwright": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 2
+    },
+    "release": "passed",
+    "postgres17": "passed",
+    "realClamAv": "passed",
+    "migrationSnapshots": "passed",
+    "siteAdminFixtureDeleted": true,
+    "evidence": "coverage/current-verification"
+  },
+  "finalSectionDelivery": {
+    "base": "4d53353",
+    "branch": "codex/asg-file-final-verification",
+    "integration": "17 files backed up; stash + fast-forward + stash apply; stash retained",
+    "migration": "20261121210130_CourseSections",
+    "release": "passed",
+    "dotnet": {
+      "unit": 505,
+      "integration": 503,
+      "passed": 1008,
+      "failed": 0,
+      "skipped": 0,
+      "previous995Preserved": true,
+      "addedFromPr50": 4,
+      "addedThisTask": 9
+    },
+    "javascript": {
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0
+    },
+    "playwright": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "realUsers": true,
+      "realSections": true,
+      "fixtureUsersDeleted": true
+    },
+    "postgres": "17 passed",
+    "clamav": "real clean/EICAR passed",
+    "snapshots": "all five passed",
+    "compose": "passed",
+    "http": {
+      "health": 200,
+      "login": 200,
+      "courses": 200,
+      "openapi": 200,
+      "anonymousDraftLimits": 401
+    },
+    "initialRuns": {
+      "section-regression": "10 FILE fixture failures; corrected real CRS fixture setup and policy-check order",
+      "section-final": "1 expected exception wrapper mismatch; fixed and verified inner SQLSTATE P0001"
+    },
+    "requirements": {
+      "ASG-FR-01": "real section ownership and A/B passed",
+      "ASG-FR-02": "real text save/reopen and A passed",
+      "ASG-FR-03": "submission scope/list regression passed",
+      "ASG-BR-01": "confirmation/draft/submit passed",
+      "ASG-BR-02": "window/extension/lock/authorization regressions passed",
+      "ASG-NFR-01": "private submission scope passed",
+      "FILE-FR-01/07/08/10/11": "upload/type/limits/names/real ClamAV passed",
+      "FILE-BR-06/07/08/09": "existing validation/concurrency/antivirus regressions passed"
+    },
+    "siteAdmin": "opt-in externally configured Development/Testing seed; no default password; forced first password change",
+    "yzTime": "Ölçülmedi / kullanıcı tarafından doldurulacak",
+    "evidence": "coverage/section-delivery",
+    "commitPushPr": "not performed"
   }
 }

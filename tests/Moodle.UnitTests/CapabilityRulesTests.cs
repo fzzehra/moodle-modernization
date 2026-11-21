@@ -85,4 +85,14 @@ public class CapabilityRulesTests
         Assert.False(CapabilityRules.Evaluate("made.up.capability", NoSystemRoles, CapabilityRules.EditingTeacher));
         Assert.True(CapabilityRules.Evaluate("made.up.capability", ManagerRole, null));
     }
-}
+    [Theory]
+    [InlineData("EditingTeacher", true)]
+    [InlineData("Teacher", false)]
+    [InlineData("Student", false)]
+    [InlineData(null, false)]
+    public void Course_managefiles_requires_manager_or_editing_teacher(string? role, bool allowed)
+    {
+        Assert.Equal(allowed, CapabilityRules.Evaluate("course.managefiles", NoSystemRoles, role));
+        Assert.True(CapabilityRules.Evaluate("course.managefiles", ManagerRole, role));
+        Assert.True(CapabilityRules.Evaluate("course.managefiles", SiteAdminRole, role));
+    }}

@@ -6,7 +6,7 @@
 @if(error is not null) { <p role="alert">@error</p> }
 else if(items is null) { <p>Yükleniyor…</p> }
 else {
-    <ul>@foreach(var item in items) { <li><a href="@($"/assignments/{item.Id}")">@item.Title</a></li> }</ul>
+    <ul>@foreach(var item in items) { <li><a href="@($"/assignments/{item.Id}")">@item.Title</a> <span>Bölüm: @item.SectionId</span></li> }</ul>
     @if(items.Length==0) { <p>Bu derste ödev yok.</p> }
 }
 @code {

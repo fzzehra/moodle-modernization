@@ -66,7 +66,8 @@ public static class DependencyInjection
         services.AddScoped<AuthCurrentUser>();
         services.AddScoped<IAccessPolicy>(sp => useDevelopmentFakes(sp) ? new FakeAccessPolicy() : sp.GetRequiredService<AuthAccessPolicy>());
         services.AddScoped<AuthAccessPolicy>();
-        services.AddScoped<ISeedContributor, AuthSeedContributor>();   // AUTH örnek verisi: kullanıcılar ve sistem rolleri
+        services.AddScoped<ISeedContributor, AuthSeedContributor>();
+        services.AddScoped<ISeedContributor, ConfiguredSiteAdminSeedContributor>();   // AUTH örnek verisi: kullanıcılar ve sistem rolleri
 
         services.AddDbContext<CrsDbContext>(options => options.UseNpgsql(CrsDatabaseConfiguration.ConnectionString));
         services.AddScoped<CrsService>();
@@ -88,7 +89,8 @@ public static class DependencyInjection
         // Real CRS data must never inherit the synthetic evaluator-2/learner-3..5 grants.
         services.AddScoped<ISubmissionAccessPolicy, Moodle.Infrastructure.Assignments.AssignmentSubmissionAccessPolicy>();
         // CRS has no section model yet; do not infer ownership from synthetic IDs.
-        services.AddScoped<ICourseSectionQuery, UnavailableCourseSectionQuery>();
+        services.AddScoped<CourseSectionService>();
+        services.AddScoped<ICourseSectionQuery>(sp => sp.GetRequiredService<CourseSectionService>());
         services.AddScoped<IAssignmentQuery, AssignmentQuery>();
         services.AddScoped<IAssignmentStore, AssignmentStore>();
         services.AddScoped<Moodle.Infrastructure.Assignments.AssignmentFileWriteScope>();

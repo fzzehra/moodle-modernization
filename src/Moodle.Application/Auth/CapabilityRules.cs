@@ -69,6 +69,7 @@ public static class CapabilityRules
             // Moodle'da enrol/manual:enrol ve moodle/course:update yalnızca manager+editingteacher'a
             // açıktır (düzenleme yetkisiz "teacher" archetype'ı hariç) — bkz. WBS-1 §4.1.4, §4.4.7.
             "course.update" => isSiteManager || isEditingTeacher,
+            "course.managefiles" => isSiteManager || isEditingTeacher,
             "enrolment.create" => isSiteManager || isEditingTeacher,
             "enrolment.update" => isSiteManager || isEditingTeacher,
             "enrolment.delete" => isSiteManager || isEditingTeacher,

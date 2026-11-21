@@ -1,3 +1,5 @@
+> **22.11.2026 güncel durum:** Gerçek bölüm modeli/sorgusu ve A/B kabulü tamamlandı. .NET 1008/1008; Playwright 9/9. Önceki bölüm engeli ifadeleri tarihseldir. [Son teslim](../asg-file-wbs3/SON-BOLUM-ENTEGRASYONU.md).
+
 > **19.11.2026 v2 güncellemesi:** Güncel durum [ASG/FILE teslim raporundadır](../asg-file-wbs3/TESLIM-RAPORU.md). Gerçek AUTH ve aktif CRS öğrenci kapsamı bağlıdır; yalnız gerçek bölüm modeli/ICourseSectionQuery hâlâ engeldir. Manuel kod yazma zorunluluğu kaldırılmıştır. Aşağıdaki önceki rapor tarihsel kayıttır; eski AUTH/manuel bekleme ifadeleri güncel durum sayılmamalıdır. V2 sonuçları ve devri [doğrulama](../asg-file-wbs3/DOGRULAMA.json), [sözleşmeler](../asg-file-wbs3/ENTEGRASYON.md) belgelerindedir. V1 PR #21 korunur, v2 PR açılmadı.
 # PR #21 birleşmesinde güncel bağlantılar
 

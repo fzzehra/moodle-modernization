@@ -7,6 +7,7 @@
     <Project Path="src/Moodle.Web/Moodle.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Moodle.E2eFixtures/Moodle.E2eFixtures.csproj" />
     <Project Path="tests/Moodle.FileConcurrencyProbe/Moodle.FileConcurrencyProbe.csproj" />
     <Project Path="tests/Moodle.IntegrationTests/Moodle.IntegrationTests.csproj" />
     <Project Path="tests/Moodle.UnitTests/Moodle.UnitTests.csproj" />

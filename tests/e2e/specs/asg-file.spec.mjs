@@ -82,3 +82,49 @@ for(const type of ['text','file']) test('Tam senaryo '+(type==='text'?'A':'B')+'
     const report=await learner.request.get('/api/v1/courses/'+courseId+'/my-grades');expect(report.ok()).toBeTruthy();expect(await report.text()).toContain('85');
   } finally {await context.close();}
 });
+
+test('Ortak FILE yöneticisi: öğretmen yükler, kaydeder, öğrenci indirir, öğretmen siler', async({page,browser})=>{
+  await login(page,'ogretmen1');
+  const courseId=await course(page);
+  const name='shared-'+crypto.randomUUID()+'.txt';
+  const bytes=Buffer.from('Shared FILE integration '+crypto.randomUUID());
+  await page.goto('/courses/'+courseId+'/files');
+  const manager=page.getByTestId('file-manager');
+  await expect(manager.locator('input[type=file]')).toBeEnabled({timeout:15000});
+  await manager.locator('input[type=file]').setInputFiles({name,mimeType:'application/octet-stream',buffer:bytes});
+  await manager.getByTestId('upload').click();
+  await expect(manager.getByTestId('draft')).toContainText(name);
+  await expect(manager.getByTestId('upload-unavailable')).toHaveCount(0);
+  await manager.getByTestId('commit').click();
+  const row=manager.locator('tr').filter({hasText:name});
+  await expect(row).toBeVisible();
+  const fileId=Number(await row.getAttribute('data-file-id'));
+  const context=await browser.newContext({baseURL:process.env.E2E_BASE_URL||'http://localhost:8080'});
+  try {
+    const student=await context.newPage(); await login(student);
+    await student.goto('/courses/'+courseId+'/files');
+    const link=student.getByTestId('download').filter({hasText:name});
+    await expect(link).toBeVisible();
+    const content=await student.request.get('/api/v1/files/'+fileId+'/content?download=true');
+    expect(content.status()).toBe(200); expect(content.headers()['content-type']).toContain('text/plain');
+    expect(await content.body()).toEqual(bytes);
+    const downloadEvent=student.waitForEvent('download');
+    await link.click(); const download=await downloadEvent;
+    expect(download.suggestedFilename()).toBe(name);
+    expect(await download.failure()).toBeNull();
+    expect((await student.request.delete('/api/v1/files/'+fileId)).status()).toBe(404);
+    await row.getByTestId('delete').click();
+    await page.getByRole('button',{name:'Evet, sil',exact:true}).click();
+    await expect(row).toHaveCount(0);
+    expect((await student.request.get('/api/v1/files/'+fileId+'/content')).status()).toBe(404);
+  } finally {await context.close();}
+});
+
+test('Gerçek öğrenci dosya yönetici ayarlarını okuyamaz veya değiştiremez',async({page})=>{
+  await login(page);
+  await page.goto('/admin/files');
+  await expect(page.getByRole('alert')).toBeVisible();
+  expect((await page.request.get('/api/v1/admin/file-settings')).status()).toBe(403);
+  expect((await page.request.put('/api/v1/admin/file-settings',{data:{maxFileBytes:1,userQuotaBytes:1,draftTtlHours:1,trashRetentionHours:1}})).status()).toBe(403);
+  expect((await page.request.post('/api/v1/admin/file-maintenance/run')).status()).toBe(403);
+});

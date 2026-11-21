@@ -67,6 +67,8 @@ public sealed class GrdService(
         GradeValidation.ValidateVersion(version);
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({0x41534743},{assignment.CourseId})", ct);
+        await FindCourseAsync(assignment.CourseId, ct);
 
         var item = await db.Items.SingleOrDefaultAsync(x => x.AssignmentId == assignmentId, ct);
 

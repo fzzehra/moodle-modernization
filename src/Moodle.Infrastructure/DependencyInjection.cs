@@ -92,6 +92,8 @@ public static class DependencyInjection
         services.AddScoped<Moodle.Infrastructure.Assignments.AssignmentFileWriteScope>();
         services.AddScoped<IFilePolicy, Moodle.Infrastructure.Assignments.AssignmentFilePolicy>();
         services.AddScoped<AssignmentService>();
+        services.AddScoped<ICrsEventExtension, Moodle.Infrastructure.Assignments.AsgCourseDeletedExtension>();
+        services.AddScoped<ICrsEventExtension, Moodle.Infrastructure.Grading.GrdCourseDeletedExtension>();
         services.AddSingleton(TimeProvider.System);
 
         // GRD: Fatma Zehra. TimeProvider yukarıda (ASG) kaydedilir; GRD gizleme ve kilit hesaplarında onu kullanır.

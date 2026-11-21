@@ -1,3 +1,5 @@
+> **21.11.2026 — güncel son FILE entegrasyonu:** PR #40/#42 main'de; codex/asg-file-final-integration dalında 939/939 .NET, 54/54 JS, Playwright 6 geçti / gerçek CRS bölüm bağımlılığı nedeniyle 2 atlandı. Ortak dosya yöneticisi, süreçler arası PostgreSQL kilidi ve MIME davranışı doğrulandı. Yeni üretim kaynağı değişikliği gerekmedi; testler ve kayıtlar tamamlandı. Commit/push yapılmadı. [Son rapor](SON-FILE-ENTEGRASYONU.md); DOGRULAMA.json → finalFileIntegration. Aşağıdaki önceki durumlar tarihseldir.
+
 > **21.11.2026 — son durum:** Kullanıcı onayıyla temizlik/yükleme veri kaybı düzeltildi. 845/845 .NET ve 54/54 JavaScript geçti; Playwright 4 geçti / CRS bölüm bağımlılığı nedeniyle 2 atlandı. Üç metinsel çakışma çözülmüş durumda; commit/push yapılmadı, merge commit onayı bekleniyor. Ayrıntılar [BIRLESME-65cd11d.md](BIRLESME-65cd11d.md), makine özeti DOGRULAMA.json → main65cd11dLockFix. Aşağıdaki önceki sonuçlar tarihsel kayıttır.
 
 # Güncel sonuç — Seray PR #39 sonrası, 20.11.2026
@@ -108,3 +110,10 @@ Tüm testler yeşil değildir: mevcut main'deki fiziksel depo testi tekrarlanabi
 COCOMO, karşılaştırma raporu, manuel geliştirme ve ekip kod incelemesi yürütülmedi. Commit/push/PR/merge yapılmadı.
 
 Son teslim hijyeni: Git diff --check temiz; yeni/değişen teslim dosyalarında çakışma işareti, taranan token/özel anahtar örüntüsü veya build/test çıktısı bulunmadı. Tanı programı, archive ve syscall logları yalnız Git dışı coverage dizinindedir.
+
+
+## 21.11.2026 — 02017af sonrası nihai ASG entegrasyonu
+Release başarılı; **501 birim + 494 entegrasyon = 995/995 .NET**, 0 başarısız/atlanan. Önceki 939 test adı yeni TRX içinde korundu. JavaScript **54/54**; Playwright **6 geçti / 2 gerçek CRS bölüm bağımlılığı nedeniyle atlandı**. PostgreSQL 17, gerçek ClamAV temiz/EICAR, beş context migration/snapshot ve HTTP 200/401 kontrolleri geçti.
+Yeni ASG/GRD temizleme testleri: 8/8; gerçek CRS öğrenci rol/tarih/suspension: 6/6; gerçek AUTH HTTP ders silme + DI worker: 1/1. İlk hedefli ASG koşusu 7/7; sonraki test eklenirken namespace derleme hatası düzeltildi, final çözüm build/test geçti.
+91 benzersiz gereksinim, 9 sütun; çakışma işareti/hassas anahtar kalıbı/gereksiz build çıktısı yok. Ham TRX ve loglar ignored coverage/asg-cleanup-regression altındadır.
+[Güncel entegrasyon ve kalan bağımlılıklar](NIHAI-ASG-FILE-ENTEGRASYONU.md), [makine özeti](DOGRULAMA.json) / finalAsgCleanupIntegration. Önceki sonuçlar tarihsel kayıttır.

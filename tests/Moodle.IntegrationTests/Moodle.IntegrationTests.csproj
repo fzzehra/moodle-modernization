@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Moodle.FileConcurrencyProbe/Moodle.FileConcurrencyProbe.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Moodle.Api\Moodle.Api.csproj" />
     <ProjectReference Include="..\..\src\Moodle.Application\Moodle.Application.csproj" />
     <ProjectReference Include="..\..\src\Moodle.Infrastructure\Moodle.Infrastructure.csproj" />

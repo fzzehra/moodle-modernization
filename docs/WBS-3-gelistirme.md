@@ -355,6 +355,18 @@ Sinem'in WBS-3 AUTH/CRS çalışması için 21.11.2026 itibarıyla geçici tahmi
 
 ### 2.4 Dosya yükleme, antivirüs, ödeve dosya teslimi ve uçtan uca test (Aslı Ceren)
 
+**21.11.2026 güncel main / nihai ASG entegrasyonu:** Son doğrulama: 995/995 .NET, 54/54 JS, Playwright 6 geçti / 2 bölüm bağımlılığı nedeniyle atlandı. 02017af fast-forward alındı; önceki çalışmalar korundu. Mevcut CRS olay işleyicisine ASG/FILE ve kullanıcı onaylı GRD temizliği bağlandı; migration, tekrar deneme, transaction ve yarış testleri eklendi. Gerçek CRS öğrenci rol/tarih kapsamı doğrulanır. Bölüm modeli ve örnek SiteAdmin hesabı eksikliği gerçek kabul bağımlılığıdır. [Güncel entegrasyon](asg-file-wbs3/NIHAI-ASG-FILE-ENTEGRASYONU.md). YZ süresi: **Ölçülmedi / kullanıcı tarafından doldurulacak**.
+
+**21.11.2026 — son FILE entegrasyonu:** PR #40 ve #42 main a254d4a üzerinde doğrulandı; yeni çalışma dalı codex/asg-file-final-integration. Ortak dosya yöneticisi mevcut draft uçları, CSRF ve sizeBytes sözleşmesiyle gerçek tarayıcıda yükleme→kalıcı kayıt→öğrenci indirme→yetkili silme akışını geçti. Üretim kaynaklarını veya AUTH seed'ini değiştirmek gerekmedi. SiteAdmin pozitif yetki testi gerçek AUTH ile yalnız test ortamında oluşturulan kullanıcıyla yapıldı.
+
+Ayrı dotnet süreçleri ve PostgreSQL 17 kullanılarak yükleme/temizlik ortak içerik kilidi, başarı/hata/iptal/rollback/yeniden deneme ve fiziksel byte bütünlüğü altı regresyonla doğrulandı. MIME için PDF/PNG/JPG/JPEG/TXT, yanlış istemci başlığı, yanlış uzantı/içerik ve ASG/ders dosyasına geçiş testleri eklendi. Mevcut üretim MIME ve kilit düzeltmeleri PR #42'de zaten vardır; ikinci yükleme sistemi yazılmadı.
+
+**Son ölçülen sonuç:** Release başarılı; 468 birim + 471 entegrasyon = **939/939 .NET**; JavaScript **54/54**; Playwright **6 geçti / 2 CRS bölüm bağımlılığı nedeniyle atlandı**. Gerçek ClamAV, Docker Compose/HTTP ve beş DbContext snapshot kontrolü başarılı. Önceki 907 sonucu tarihsel bazdır; main'deki PR #45 testleri ve bu turdaki 21 yeni entegrasyon vakası korunarak çalıştırılmıştır. [Ayrıntılı son rapor](asg-file-wbs3/SON-FILE-ENTEGRASYONU.md), [makine özeti](asg-file-wbs3/DOGRULAMA.json).
+
+**YZ yöntemi ve süre:** Kod/test/belgeler YZ desteğiyle üretildi. Güncel öğretim kararı gereği ayrı manuel geliştirme şartı yoktur; tarihsel kayıtlar güncel eksik görev anlamına gelmez. Doğrulanabilir toplam efor kaydı bulunmadığından süre hesaplanmadı. **Aslı Ceren'in doğrulanmış YZ ile çalışma süresi: doldurulacak.** Test koşu süreleri toplam geliştirme süresi olarak kullanılmadı. COCOMO ve karşılaştırma raporu Fatma Zehra'nın sorumluluğunda bırakıldı.
+
+#### Önceki 19–20.11.2026 kayıtları (tarihsel)
+
 **20.11.2026 güncellemesi:** Seray PR #39 / e2b50d0 main 1424b04 üzerinden fast-forward ile alındı; yerel çalışmalar korundu, yeni commit oluşturulmadı. Eşzamanlılık 10/10, .NET 708/708, JavaScript 23/23 geçti. Playwright 4 geçti / gerçek CRS bölüm modeli nedeniyle 2 skip. Önceki FileStore hatası giderildi; aşağıdaki 19.11 sonuçları tarihseldir. [Son kontrol](asg-file-wbs3/SON-KONTROL.md).
 
 19.11.2026: FILE-FR-01/07/08/10/11, FILE-BR-06/07/08/09 için gerçek taslak HTTP uçları, sahiplik, benzersiz ad, sunucu sınırları, ad/tür/içerik doğrulaması ve ClamAV INSTREAM eklendi. Kullanıcı onaylı varsayılanlar PDF/PNG/JPEG/TXT, 10 dosya ve toplam 50 MiB; ayarlanabilir, WBS sayısal sabiti değildir. İrem'in FileService ve Seray'ın deposu kullanılır. Onaylı yeni sözleşme IVirusScanner; mevcut ortak FILE arayüzleri korunur.

@@ -33,9 +33,9 @@
 
 **Kanıt:** `coverage/delivery/*.trx` ve iki benzersiz `coverage.cobertura.xml` yerel, gitignore kapsamındadır. Paylaşılabilir özet: `DOGRULAMA.json`; ayrıntılı sonuç ve komutlar: `TESLIM-RAPORU.md`. Commit veya PR oluşturulmadı.
 
-## Manuel/YZ karşılaştırması
+## Tarihsel manuel/YZ planı (güncel yöntem değildir)
 
-Karşılaştırma çifti değiştirilmedi: teslim kaydetme YZ, teslim listesi manuel olarak planlanmıştı. **Bu çalışmada ikisi de YZ ile üretildi; manuel geliştirme şartı karşılanmadı.** Teslim listesini manuel olarak etiketlemek yanlış olur. Kontrollü manuel ölçümün nasıl yapılacağı ekip tarafından ayrıca kararlaştırılmalıdır.
+17.11.2026 planında teslim kaydetme YZ, teslim listesi manuel olarak düşünülmüştü; gerçekte ikisi de YZ ile üretildi. Bu tarihsel bilgi korunur. 18.11.2026 yöntem değişikliğiyle manuel üretim zorunluluğu kaldırıldığından bugün karşılanmamış bir manuel görev yoktur; ayrı manuel üretim veya karşılaştırma yürütülmez.
 
 İki başarısız derleme turu, yapılan teknik düzeltmeler, eklenen test sayıları ve yerel TRX/kapsam çıktıları sonradan değerlendirilebilir gerçek verilerdir. İnsan inceleme turu, insan eforu, üretim hata yoğunluğu veya PR sonrası re-work oranı henüz ölçülmedi; bunlar için sıfır değeri de varsayılmadı. Ajanın derleme düzeltmeleri insan yeniden çalışması olarak sayılmamalıdır.
 
@@ -72,3 +72,17 @@ Mevcut dal ve güncel main izole kopyalarıyla fiziksel depo testi tekrarlandı;
 ## 20.11.2026 — Seray düzeltmesini alma
 
 Kullanıcı isteğiyle main'deki e2b50d0 / PR #39 doğrulandı. Tüm commit edilmemiş çalışmalar hash doğrulamalı yedeklendi; dal yeni commit oluşturmadan 1424b04'e fast-forward edildi. Ortak iki belge mevcut ekip kayıtlarıyla birleştirildi. Seray'ın kodu/testi değiştirilmeden 10 tekrar ve tam regresyon yeniden çalıştırıldı; güncel sonuçlar asg-file-wbs3/DOGRULAMA.json serayFixIntegration alanındadır. COCOMO, karşılaştırma, manuel geliştirme ve ekip kod incelemesi yapılmadı. Commit/push/PR/main'e birleştirme yapılmadı.
+
+## 21.11.2026 — PR #42 sonrası son FILE entegrasyonu
+
+Başlangıç main a254d4a, temiz çalışma ağacı. Yeni dal codex/asg-file-final-integration. Kullanıcı ortak FILE yöneticisi, süreçler arası PostgreSQL güvenliği, MIME ve bağımsız Playwright akışlarını tamamlamayı istedi. Main'de önceki CSRF, sizeBytes, MIME ve içerik kilidi düzeltmelerinin zaten bulunduğu doğrulandı; gereksiz uygulama değişikliği yapılmadı.
+
+YZ ile test-only süreç yürütücüsü, altı gerçek ayrı süreç/PostgreSQL yarış testi, 13 MIME vakası, beş model snapshot kontrolü, gerçek AUTH SiteAdmin pozitif/öğretmen negatif testi ve iki yeni Playwright senaryosu üretildi. Diğer üyelerin AUTH seed/CRS/FILE üretim kodu değiştirilmedi. Önceki kaynak ve testler korundu.
+
+İlk toplu koşu 935/935 geçti. Geçerli PDF test verisi üreticisi eklenirken metin kaçışı kaynaklı derleme hatası oluştu; test yardımcısı düzeltildi. Son Release ve tam regresyon 939/939 .NET, 54/54 JS; gerçek tarayıcı 6 geçti / 2 gerçek CRS bölüm bağımlılığı nedeniyle atlandı. Gerçek ClamAV, Compose/HTTP ve migration/snapshot doğrulandı. Otomatik onay incelemesi kullanım limiti nedeniyle bir test başlatma girişimi çalışmadı; kullanıcının devam talimatı sonrası izinli tekrar çalıştı. Bu olay test başarısızlığı olarak sayılmadı.
+
+Toplam YZ/insan eforunu doğrulayan kesintisiz zaman kaydı yoktur. Tahmin yapılmadı. **Kullanıcının doğrulanmış YZ ile çalışma süresi: doldurulacak.** TRX süreleri yalnız test koşularına aittir. Bütün geliştirme YZ desteğiyle yürütülür; ayrı manuel görev beklenmez. COCOMO, karşılaştırma ve ekip kod incelemesi kapsam dışındadır. Bu turda commit/push/PR/merge yapılmadı. Kanıt: asg-file-wbs3/SON-FILE-ENTEGRASYONU.md, DOGRULAMA.json/finalFileIntegration; ham yerel çıktılar coverage/final-integration-pass.
+
+## 21.11.2026 — güncel main ve silinen ders entegrasyonu
+02017af fast-forward alındı; 17 önceki çalışma dosyası SHA256 yedek/stash ile korundu. Mevcut CRS olay altyapısına ASG temizleme ve kullanıcı onaylı GRD uzantısı eklendi; PostgreSQL retry/rollback/yarış testleri yazıldı. Migration araç başlangıç projesi düzeltildi; yeni testte eksik namespace düzeltildi. Test sonucu belgelerde gerçek koşulardan kaydedilir.
+Kullanıcı doğrulanmış toplam süre bulunmadığını bildirdi: **Ölçülmedi / kullanıcı tarafından doldurulacak**. Süre tahmin edilmedi. Önceki kayıtlar tarihsel olarak korundu. COCOMO ve karşılaştırma yapılmadı.

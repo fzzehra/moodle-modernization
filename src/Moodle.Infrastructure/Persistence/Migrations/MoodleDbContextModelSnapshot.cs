@@ -22,6 +22,22 @@ namespace Moodle.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Moodle.Domain.Assignments.AsgDeletedCourse", b =>
+                {
+                    b.Property<int>("CourseId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("EventId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("CourseId");
+
+                    b.ToTable("AsgDeletedCourses", (string)null);
+                });
+
             modelBuilder.Entity("Moodle.Domain.Assignments.Assignment", b =>
                 {
                     b.Property<int>("Id")

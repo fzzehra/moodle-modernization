@@ -748,5 +748,211 @@
     "evidence": "coverage/v2-merge-lock",
     "commitCreated": false,
     "pushPerformed": false
+  },
+  "finalFileIntegration": {
+    "date": "2026-11-21",
+    "branch": "codex/asg-file-final-integration",
+    "base": "a254d4a",
+    "mergedPRs": [
+      40,
+      42
+    ],
+    "productionSourceChanges": false,
+    "dotnet": {
+      "failed": 0,
+      "integrationPassed": 471,
+      "skipped": 0,
+      "previous907MissingTests": [],
+      "newIntegrationCases": 21,
+      "unitPassed": 468,
+      "total": 939
+    },
+    "newCases": [
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Client_mime_cannot_override_invalid_extension_or_signature(name: \"wrong.png\", clientMime: \"image/png\", text: \"%PDF-1.4\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"pdf\", mime: \"application/pdf\", assignment: True)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileCrossProcessTests.Shared_database_lock_preserves_content_across_processes_and_retry(cleanupFirst: False, outcome: \"success\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"txt\", mime: \"text/plain\", assignment: True)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileCrossProcessTests.Shared_database_lock_preserves_content_across_processes_and_retry(cleanupFirst: False, outcome: \"cancelled\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"png\", mime: \"image/png\", assignment: True)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"jpeg\", mime: \"image/jpeg\", assignment: False)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileCrossProcessTests.Shared_database_lock_preserves_content_across_processes_and_retry(cleanupFirst: True, outcome: \"cancelled\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Client_mime_cannot_override_invalid_extension_or_signature(name: \"wrong.exe\", clientMime: \"text/plain\", text: \"plain text\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileCrossProcessTests.Shared_database_lock_preserves_content_across_processes_and_retry(cleanupFirst: True, outcome: \"success\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"jpg\", mime: \"image/jpeg\", assignment: False)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"jpg\", mime: \"image/jpeg\", assignment: True)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileAdminRealAuthIntegrationTests.Real_site_admin_can_read_save_and_run_maintenance_but_teacher_cannot"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Client_mime_cannot_override_invalid_extension_or_signature(name: \"wrong.pdf\", clientMime: \"application/pdf\", text: \"plain text\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"jpeg\", mime: \"image/jpeg\", assignment: True)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.All_five_models_match_their_migration_snapshots"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"txt\", mime: \"text/plain\", assignment: False)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"png\", mime: \"image/png\", assignment: False)"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileCrossProcessTests.Shared_database_lock_preserves_content_across_processes_and_retry(cleanupFirst: False, outcome: \"failure\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileCrossProcessTests.Shared_database_lock_preserves_content_across_processes_and_retry(cleanupFirst: True, outcome: \"failure\")"
+      },
+      {
+        "outcome": "Passed",
+        "name": "Moodle.IntegrationTests.FileMimeIntegrationTests.Server_mime_survives_draft_commit_and_authorized_download(extension: \"pdf\", mime: \"application/pdf\", assignment: False)"
+      }
+    ],
+    "javaScript": {
+      "failed": 0,
+      "passed": 54
+    },
+    "playwright": {
+      "reason": "Real CRS section model and ICourseSectionQuery required for full A/B",
+      "skipped": 2,
+      "failed": 0,
+      "passed": 6
+    },
+    "releaseBuild": "passed; existing xUnit2031 warning only",
+    "postgres": "17; separate worker processes and sessions; six concurrency cases passed",
+    "mime": "PDF PNG JPG JPEG TXT: inferred from content; retained in draft, ASG/course area, DB and download",
+    "admin": "Real AUTH SiteAdmin positive and teacher negative in isolated test fixture; real student browser negative; application seed unchanged",
+    "snapshots": "All five DbContexts match",
+    "clamAV": "real clean/EICAR plus timeout/unavailable regression passed",
+    "compose": "config/build/start passed",
+    "http": {
+      "anonymousDraftLimits": 401,
+      "openapi": 200,
+      "courses": 200,
+      "login": 200,
+      "health": 200
+    },
+    "priorAttempts": [
+      "935/935 initial .NET passed",
+      "PDF test-fixture string escaping build failure; fixed",
+      "Approval-review usage limit prevented one launch; later authorized retry succeeded"
+    ],
+    "verifiedEffortTime": null,
+    "remaining": [
+      "CRS section model/real ICourseSectionQuery and full A/B",
+      "Irem-owned sample SiteAdmin for positive admin browser acceptance",
+      "User-supplied verified effort time"
+    ],
+    "commitCreated": false,
+    "pushPerformed": false,
+    "evidence": [
+      "coverage/final-integration-first",
+      "coverage/final-integration",
+      "coverage/final-integration-pass",
+      "coverage/playwright"
+    ],
+    "gitChecks": {
+      "productionSourcesUnchanged": true,
+      "otherTeamRowsUnchanged": true,
+      "buildArtifacts": 0,
+      "requirements": 72,
+      "columns": 9,
+      "ownRowsUpdated": 15,
+      "credentialPatternMatches": 0,
+      "whitespace": "passed",
+      "otherWbsSectionsUnchanged": true,
+      "conflictMarkers": 0
+    }
+  },
+  "finalAsgCleanupIntegration": {
+    "base": "02017af",
+    "branch": "codex/asg-file-final-integration",
+    "integration": "fast-forward; stash restored; no new commit",
+    "dotnet": {
+      "unit": 501,
+      "integration": 494,
+      "passed": 995,
+      "failed": 0,
+      "skipped": 0,
+      "previous939Retained": true
+    },
+    "javascript": {
+      "passed": 54,
+      "failed": 0
+    },
+    "playwright": {
+      "passed": 6,
+      "skipped": 2,
+      "reason": "Real CRS section model / ICourseSectionQuery unavailable"
+    },
+    "release": "passed",
+    "postgres": "17",
+    "clamav": "real clean and EICAR passed",
+    "snapshots": "all five passed",
+    "http": {
+      "health": 200,
+      "login": 200,
+      "courses": 200,
+      "openapi": 200,
+      "anonymousDraftLimits": 401
+    },
+    "gitChecks": {
+      "requirements": 91,
+      "unique": 91,
+      "columnCounts": [
+        9
+      ],
+      "conflictMarkers": [],
+      "credentialPatterns": [],
+      "unwantedFiles": [],
+      "previous939Missing": []
+    },
+    "yzTime": "Ölçülmedi / kullanıcı tarafından doldurulacak",
+    "evidence": "coverage/asg-cleanup-regression"
   }
 }

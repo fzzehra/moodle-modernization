@@ -5,12 +5,17 @@ namespace Moodle.Infrastructure.Persistence;
 /// <summary>ASG schema; other modules add their mappings when implemented.</summary>
 public sealed class MoodleDbContext(DbContextOptions<MoodleDbContext> options) : DbContext(options)
 {
+    public DbSet<AsgDeletedCourse> DeletedCourses => Set<AsgDeletedCourse>();
     public DbSet<Assignment> Assignments => Set<Assignment>();
     public DbSet<Submission> Submissions => Set<Submission>();
     public DbSet<SubmissionRule> SubmissionRules => Set<SubmissionRule>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        var deleted = model.Entity<AsgDeletedCourse>();
+        deleted.ToTable("AsgDeletedCourses");
+        deleted.HasKey(x => x.CourseId);
+        deleted.Property(x => x.CourseId).ValueGeneratedNever();
         var a = model.Entity<Assignment>();
         a.ToTable("Assignments", t => {
             t.HasCheckConstraint("CK_Assignment_Dates", """("OpensAt" IS NULL OR "DueAt" IS NULL OR "OpensAt" <= "DueAt") AND ("DueAt" IS NULL OR "CutoffAt" IS NULL OR "DueAt" <= "CutoffAt") AND ("OpensAt" IS NULL OR "CutoffAt" IS NULL OR "OpensAt" <= "CutoffAt")""");

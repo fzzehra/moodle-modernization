@@ -1,0 +1,394 @@
+{
+  "date": "2026-11-22",
+  "timezone": "Europe/Istanbul",
+  "scope": "ASG + FILE; completed root turns only; current audit excluded",
+  "active_ai_time": "Kullanıcı doğrulaması bekleniyor",
+  "user_statement": "Ek doğrulanmış kaydım yok",
+  "active_time_direct_measurement_available": false,
+  "auxiliary_guardian_sessions_excluded": 7,
+  "test_results": {
+    "dotnet": 1008,
+    "javascript": 54,
+    "playwright": 9,
+    "rerun": false,
+    "reason": "documentation-only; a7eb58e..129235f has no src/tests/docker/Moodle.slnx differences"
+  },
+  "sessions": {
+    "asg_file": {
+      "thread_id": "01a1e907-e592-7480-acb5-dd8f820e38f8",
+      "source_file": "rollout-2026-11-17T13-22-51-01a1e907-e592-7480-acb5-dd8f820e38f8.jsonl",
+      "source_sha256": "b4ea7423df718a18fd0b2ecd4f9d68b6a09150a38d4b1b8dfa8a8751271edf5f",
+      "source_bytes": 16279104,
+      "first_completed_start": "2026-11-17T13:22:52+03:00",
+      "last_completed_end": "2026-11-22T00:20:12.186000+03:00",
+      "completed_turns": 26,
+      "incomplete_turns": [
+        "01a2001e-47c1-74e2-bb37-354f98219e9f"
+      ],
+      "recorded_turn_ms": 19156067,
+      "completed_turn_union_ms": 19156067,
+      "overlap_ms": 0,
+      "reconstructed_command_union_ms": 5846100,
+      "residual_estimate_ms": 13309967,
+      "turns": [
+        {
+          "turn_id": "01a1e907-e96b-7a43-8dad-ca9cd67e332c",
+          "start": "2026-11-17T13:22:52+03:00",
+          "end": "2026-11-17T13:57:15.743000+03:00",
+          "duration_ms": 2063743,
+          "command_item_count": 80,
+          "command_duration_sum_ms": 330753,
+          "reconstructed_command_union_ms": 317807,
+          "residual_estimate_ms": 1745936
+        },
+        {
+          "turn_id": "01a1e978-0f79-7f22-8a06-e3c518ea74d7",
+          "start": "2026-11-17T15:25:22+03:00",
+          "end": "2026-11-17T15:26:48.103000+03:00",
+          "duration_ms": 86103,
+          "command_item_count": 7,
+          "command_duration_sum_ms": 8852,
+          "reconstructed_command_union_ms": 8852,
+          "residual_estimate_ms": 77251
+        },
+        {
+          "turn_id": "01a1eebf-72d8-7680-bb55-29b7e288361a",
+          "start": "2026-11-18T16:01:26+03:00",
+          "end": "2026-11-18T16:05:15.337000+03:00",
+          "duration_ms": 229337,
+          "command_item_count": 5,
+          "command_duration_sum_ms": 6360,
+          "reconstructed_command_union_ms": 6360,
+          "residual_estimate_ms": 222977
+        },
+        {
+          "turn_id": "01a1eec4-d3f4-7e51-90a7-1b50e7bf3633",
+          "start": "2026-11-18T16:07:19+03:00",
+          "end": "2026-11-18T16:24:00.801000+03:00",
+          "duration_ms": 1001801,
+          "command_item_count": 45,
+          "command_duration_sum_ms": 202235,
+          "reconstructed_command_union_ms": 197980,
+          "residual_estimate_ms": 803821
+        },
+        {
+          "turn_id": "01a1eed5-8c87-7363-918b-e3566458cf09",
+          "start": "2026-11-18T16:25:35+03:00",
+          "end": "2026-11-18T16:32:35.074000+03:00",
+          "duration_ms": 420074,
+          "command_item_count": 17,
+          "command_duration_sum_ms": 121529,
+          "reconstructed_command_union_ms": 85928,
+          "residual_estimate_ms": 334146
+        },
+        {
+          "turn_id": "01a1eee2-ede0-7172-ac5f-2afffdc2aba0",
+          "start": "2026-11-18T16:40:11+03:00",
+          "end": "2026-11-18T16:41:04.884000+03:00",
+          "duration_ms": 53884,
+          "command_item_count": 7,
+          "command_duration_sum_ms": 2919,
+          "reconstructed_command_union_ms": 2685,
+          "residual_estimate_ms": 51199
+        },
+        {
+          "turn_id": "01a1efe9-bdb4-7820-80e4-2519f75632fc",
+          "start": "2026-11-18T21:27:15+03:00",
+          "end": "2026-11-18T21:37:57.600000+03:00",
+          "duration_ms": 642600,
+          "command_item_count": 34,
+          "command_duration_sum_ms": 318056,
+          "reconstructed_command_union_ms": 222262,
+          "residual_estimate_ms": 420338
+        },
+        {
+          "turn_id": "01a1f455-4e8f-74b3-a928-436d76aa6b3f",
+          "start": "2026-11-19T18:03:13+03:00",
+          "end": "2026-11-19T18:25:42.050000+03:00",
+          "duration_ms": 1349050,
+          "command_item_count": 54,
+          "command_duration_sum_ms": 624062,
+          "reconstructed_command_union_ms": 487203,
+          "residual_estimate_ms": 861847
+        },
+        {
+          "turn_id": "01a1f46a-ef90-7b90-a7c9-f41931a39c35",
+          "start": "2026-11-19T18:26:51+03:00",
+          "end": "2026-11-19T18:44:02.764000+03:00",
+          "duration_ms": 1031764,
+          "command_item_count": 66,
+          "command_duration_sum_ms": 1071820,
+          "reconstructed_command_union_ms": 651856,
+          "residual_estimate_ms": 379908
+        },
+        {
+          "turn_id": "01a1f47b-d6ce-7583-8f3f-55072a1a80ca",
+          "start": "2026-11-19T18:45:19+03:00",
+          "end": "2026-11-19T18:55:56.520000+03:00",
+          "duration_ms": 637520,
+          "command_item_count": 29,
+          "command_duration_sum_ms": 362070,
+          "reconstructed_command_union_ms": 315051,
+          "residual_estimate_ms": 322469
+        },
+        {
+          "turn_id": "01a1fa80-5c47-7471-8f4b-675cf99731d3",
+          "start": "2026-11-20T22:47:58+03:00",
+          "end": "2026-11-20T22:54:15.523000+03:00",
+          "duration_ms": 377523,
+          "command_item_count": 17,
+          "command_duration_sum_ms": 240619,
+          "reconstructed_command_union_ms": 181549,
+          "residual_estimate_ms": 195974
+        },
+        {
+          "turn_id": "01a1faaf-8b8a-7f10-97fc-d74aaec6eb18",
+          "start": "2026-11-20T23:39:31+03:00",
+          "end": "2026-11-20T23:54:58.993000+03:00",
+          "duration_ms": 927993,
+          "command_item_count": 43,
+          "command_duration_sum_ms": 325699,
+          "reconstructed_command_union_ms": 233234,
+          "residual_estimate_ms": 694759
+        },
+        {
+          "turn_id": "01a1fac2-4596-7c63-b508-6491632f0f54",
+          "start": "2026-11-20T23:59:58+03:00",
+          "end": "2026-11-21T00:09:18.270000+03:00",
+          "duration_ms": 560270,
+          "command_item_count": 17,
+          "command_duration_sum_ms": 12016,
+          "reconstructed_command_union_ms": 12016,
+          "residual_estimate_ms": 548254
+        },
+        {
+          "turn_id": "01a1fcee-1e3d-7720-adf6-05f9908cd037",
+          "start": "2026-11-21T10:07:06+03:00",
+          "end": "2026-11-21T10:20:05.553000+03:00",
+          "duration_ms": 779553,
+          "command_item_count": 47,
+          "command_duration_sum_ms": 567844,
+          "reconstructed_command_union_ms": 434199,
+          "residual_estimate_ms": 345354
+        },
+        {
+          "turn_id": "01a1fd71-3768-7041-9495-201bb3c74489",
+          "start": "2026-11-21T12:30:17+03:00",
+          "end": "2026-11-21T12:35:53.769000+03:00",
+          "duration_ms": 336769,
+          "command_item_count": 20,
+          "command_duration_sum_ms": 282979,
+          "reconstructed_command_union_ms": 181163,
+          "residual_estimate_ms": 155606
+        },
+        {
+          "turn_id": "01a1fd78-3fae-7e70-8b0f-f86bb522a2e4",
+          "start": "2026-11-21T12:37:58+03:00",
+          "end": "2026-11-21T12:40:01.851000+03:00",
+          "duration_ms": 123851,
+          "command_item_count": 10,
+          "command_duration_sum_ms": 3010,
+          "reconstructed_command_union_ms": 2162,
+          "residual_estimate_ms": 121689
+        },
+        {
+          "turn_id": "01a1fd7d-d0e8-7cc0-a3de-5faa6eba8446",
+          "start": "2026-11-21T12:44:03+03:00",
+          "end": "2026-11-21T12:50:54.416000+03:00",
+          "duration_ms": 411416,
+          "command_item_count": 29,
+          "command_duration_sum_ms": 180015,
+          "reconstructed_command_union_ms": 173012,
+          "residual_estimate_ms": 238404
+        },
+        {
+          "turn_id": "01a1fd85-2712-7bf0-ac6d-475c8527dc7a",
+          "start": "2026-11-21T12:52:04+03:00",
+          "end": "2026-11-21T12:53:41.797000+03:00",
+          "duration_ms": 97797,
+          "command_item_count": 9,
+          "command_duration_sum_ms": 3230,
+          "reconstructed_command_union_ms": 3230,
+          "residual_estimate_ms": 94567
+        },
+        {
+          "turn_id": "01a1fd8e-6314-7b53-9a68-1911dd2d302c",
+          "start": "2026-11-21T13:02:09+03:00",
+          "end": "2026-11-21T13:10:22.234000+03:00",
+          "duration_ms": 493234,
+          "command_item_count": 14,
+          "command_duration_sum_ms": 38692,
+          "reconstructed_command_union_ms": 37585,
+          "residual_estimate_ms": 455649
+        },
+        {
+          "turn_id": "01a1fe01-746f-76f1-b2de-b2cb36104262",
+          "start": "2026-11-21T15:07:50+03:00",
+          "end": "2026-11-21T15:54:52.941000+03:00",
+          "duration_ms": 2822941,
+          "command_item_count": 32,
+          "command_duration_sum_ms": 483848,
+          "reconstructed_command_union_ms": 457528,
+          "residual_estimate_ms": 2365413
+        },
+        {
+          "turn_id": "01a1fe2f-675f-7312-8bdc-6bbd16ebe24c",
+          "start": "2026-11-21T15:58:01+03:00",
+          "end": "2026-11-21T16:27:42.535000+03:00",
+          "duration_ms": 1781535,
+          "command_item_count": 26,
+          "command_duration_sum_ms": 56701,
+          "reconstructed_command_union_ms": 55511,
+          "residual_estimate_ms": 1726024
+        },
+        {
+          "turn_id": "01a1fe4f-a08b-7562-a3e9-b7722fbccd0d",
+          "start": "2026-11-21T16:33:13+03:00",
+          "end": "2026-11-21T16:33:14.156000+03:00",
+          "duration_ms": 1156,
+          "command_item_count": 0,
+          "command_duration_sum_ms": 0,
+          "reconstructed_command_union_ms": 0,
+          "residual_estimate_ms": 1156
+        },
+        {
+          "turn_id": "01a1ff27-d88e-7570-ba1a-903c086afdbb",
+          "start": "2026-11-21T20:29:24+03:00",
+          "end": "2026-11-21T20:39:26.859000+03:00",
+          "duration_ms": 602859,
+          "command_item_count": 41,
+          "command_duration_sum_ms": 553474,
+          "reconstructed_command_union_ms": 405912,
+          "residual_estimate_ms": 196947
+        },
+        {
+          "turn_id": "01a1ff4b-330c-7f33-88ee-e8d84fce4e79",
+          "start": "2026-11-21T21:08:00+03:00",
+          "end": "2026-11-21T21:19:37.664000+03:00",
+          "duration_ms": 697664,
+          "command_item_count": 41,
+          "command_duration_sum_ms": 439421,
+          "reconstructed_command_union_ms": 349503,
+          "residual_estimate_ms": 348161
+        },
+        {
+          "turn_id": "01a1ff61-5ea4-7e63-a80c-bbcd89d64836",
+          "start": "2026-11-21T21:32:13+03:00",
+          "end": "2026-11-21T21:38:09.444000+03:00",
+          "duration_ms": 356444,
+          "command_item_count": 20,
+          "command_duration_sum_ms": 240242,
+          "reconstructed_command_union_ms": 222789,
+          "residual_estimate_ms": 133655
+        },
+        {
+          "turn_id": "01a1ffe7-caba-7803-baa4-98128bc611c6",
+          "start": "2026-11-21T23:59:03+03:00",
+          "end": "2026-11-22T00:20:12.186000+03:00",
+          "duration_ms": 1269186,
+          "command_item_count": 60,
+          "command_duration_sum_ms": 1235653,
+          "reconstructed_command_union_ms": 800725,
+          "residual_estimate_ms": 468461
+        }
+      ],
+      "metric_label": "recorded turn elapsed time, NOT active AI time"
+    },
+    "environment": {
+      "thread_id": "01a1e143-28c9-7a90-b3a2-b5fa64d5bc22",
+      "source_file": "rollout-2026-11-16T01-10-37-01a1e143-28c9-7a90-b3a2-b5fa64d5bc22.jsonl",
+      "source_sha256": "52455c171c7a3449226e1ed090fe1d9d2918d9ee38c3d8d2800b581e4e75037b",
+      "source_bytes": 4760914,
+      "first_completed_start": "2026-11-16T01:10:38+03:00",
+      "last_completed_end": "2026-11-17T00:06:45.508000+03:00",
+      "completed_turns": 7,
+      "incomplete_turns": [],
+      "recorded_turn_ms": 5439307,
+      "completed_turn_union_ms": 5439307,
+      "overlap_ms": 0,
+      "reconstructed_command_union_ms": 3391889,
+      "residual_estimate_ms": 2047418,
+      "turns": [
+        {
+          "turn_id": "01a1e143-2d65-7382-9e8e-981950467e79",
+          "start": "2026-11-16T01:10:38+03:00",
+          "end": "2026-11-16T02:05:52.905000+03:00",
+          "duration_ms": 3314905,
+          "command_item_count": 115,
+          "command_duration_sum_ms": 4269521,
+          "reconstructed_command_union_ms": 2521175,
+          "residual_estimate_ms": 793730
+        },
+        {
+          "turn_id": "01a1e177-6b6c-7fe0-963f-09d67d8fcc5e",
+          "start": "2026-11-16T02:07:42+03:00",
+          "end": "2026-11-16T02:10:05.216000+03:00",
+          "duration_ms": 143216,
+          "command_item_count": 3,
+          "command_duration_sum_ms": 7659,
+          "reconstructed_command_union_ms": 7659,
+          "residual_estimate_ms": 135557
+        },
+        {
+          "turn_id": "01a1e17b-3d61-7990-b555-d9d2486028c9",
+          "start": "2026-11-16T02:11:52+03:00",
+          "end": "2026-11-16T02:23:20.113000+03:00",
+          "duration_ms": 688113,
+          "command_item_count": 32,
+          "command_duration_sum_ms": 443711,
+          "reconstructed_command_union_ms": 387235,
+          "residual_estimate_ms": 300878
+        },
+        {
+          "turn_id": "01a1e191-51d8-70a1-8075-6853d4f10847",
+          "start": "2026-11-16T02:35:59+03:00",
+          "end": "2026-11-16T02:48:44.711000+03:00",
+          "duration_ms": 765711,
+          "command_item_count": 17,
+          "command_duration_sum_ms": 378049,
+          "reconstructed_command_union_ms": 373769,
+          "residual_estimate_ms": 391942
+        },
+        {
+          "turn_id": "01a1e3e6-eebc-7c92-b186-8b7e84c22782",
+          "start": "2026-11-16T13:28:44+03:00",
+          "end": "2026-11-16T13:32:52.534000+03:00",
+          "duration_ms": 248534,
+          "command_item_count": 5,
+          "command_duration_sum_ms": 89695,
+          "reconstructed_command_union_ms": 89695,
+          "residual_estimate_ms": 158839
+        },
+        {
+          "turn_id": "01a1e3f1-3c65-73d0-bc9d-a6bdc481915e",
+          "start": "2026-11-16T13:40:00+03:00",
+          "end": "2026-11-16T13:41:22.320000+03:00",
+          "duration_ms": 82320,
+          "command_item_count": 3,
+          "command_duration_sum_ms": 1164,
+          "reconstructed_command_union_ms": 1164,
+          "residual_estimate_ms": 81156
+        },
+        {
+          "turn_id": "01a1e62c-0e3e-7a20-a442-824574f67d2f",
+          "start": "2026-11-17T00:03:29+03:00",
+          "end": "2026-11-17T00:06:45.508000+03:00",
+          "duration_ms": 196508,
+          "command_item_count": 8,
+          "command_duration_sum_ms": 11194,
+          "reconstructed_command_union_ms": 11194,
+          "residual_estimate_ms": 185314
+        }
+      ],
+      "metric_label": "recorded turn elapsed time, NOT active AI time"
+    }
+  },
+  "method": [
+    "Deduplicate task_complete events by turn_id; sum duration_ms; check root interval union to exclude overlaps.",
+    "Exclude inter-turn gaps, seven Guardian sessions, and incomplete current audit.",
+    "Environment setup is separate from ASG/FILE; do not add it to ASG time.",
+    "Reconstruct command intervals as item_completed timestamp minus item.duration; clip to completed root turns; union overlaps.",
+    "Subtract reconstructed command union only as an illustrative residual estimate; it is not active model time and not a reliable bound.",
+    "No commit-gap time, token-to-time conversion, arbitrary idle threshold, or test runtime sum is used as active AI time."
+  ]
+}

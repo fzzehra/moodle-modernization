@@ -368,6 +368,8 @@ Sinem'in WBS-3 AUTH/CRS çalışması için 21.11.2026 itibarıyla geçici tahmi
 
 ### 2.4 Dosya yükleme, antivirüs, ödeve dosya teslimi ve uçtan uca test (Aslı Ceren)
 
+**22.11.2026 belge kapanışı:** PR #52 main **129235f** içinde; kaynak/test farkı olmadan son 1008/1008 .NET, 54/54 JS, 9/9 Playwright kanıtları korundu. Testler bu belge turunda tekrar çalıştırılmadı. **Aktif YZ süresi: Kullanıcı doğrulaması bekleniyor.** 26 turun kayıtlı işlem süresi **5:19:16**, aktif efor değildir; beklemelerden kesin ayrılamaz. Ek doğrulanmış kullanıcı kaydı yoktur. [Kanıt/yöntem](asg-wbs3/YZ-SURE-DEGERLENDIRMESI.md). Aşağıdaki geliştirme tarihleri tarihsel kayıttır.
+
 **22.11.2026 son teslim:** ASG-FR-01 gerçek kalıcı ders bölümüyle tamamlandı. PR #50 main 4d53353 alındı; dosya silme/commit ve ortak içerik yarışları gerçek kilitlerle doğrulandı. Açık course.managefiles ve dış yapılandırmalı güvenli yerel SiteAdmin seed/testi eklendi. Release; .NET **1008/1008**, JS **54/54**, Playwright **9/9**, 0 skip. [Mimari/migration/kanıt](asg-file-wbs3/SON-BOLUM-ENTEGRASYONU.md). YZ süresi: Ölçülmedi / kullanıcı tarafından doldurulacak. Önceki bölüm engeli kayıtları tarihseldir.
 
 **Güncel main a21e18a doğrulaması:** 995/995 .NET, 54/54 JS, Playwright 7 geçti / 2 bölüm bağımlılığı. İzole gerçek SiteAdmin tarayıcı kabulü tamamlandı; üretim seed değişmedi. Açık FILE PR #50 main dışında; [modül/eksik görev tablosu](asg-file-wbs3/GUNCEL-GITHUB-DOGRULAMASI.md). YZ süresi ölçülmedi / kullanıcı tarafından doldurulacak.

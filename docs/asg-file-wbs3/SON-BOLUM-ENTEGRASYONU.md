@@ -1,3 +1,5 @@
+> **22.11.2026 teslim kapanışı:** PR #52 main **129235f** içinde. Son gerçek sonuçlar .NET **1008/1008**, JS **54/54**, Playwright **9/9**; testler bu belge turunda tekrar çalıştırılmadı. **Aktif YZ süresi: Kullanıcı doğrulaması bekleniyor.** Kayıtlı 5:19:16 tur işlem süresi aktif efor sayılmadı. [Süre kanıtı ve yöntem](../asg-wbs3/YZ-SURE-DEGERLENDIRMESI.md). Aşağıdaki commit/push/PR yapılmadı ifadeleri önceki ajan geliştirme turlarına aittir; güncel birleşme durumu bu üst nottur.
+
 # Son kalıcı bölüm ve FILE entegrasyonu — 22.11.2026
 
 ## Git ve koruma

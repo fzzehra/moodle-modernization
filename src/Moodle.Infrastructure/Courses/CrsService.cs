@@ -256,11 +256,16 @@ public sealed class CrsService(CrsDbContext db)
     public async Task DeleteCourseAsync(
         int id, CancellationToken ct = default)
     {
-        var course = await db.Courses.FindAsync([id], ct)
-            ?? throw new KeyNotFoundException("Ders bulunamadı.");
-
-        db.Courses.Remove(course);
-        await db.SaveChangesAsync(ct);
+        var operations = new CrsCourseOperationRegistry(db);
+        await operations.WithCourseLockAsync(id, async () =>
+        {
+            await operations.EnsureDeletionAllowedAsync(id, ct);
+            var course = await db.Courses.FindAsync([id], ct)
+                ?? throw new KeyNotFoundException("Ders bulunamadı.");
+            db.Courses.Remove(course);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }, ct);
     }
 
     // YZ taslağıdır; elle geliştirilmiş olarak raporlanmamalıdır.

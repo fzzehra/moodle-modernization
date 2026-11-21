@@ -72,6 +72,11 @@ public static class DependencyInjection
         services.AddScoped<ICourseDirectory>(sp => sp.GetRequiredService<CrsService>());
         services.AddScoped<IEnrolmentQuery>(sp => sp.GetRequiredService<CrsService>());
         services.AddScoped<IAssignmentLearnerQuery>(sp => sp.GetRequiredService<CrsService>());
+        // CRS-FR-11 / CRS-NFR-06: Crs:BackgroundDeletion:Enabled (varsayılan false) / PollIntervalMilliseconds / MaxAttempts.
+        services.AddSingleton(sp => CrsBackgroundDeletionOptions.FromConfiguration(sp.GetRequiredService<IConfiguration>()));
+        services.AddScoped<CrsCourseDeletionJobs>();
+        services.AddScoped<CrsCourseDeletionProcessor>();
+        services.AddHostedService<CrsCourseDeletionWorker>();
 
         // Real CRS data must never inherit the synthetic evaluator-2/learner-3..5 grants.
         services.AddScoped<ISubmissionAccessPolicy, Moodle.Infrastructure.Assignments.AssignmentSubmissionAccessPolicy>();

@@ -228,6 +228,13 @@ Birinci sürümden kalan ASG/GRD/FILE ilişkili veri temizliği, kayıt yöntemi
 güncellemesi, teslim belgeleri ve YZ/manuel karşılaştırması bu çalışma kapsamında
 çözülmüş sayılmaz. AUTH görevlerine ve arka planda ders silmeye başlanmadı.
 
+> **Güncelleme (21.11.2026):** Kayıt zamanı güncellemesi PR #45, arka planda ders silme
+> PR #44, AUTH-FR-09 PR #46 ile tamamlandı; `course.deleted` olayının diğer modüllere
+> iletimi PR #47 ile eklendi. ASG/GRD/FILE veri temizliği bu modüllerin uzantılarını
+> beklemektedir; kayıt yöntemi modeli WBS-2'den belgelenmiş bir sapmadır (`docs/crs-api.md`).
+> YZ/manuel karşılaştırması 18.11.2026 yöntem değişikliğiyle elle geliştirme yerine
+> Basic COCOMO tahminiyle yapılır (`docs/WBS-3-gelistirme.md` §3).
+
 ## 8. Dosya kapsamı ve üretim kaydı
 
 - Değişti: `src/Moodle.Infrastructure/Courses/CrsService.cs` (yalnızca DeleteCourseAsync).

@@ -110,6 +110,10 @@ public sealed class CrsBlazorTests
         Assert.Contains("Görünür", page.Markup);
         Assert.Contains("01.01.2026 00:00 UTC", page.Markup);
         Assert.Contains("Belirtilmedi", page.Markup);
+        var links = page.FindAll("section[aria-label='Ders bilgileri'] a").Select(x => x.GetAttribute("href")).ToList();
+        Assert.Contains("/courses/1/files", links);
+        Assert.Contains("/courses/1/gradebook", links);
+        Assert.Contains("/courses/1/my-grades", links);
         await page.Find(".crs-heading button").ClickAsync(new MouseEventArgs());
         page.Find("#course-name").Change("Güncel");
         await page.Find("form").SubmitAsync(EventArgs.Empty);

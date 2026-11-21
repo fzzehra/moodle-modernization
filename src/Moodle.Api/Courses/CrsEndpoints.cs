@@ -172,14 +172,20 @@ public static class CrsEndpoints
         {
             await auth.RequireAsync("enrolment.update", ContextRef.ForCourse(courseId), ct);
             var enrolment = await RequireEnrolmentAsync(service, courseId, enrolmentId, ct);
-            if (request.Suspended is null && request.Role is null)
-                throw AppException.Validation("validation_failed", "Kayıt durumu veya rol gönderilmelidir.");
+            if (request.Suspended is null && request.Role is null && !request.StartsAtSpecified && !request.EndsAtSpecified)
+                throw AppException.Validation("validation_failed", "Kayıt durumu, rol veya kayıt tarihleri gönderilmelidir.");
             if (request.Role is not null)
             {
                 CourseValidation.ValidateRole(request.Role);
                 await auth.RequireRoleAssignmentAsync(request.Role, courseId, ct);
             }
-            await service.UpdateEnrolmentAsync(enrolmentId, request.Suspended ?? enrolment.Suspended, request.Role ?? enrolment.Role, ct);
+            if (request.StartsAtSpecified || request.EndsAtSpecified)
+                // CRS-FR-07: gönderilmeyen alanlar mevcut değeriyle korunur; aralık serviste doğrulanır (422).
+                await service.UpdateEnrolmentAsync(enrolmentId, request.Suspended ?? enrolment.Suspended, request.Role ?? enrolment.Role,
+                    request.StartsAtSpecified ? request.StartsAt : enrolment.StartsAt,
+                    request.EndsAtSpecified ? request.EndsAt : enrolment.EndsAt, ct);
+            else
+                await service.UpdateEnrolmentAsync(enrolmentId, request.Suspended ?? enrolment.Suspended, request.Role ?? enrolment.Role, ct);
             return TypedResults.Ok(await RequireEnrolmentAsync(service, courseId, enrolmentId, ct));
         });
 

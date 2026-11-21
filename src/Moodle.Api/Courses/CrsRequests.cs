@@ -100,4 +100,19 @@ public sealed class EnrolmentPatchRequest
         get => _role;
         init => _role = value ?? throw new JsonException("Role null olamaz.");
     }
+    // CRS-FR-07: gönderilmeyen tarih değişmez; açıkça null gönderilen tarih temizlenir (ders PATCH'iyle aynı).
+    private DateTimeOffset? _startsAt;
+    private DateTimeOffset? _endsAt;
+    public DateTimeOffset? StartsAt
+    {
+        get => _startsAt;
+        init { _startsAt = value; StartsAtSpecified = true; }
+    }
+    public DateTimeOffset? EndsAt
+    {
+        get => _endsAt;
+        init { _endsAt = value; EndsAtSpecified = true; }
+    }
+    [JsonIgnore] public bool StartsAtSpecified { get; private set; }
+    [JsonIgnore] public bool EndsAtSpecified { get; private set; }
 }

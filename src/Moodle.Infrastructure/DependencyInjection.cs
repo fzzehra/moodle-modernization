@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moodle.Application.Abstractions;
 using Moodle.Application.Assignments;
+using Moodle.Application.Courses;
 using Moodle.Application.Files;
 using Moodle.Application.Seeding;
 using Moodle.Infrastructure.Auth;
@@ -77,6 +78,10 @@ public static class DependencyInjection
         services.AddScoped<CrsCourseDeletionJobs>();
         services.AddScoped<CrsCourseDeletionProcessor>();
         services.AddHostedService<CrsCourseDeletionWorker>();
+        // CRS-FR-05 / NFR-02 / FR-10: diğer modüller ICrsEventExtension kaydederek course.deleted vb. olayları alır.
+        services.AddScoped<CrsEventExtensionPipeline>();
+        services.AddScoped<CrsEventDispatcher>();
+        services.AddHostedService<CrsEventDispatchWorker>();
 
         // Real CRS data must never inherit the synthetic evaluator-2/learner-3..5 grants.
         services.AddScoped<ISubmissionAccessPolicy, Moodle.Infrastructure.Assignments.AssignmentSubmissionAccessPolicy>();

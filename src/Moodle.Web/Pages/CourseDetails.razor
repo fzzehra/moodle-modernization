@@ -24,6 +24,10 @@
         </dl>
         <a href="@($"courses/{CourseId}/participants")">Katılımcıları yönet</a>
         <a href="@($"/courses/{CourseId}/assignments")">Ödevler</a>
+        @* FILE ve GRD sayfaları kendi yetki denetimini yapar; bağlantılar yalnızca gezinme sağlar. *@
+        <a href="@($"/courses/{CourseId}/files")">Ders dosyaları</a>
+        <a href="@($"/courses/{CourseId}/gradebook")">Not defteri</a>
+        <a href="@($"/courses/{CourseId}/my-grades")">Notlarım</a>
     </section>
     @if (_editor is not null)
     {

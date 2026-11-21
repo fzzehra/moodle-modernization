@@ -57,6 +57,35 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 ### 1.3 Ders ve kayıt – CRS (Sinem)
 
+**Kapsam:** CRS-FR-01–FR-09, CRS-NFR-01, NFR-02 (WBS-1 §4.2, WBS-2 §3.2). Kategori/ders CRUD, kısa ad ve kimlik numarası benzersizliği, tarih/TAB doğrulaması, kayıt CRUD ve rol atama, gerçek `ICourseDirectory`/`IEnrolmentQuery`, Blazor ders listesi, detay ve katılımcılar sayfaları.
+
+**Yazılanlar** (PR #20, commit `fd3e155`, 17.11.2026)
+
+| Katman | Dosyalar |
+| --- | --- |
+| Alan ve kurallar | `src/Moodle.Domain/Courses/CourseEntities.cs`, `src/Moodle.Application/Courses/CourseValidation.cs`, `CrsConflictException.cs` |
+| Veri ve servis | `src/Moodle.Infrastructure/Courses/`: `CrsDbContext`, `InitialCrs` migration, `CrsService` (`ICourseDirectory`, `IEnrolmentQuery`, `IAssignmentLearnerQuery` gerçeklemesi) |
+| API | `src/Moodle.Api/Courses/`: `CrsEndpoints`, `CrsAuthorization`, `CrsEndpointFilter`, `CrsRequests` |
+| Sayfalar | `src/Moodle.Web/Crs/`, `Pages/Courses.razor`, `CourseDetails.razor`, `CourseParticipants.razor`, `wwwroot/crs-api.js` |
+
+**Testler:** 17.11.2026 doğrulamasında tüm paket 31 birim ve 99 entegrasyon testiyle geçti (`docs/crs-api.md`). Sonraki PR'larda M gereksinimlerine servis ve veri modeli düzeyinde birim testleri (`CrsMRequirementTests`) ve gerçek AUTH oturumuyla entegrasyon testleri (`AuthCrsIntegrationTests`) eklendi (PR #47, §2.3).
+
+**Tasarım kararları ve belgeden sapmalar**
+- **Kayıt yöntemi modeli uygulanmadı (CRS-FR-06, FR-08, NFR-01).** WBS-2 §3.2'deki `EnrolmentMethods` tablosu ve `enrolmentMethodId`/`roleId` API alanları yoktur; her ders tek ve örtük bir manuel kayıt yöntemiyle çalışır. Mükerrer kayıt `(CourseId, UserId)` benzersizliğiyle engellenir (kayıt yöntemi düzeyindeki kısıttan daha sıkı). Rol, `crs_enrolments.Role` alanında tutulur. AUTH (`AuthAccessPolicy`), ASG, GRD ve FILE `IEnrolmentQuery` üzerinden ders başına tek kayıt varsayar (`FindActiveRoleAsync` tek değer döner); çoklu kayıt yöntemi bu sözleşmenin ekip kararıyla değiştirilmesini gerektirir. Bu nedenle tasarım uyumu tam değildir.
+- **Ders silme ve diğer modüllerin verileri (CRS-FR-05, NFR-02).** CRS kendi kayıtlarını aynı transaction'da cascade ile siler. ASG, GRD ve FILE verileri bu teslimde silinmedi; olay iletimi PR #47 ile eklendi, ancak bu modüller için `course.deleted` uzantısı henüz yoktur (§2.3, sınırlılıklar).
+- **Yetkisiz isteğe 401/403** döner (CRS ve AUTH tasarımıyla uyumlu; ayrıntı §1.2).
+
+**Yapay zekâ kaydı**
+
+**Model ve sürüm:** _Doldurulacak._
+**Kullanılan adım(lar):** _Doldurulacak._
+**Verilen bağlam:** _Doldurulacak._
+**Yapılan iş:** Yukarıdaki dosyalar ve testleri (PR #20).
+**Yapılan düzeltmeler:** _Doldurulacak._ (`CrsService.EnrolAsync` üzerinde "YZ taslağıdır" notu bulunur.)
+**Harcanan süre:** _Doldurulacak._
+**Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
+**Kanıt:** PR #20.
+
 ### 1.4 Ödev ve teslim – ASG ve uçtan uca akış testi (Aslı Ceren)
 
 19.11.2026: V1 PR #21 geçmişi korunmuştur. Güncel main 3b9ccd6 üzerinde gerçek AUTH/CRS bağlantısı tamamlandı: ASG yetenekleri, ödev→ders bağlamı, aktif/yükümlü öğrenci ve ortak liste/ayrıntı kapsamı. Ders sayfası gerçek CourseId ile ASG listesine gider. CRS bölüm modeli bulunmadığından oluşturma ve güvenli ortak ASG seed reddedilir; Sinem bağımlılığıdır. Tam Playwright A kabulü bu nedenle engellidir. Ayrıntılar: [v2 teslimi](asg-file-wbs3/TESLIM-RAPORU.md), [test sonuçları](asg-file-wbs3/DOGRULAMA.json).
@@ -247,7 +276,7 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 **Yapay zekâ kaydı**
 
 **Model ve sürüm:** Claude Code (VS Code eklentisi), model Claude Opus 5.5 (`claude-opus-5-5`).
-**Üretim şekli:** YZ. Görev listesinde bu iş için karşılaştırma çifti **"arka planda silme elle"** olarak tanımlanmıştı; ekip kararıyla elle değil **YZ destekli** geliştirildi. Bu nedenle bu iş için elle geliştirme verisi yoktur. Kod incelemesinde insan düzeltmesi yapılırsa üretim şekli "YZ + düzeltme" olarak güncellenecektir.
+**Üretim şekli:** YZ. Görev listesinde bu iş için karşılaştırma çifti **"arka planda silme elle"** olarak tanımlanmıştı. 18.11.2026 yöntem değişikliğiyle (belge başı) elle geliştirme yapılmadı; bu işin elle eforu §3'te aynı kod için Basic COCOMO ile tahmin edilir. Kod incelemesinde insan düzeltmesi yapılırsa üretim şekli "YZ + düzeltme" olarak güncellenecektir.
 **Kullanılan adım(lar):** Kodun anlaşılması, uygulama planı, hedef dilde kod üretme, test senaryosu üretme, belge taslağı (WBS-2 §4.1).
 **Verilen bağlam:** WBS-1 ve WBS-2'deki CRS-FR-11 ve CRS-NFR-06 tanımları; `CrsEndpoints.cs`, `CrsService.cs`, `CrsCourseOperationRegistry.cs` (NFR-03), `Program.cs`, `DependencyInjection.cs`, CRS migration'ları ve testleri; `FileCleanupWorker` (mevcut arka plan görevi deseni).
 **Prompt özeti:**
@@ -259,9 +288,66 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 - **YZ'nin kendi düzelttikleri:** Test dosyasında iki `EF1002` derleme uyarısı (ham SQL ile DDL) giderildi. İki test doğrulaması sadeleştirildi.
 - **İnsan katkısı:** Kodlamadan önce plan aşamasında tasarım kararları verildi (yukarıdaki 3. madde). Kod üzerinde insan düzeltmesi henüz yok; inceleme sonrası güncellenecek.
 
-**Harcanan süre:** PR açıldığında doldurulacak (oturum süresi insan tarafından eklenecek).
-**Elle geliştirme:** Yapılmadı (bkz. üretim şekli). COCOMO karşılaştırması henüz hazırlanmadı (§3).
-**Kanıt:** PR açıldığında doldurulacak (şube: `sinem/crs-background-delete`).
+**Harcanan süre:** _Doldurulacak (insan tarafından; oturum süresi kaydedilmedi)._
+**Elle geliştirme:** Yapılmadı (yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
+**Kanıt:** PR #44 (şube: `sinem/crs-background-delete`, commit `24666ed`).
+
+#### CRS-FR-10, NFR-07, NFR-08, NFR-04, NFR-05: Olaylar, uzantı noktaları, önbellek ve gereksiz yazma (PR #31)
+
+**Yapılan iş** (commit `09e9484`, `d1f64c5`, `599d8a5`; 19.11.2026): `crs_record_change` trigger'ı ders ve kayıt değişikliklerini veriyle aynı transaction'da `crs_events` tablosuna yazar (alan değerleri değil alan adları tutulur). `ICrsEventExtension`, `CrsEventExtensionPipeline` ve `CrsEventDispatcher` modüllerin olayları en az bir kez, alındı kaydıyla almasını sağlar. `CrsQueryCache` olay revizyonuna bağlı geçersizleştirme yapar. Değişmeyen kayıt güncellemesi veritabanına yazılmaz. Ayrıntı: `docs/crs-events-extensions.md`, `docs/crs-nfr04-cache.md`, `docs/crs-nfr05.md`.
+**Testler:** `CrsEventExtensionTests`, `CrsNfr04CacheTests`, `CrsNfr05NoopTests` (birim); `CrsEventsPostgresTests`, `CrsNfr04CachePostgresTests`, `CrsNfr05NoopPostgresTests` (entegrasyon).
+**YZ kaydı:** Model ve sürüm, kullanılan adımlar, düzeltmeler ve harcanan süre: _doldurulacak._ İlgili belgeler çalışmanın YZ desteğiyle üretildiğini belirtir. Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #31.
+
+#### CRS-NFR-03: Yedekleme/geri yükleme sırasında silme koruması (PR #43)
+
+**Yapılan iş** (commit `86d6125`, 20.11.2026): `ICrsCourseOperationRegistry` ve `CrsCourseOperationRegistry` (`RegisterPendingAsync`, `MarkRunningAsync`, `ReleaseAsync`), `crs_course_operations` tablosu; `DeleteCourseAsync` ders satırı kilidi altında bekleyen/devam eden işlem varsa `409 course_operation_in_progress` döner. Ayrıntı: `docs/crs-nfr03-delete-guard.md`.
+**Testler:** `CrsNfr03DeleteGuardTests` (birim), `CrsNfr03DeleteGuardPostgresTests` (entegrasyon).
+**Sınırlılık:** Depoda gerçek bir yedekleme/geri yükleme yürütücüsü yoktur; koruma kayıt arayüzü üzerinden çalışır.
+**YZ kaydı:** Model ve sürüm, kullanılan adımlar, düzeltmeler ve harcanan süre: _doldurulacak._ Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #43.
+
+#### CRS-FR-07: Kayıt başlangıç ve bitiş zamanının güncellenmesi (PR #45)
+
+**Yapılan iş** (commit `bdf904c`, 21.11.2026): `PATCH /courses/{id}/enrolments/{id}` artık `startsAt` ve `endsAt` alanlarını da kabul eder. Gönderilmeyen alanlar değişmez, açık `null` tarihi temizler. Kayıt oluşturmadaki tarih kuralı `CourseValidation.ValidateEnrolmentDates` olarak ortaklaştırıldı; geçersiz aralık `422` döner ve hiçbir alan yazılmaz. Durum/rol güncellemesi ve mevcut `UpdateEnrolmentAsync(id, suspended, role)` imzası korundu. Blazor katılımcılar ekranında tarih düzenleme yoktur.
+**Testler:** `CrsFr07EnrolmentDatesTests` (birim), `CrsFr07EnrolmentDatesPostgresTests` (entegrasyon). Sonuç: _doldurulacak_ (21.11.2026 koşusunda 863 testten 2'si başarısızdı; son koşu sonucu bu belgeye işlenmedi).
+
+#### AUTH-FR-06 ve AUTH-FR-09: Hesap kilitleme ve zorunlu parola değişikliği (PR #46)
+
+- **AUTH-FR-06:** İrem'in AUTH teslimindeki (PR #28) kilitleme kuralları (`Lockout.MaxFailedAccessAttempts=5`, 5 dakika) gereksinimi karşılar ve `AuthEndpointTests.Account_locks_out_after_repeated_failed_attempts` ile sınanır; ek kod gerekmedi.
+- **AUTH-FR-09** (commit `ff52c2c`, 21.11.2026): `RequiresPasswordChange` true ise `Login.razor` kullanıcıyı `/change-password?required=true` sayfasına yönlendirir; yeni `ChangePassword.razor` mevcut `POST /api/v1/auth/change-password` ucunu kullanır. `PasswordChangeRequiredMiddleware`, değişiklik tamamlanana kadar `/api/v1/auth/*`, sağlık ve OpenAPI dışındaki API uçlarını `403 password_change_required` ile reddeder; `AuthAccessPolicy` bu kullanıcıya yetki vermez. Bayrak her istekte veritabanından okunduğu için parola değişince erişim aynı oturumda açılır.
+- **Sınırlılık:** Kullanıcı parola sayfası dışındaki bir sayfayı adresle açarsa engel API düzeyinde kalır; sayfa düzeyinde yönlendirme yoktur.
+- **Testler:** `AuthFr09ForcedPasswordTests` (birim ve entegrasyon). Sonuç: _doldurulacak._
+
+#### CRS olay iletimi, gerçek AUTH–CRS testleri ve M gereksinimleri test kapsamı (PR #47)
+
+**Yapılan iş** (commit `20e4804`, 21.11.2026):
+- `CrsEventExtensionPipeline` ve `CrsEventDispatcher` DI'a kaydedildi; yeni `CrsEventDispatchWorker` commit edilmiş olayları (`course.deleted` dahil) kayıtlı uzantılara iletir. Kayıtlı uzantı yoksa görev veritabanına dokunmadan çıkar (CRS-FR-05, NFR-02, NFR-08).
+- `AuthCrsIntegrationTests`: gerçek Identity çerezi, `AuthCurrentUser` ve `AuthAccessPolicy` ile Manager ders oluşturur (201), Student oluşturamaz (403), ders rolü CRS kaydından okunur, askıya alınan kayıt yetkiyi hemen kaldırır.
+- `CrsMRequirementTests`: CRS-FR-01, 02, 04, 05, 06, 08, NFR-01, 02 için veritabanına bağlanmayan birim testleri. `CrsCourseDeletionCleanupTests`: silmede `course.deleted` ve `enrolment.deleted` olaylarının uzantıya ulaşması (senkron ve arka planda silme).
+
+**Testler:** İlgili birim testleri 11/11 geçti; ilgili entegrasyon testleri 37/38 geçti. Başarısız `CrsCourseDeletionCleanupTests` (arka planda silme durumu) testteki bekleme koşulu düzeltildi; düzeltme sonrası sonuç: _doldurulacak._
+
+#### Ders detay sayfasından FILE ve GRD bağlantıları
+
+`Pages/CourseDetails.razor`'a "Ders dosyaları" (`/courses/{id}/files`), "Not defteri" (`/courses/{id}/gradebook`) ve "Notlarım" (`/courses/{id}/my-grades`) bağlantıları eklendi. Bağlantılar yalnızca gezinme sağlar; yetki hedef sayfalarda ve API'de denetlenir (mevcut "Ödevler" bağlantısıyla aynı). `CrsBlazorTests.Details_show_category_visibility_dates_and_editable_information` bağlantıları doğrular. **Kanıt:** _PR numarası doldurulacak._
+
+#### YZ kaydı (PR #45, #46, #47 ve ders detay bağlantıları)
+
+**Model ve sürüm:** Claude Code (VS Code eklentisi), model Claude Opus 5.5 (`claude-opus-5-5`).
+**Üretim şekli:** YZ.
+**Kullanılan adım(lar):** Kodun ve gereksinimlerin karşılaştırılması, hedef dilde kod üretme, test senaryosu üretme, belge güncelleme (WBS-2 §4.1).
+**Verilen bağlam:** WBS-1/WBS-2'deki AUTH-FR-06, FR-09, CRS-FR-05–08, NFR-01, NFR-02 tanımları; AUTH, CRS, ASG, GRD ve FILE kodu ve testleri.
+**Prompt özeti:** (1) CRS-FR-07 kayıt tarihlerinin PATCH ile güncellenmesi; (2) AUTH-FR-09 zorunlu parola değişikliği yönlendirmesi ve API engeli; (3) gerçek AUTH–CRS entegrasyon testleri, ders silmede diğer modüller için olay iletimi, kayıt yöntemi analizi ve M gereksinimleri test kapsamı; (4) başarısız `CrsCourseDeletionCleanupTests` için kök neden analizi; (5) ders detay bağlantıları ve bu belge güncellemeleri. Her adımda test ve build kullanıcı tarafından çalıştırıldı; commit/PR kullanıcı tarafından yapıldı.
+**Yapılan düzeltmeler:**
+- YZ'nin kendi düzelttikleri: `CrsCourseDeletionCleanupTests` olayları teslim sırasının ortasında denetliyordu (zamanlama); bekleme koşulu iki olayı birlikte bekleyecek şekilde düzeltildi, doğrulamalar gevşetilmedi.
+- CRS-FR-07 sonrası 2 başarısız test bildirildi; YZ test çıktısına erişemediği için ayrıntı istedi. Bu iki testin adı, nedeni ve düzeltmesi: _doldurulacak._
+- İnsan düzeltmesi: _doldurulacak._
+**Harcanan süre:** _Doldurulacak (insan tarafından)._
+**Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
+**Kanıt:** PR #45, #46, #47; ders detay bağlantıları ve belge güncellemesi için PR numarası: _doldurulacak._
+
+#### Bilinen sınırlılıklar (§2.3 geneli)
+- **ASG/GRD/FILE ders silme temizliği tamamlanmadı.** CRS, `course.deleted` olayını iletir; ancak ASG (Aslı Ceren), GRD (Fatma Zehra) ve FILE (İrem, Seray) için üretim uzantısı yoktur. Bu modüllerin ders verileri silmeden sonra kalır; dersin varlığını denetledikleri için erişilemez.
+- **Kayıt yöntemi modeli** WBS-2'den sapmadır (§1.3).
 
 ### 2.4 Dosya yükleme, antivirüs, ödeve dosya teslimi ve uçtan uca test (Aslı Ceren)
 
@@ -337,7 +423,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Bütün kod YZ ile y
 | **1. sürüm** | | | | | | | | | |
 | Altyapı | Ortak bileşenler (§1.1) | | | | | | | | |
 | AUTH | Kimlik ve yetki (§1.2) | | ~1 | | | 6† | | 1 | PR (şube: `irem/auth-wbs3`); `ManualAccountStatusCheck.cs`¶ |
-| CRS | Ders ve kayıt (§1.3) | | | | | | | | |
+| CRS | Ders ve kayıt (§1.3) | | | | | | | | §1.3, PR #20 |
 | ASG | Ödev ve teslim (§1.4) | | | | | | | | |
 | GRD | Değerlendirme (§1.5) | | ~1,1 | | | 7◊ | | | §1.5, PR #23 |
 | **2. sürüm** | | | | | | | | | |
@@ -346,7 +432,7 @@ Tasarım: WBS-2 §4.4, kriter K17 (eşik yok, raporlanır). Bütün kod YZ ile y
 | FILE | Yükleme ve antivirüs (§2.4) | | | | | | | | |
 | FILE | Temizlik görevi ve ders dosyaları (§2.5) | | ~1,0 | | | 4△ | | 1 | §2.5 |
 | ASG | Ödeve dosya teslimi (§2.4) | | | | | | | | |
-| AUTH ve CRS | Kalan gereksinimler (§2.3) | | | | | | | | |
+| AUTH ve CRS | Kalan gereksinimler (§2.3) | | | | | | | | §2.3, PR #31, #43, #44, #45, #46, #47 |
 
 † İnceleme turu sayısı, bu oturumdaki kendi kendine derleme/test döngülerinden (insan incelemesi değil) sayılmıştır: ilk derleme hatası (eksik `using`), ardından tam test koşusunda ortaya çıkan 3 CRS/GRD testi + 1 birim testi düzeltmesi, ardından AUTH'un kendi testlerinde 3 ayrı hata (kimlik çakışması, kilitlenme eşiği, `/permissions`'ın CRS'ye bağımlılığı). Bağımsız bir insan kod incelemesi henüz yapılmadı.
 § İlk derlemede iki hata (yanlış tam nitelikli tür adı, `Task`/`ValueTask` uyuşmazlığı); ikinci denemede derlendi ve tüm testler ilk çalıştırmada geçti.

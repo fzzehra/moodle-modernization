@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using Microsoft.EntityFrameworkCore;
 using Moodle.Application.Courses;
 
@@ -11,7 +12,7 @@ namespace Moodle.Infrastructure.Files;
 /// ikinci çalıştırmada işlenecek kayıt kalmaz.</para>
 /// Ödev teslim dosyaları (<c>mod_assign</c>) bu sınıfın kapsamı dışındadır; onları ASG modülü kendi uzantısıyla temizler.
 /// </summary>
-public sealed class FileCourseDeletedExtension(FilesDbContext db, TimeProvider clock) : ICrsEventExtension
+public sealed class FileCourseDeletedExtension(FilesDbContext configured, TimeProvider clock) : ICrsEventExtension
 {
     public const string ExtensionId = "file.course-deleted";
     public const string CourseDeletedKind = "course.deleted";
@@ -23,11 +24,19 @@ public sealed class FileCourseDeletedExtension(FilesDbContext db, TimeProvider c
     {
         if (notification.Kind != CourseDeletedKind) return;
 
+        await using var db = new FilesDbContext(new DbContextOptionsBuilder<FilesDbContext>()
+            .UseNpgsql(configured.Database.GetConnectionString()).Options);
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var entries = await db.Entries
             .Where(e => e.Component == CourseFilePolicy.ComponentName && e.ContextId == notification.CourseId && e.DeletedAt == null)
             .ToListAsync(ct);
         if (entries.Count == 0) return;
 
+        foreach (var hash in entries.Select(e => e.ContentHash).Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal))
+        {
+            var key = BinaryPrimitives.ReadInt64BigEndian(Convert.FromHexString(hash));
+            await db.Database.ExecuteSqlAsync($"SELECT pg_advisory_xact_lock({key})", ct);
+        }
         var now = clock.GetUtcNow();
         var ids = entries.Select(e => e.Id).ToList();
         foreach (var entry in entries) entry.DeletedAt = now;
@@ -43,5 +52,6 @@ public sealed class FileCourseDeletedExtension(FilesDbContext db, TimeProvider c
         }
 
         await db.SaveChangesAsync(ct);
+        await transaction.CommitAsync(ct);
     }
 }

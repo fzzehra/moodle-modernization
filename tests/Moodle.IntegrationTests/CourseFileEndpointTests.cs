@@ -165,9 +165,15 @@ public sealed class CourseFileEndpointTests(FileRolesApiFixture fixture) : IClas
 }
 
 /// <summary>Örnek veri: SENG101 ders dosyası (FILE-FR-13; T-FILE-03, T-FILE-05 için başlangıç verisi).</summary>
-public sealed class CourseFilesSeedTests(FilesPostgresFixture files, CrsPostgresFixture crs)
-    : IClassFixture<FilesPostgresFixture>, IClassFixture<CrsPostgresFixture>
+public sealed class CourseFilesSeedTests(FilesPostgresFixture files)
+    : IClassFixture<FilesPostgresFixture>
 {
+    // Course lifecycle locks and FILE writes use the same PostgreSQL database, as in Compose.
+    private CrsDbContext CreateCrsContext()
+    {
+        using var fileDb = files.CreateContext();
+        return new(new DbContextOptionsBuilder<CrsDbContext>().UseNpgsql(fileDb.Database.GetConnectionString()).Options);
+    }
     private sealed class AnyCourse : Moodle.Application.Abstractions.ICourseDirectory
     {
         public Task<Moodle.Application.Abstractions.CourseInfo?> FindAsync(int courseId, CancellationToken ct = default) =>
@@ -192,18 +198,17 @@ public sealed class CourseFilesSeedTests(FilesPostgresFixture files, CrsPostgres
     public async Task FILE_FR_13_SENG101_ders_notlari_eklenir_ve_tekrar_calistirma_kopya_uretmez()
     {
         var data = SampleDataset.Create();
-        await using (var crsDb = crs.CreateContext())
-            await new CrsSeedContributor(crsDb).SeedAsync(data);
+        await using (var crsDb = CreateCrsContext()) { await crsDb.Database.MigrateAsync(); await new CrsSeedContributor(crsDb).SeedAsync(data); }
 
         int courseId;
-        await using (var crsDb = crs.CreateContext())
+        await using (var crsDb = CreateCrsContext())
             courseId = await crsDb.Courses.Where(c => c.ShortName == "SENG101").Select(c => c.Id).SingleAsync();
 
         var policy = new CourseFilePolicy(new AnyCourse(), new TeacherOf(data.UserId("ogretmen1")), new NoCapabilities());
         for (var run = 0; run < 2; run++)
         {
             await using var filesDb = files.CreateContext();
-            await using var crsDb = crs.CreateContext();
+            await using var crsDb = CreateCrsContext();
             var store = new FakeFileStore();
             var uploads = new DraftUploadService(filesDb, store, new CleanTestScanner(), new UploadLimits(), TimeProvider.System);
             var service = new FileService(filesDb, store, new FilePolicyRegistry([new UserFilePolicy(), policy]), TimeProvider.System, uploads);

@@ -35,7 +35,20 @@ public sealed class FileRolesApiFixture : IAsyncLifetime
     public FilesPostgresFixture Database { get; } = new();
     private readonly WebApplicationFactory<Program> _root = new();
 
-    public Task InitializeAsync() => Database.InitializeAsync();
+    public async Task InitializeAsync()
+    {
+        await Database.InitializeAsync();
+        await using var files = Database.CreateContext();
+        await using var crs = new Moodle.Infrastructure.Courses.CrsDbContext(
+            new DbContextOptionsBuilder<Moodle.Infrastructure.Courses.CrsDbContext>().UseNpgsql(files.Database.GetConnectionString()).Options);
+        await crs.Database.MigrateAsync();
+        var category = new Moodle.Domain.Courses.CourseCategory { Name = "FILE integration" };
+        crs.Categories.Add(category); await crs.SaveChangesAsync();
+        crs.Courses.AddRange(
+            new Moodle.Domain.Courses.Course { Id = CourseId, CategoryId = category.Id, FullName = "Visible", ShortName = "FILE101" },
+            new Moodle.Domain.Courses.Course { Id = HiddenCourseId, CategoryId = category.Id, FullName = "Hidden", ShortName = "FILE102", Visible = false });
+        await crs.SaveChangesAsync();
+    }
 
     /// <param name="userId">Oturumdaki kullanıcı; <c>null</c> ise oturum yok.</param>
     /// <param name="fakeAuth"><c>true</c> ise depodaki AUTH sahtesi kullanılır (503 beklenir).</param>

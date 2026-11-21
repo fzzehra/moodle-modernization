@@ -8,6 +8,7 @@ public sealed class CrsDbContext(
     DbContextOptions<CrsDbContext> options) : DbContext(options)
 {
     public DbSet<CourseCategory> Categories => Set<CourseCategory>();
+    public DbSet<CourseSection> Sections => Set<CourseSection>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<CourseEnrolment> Enrolments => Set<CourseEnrolment>();
 
@@ -37,6 +38,15 @@ public sealed class CrsDbContext(
                 .WithMany()
                 .HasForeignKey(x => x.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        model.Entity<CourseSection>(e =>
+        {
+            e.ToTable("crs_sections");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Name).HasMaxLength(255).IsRequired();
+            e.HasIndex(x => x.CourseId);
+            e.HasOne<Course>().WithMany().HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.Cascade);
         });
 
         model.Entity<CourseEnrolment>(e =>

@@ -13,7 +13,7 @@ namespace Moodle.Infrastructure.Files;
 /// (Moodle'da <c>moodle/course:managefiles</c> yalnızca editingteacher ve manager'dadır).</item>
 /// </list>
 /// Yönetici <see cref="IAccessPolicy"/> ile <see cref="ManageFiles"/> yeteneği sorularak bulunur; bu yetenek
-/// <c>CapabilityRules</c>'ta henüz tanımlı olmadığından şu an yalnızca yöneticiye açıktır. Rol ayrıca
+/// <c>CapabilityRules</c> yöneticiyi ve düzenleyen öğretmeni açıkça destekler. Rol ayrıca
 /// <see cref="IEnrolmentQuery"/> ile denetlenir; böylece politika AUTH'taki değişikliğe bağımlı değildir.
 /// Reddedilen erişim dosya servisinde 404 olur (FILE-BR-11).
 /// </summary>

@@ -7,6 +7,8 @@ using Moodle.Infrastructure.Courses;
 
 namespace Moodle.Api.Courses;
 
+public sealed record SectionRequest(string? Name);
+
 public static class CrsEndpoints
 {
     public static IServiceCollection AddCrsApi(this IServiceCollection services)
@@ -19,6 +21,20 @@ public static class CrsEndpoints
     {
         var api = endpoints.MapGroup("/api/v1").WithTags("CRS")
             .AddEndpointFilter<CrsEndpointFilter>();
+
+        api.MapGet("/courses/{courseId:int}/sections", async (int courseId, CourseSectionService sections, CrsAuthorization auth, CancellationToken ct) =>
+        {
+            await auth.RequireAsync("course.view", ContextRef.ForCourse(courseId), ct);
+            var course = await sections.RequireCourseAsync(courseId, ct);
+            if (!course.Visible) await auth.RequireAsync("course.viewhidden", ContextRef.ForCourse(courseId), ct);
+            return Results.Ok(await sections.ListAsync(courseId, ct));
+        });
+        api.MapPost("/courses/{courseId:int}/sections", async (int courseId, SectionRequest body, CourseSectionService sections, CrsAuthorization auth, CancellationToken ct) =>
+        {
+            await auth.RequireAsync("course.update", ContextRef.ForCourse(courseId), ct);
+            var section = await sections.CreateAsync(courseId, body.Name, ct);
+            return Results.Created($"/api/v1/courses/{courseId}/sections", section);
+        }).AddEndpointFilter<CookieWriteProtection>();
 
         api.MapGet("/categories", async (CrsService service, CrsAuthorization auth, CancellationToken ct) =>
         {

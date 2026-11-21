@@ -1,4 +1,4 @@
-﻿# WBS-2 Hedef Mimari ve Modernizasyon Sürecinin Tasarlanması
+# WBS-2 Hedef Mimari ve Modernizasyon Sürecinin Tasarlanması
 
 ## 1. Hedef dil ve teknoloji seçimi (Seray)
 
@@ -1140,6 +1140,8 @@ Yollar `/api/v1` önekini kullanır. JSON hata gövdesi §3.6.4 ile uyumludur. `
 | GET | `/assignments/{id}/submissions/{submissionId}` | — | `200` yetkili teslim görünümü | Sahip veya ilgili öğrenciyi görebilen değerlendirici |
 
 Oluşturma ASG-FR-01’i, teslim yazma ASG-FR-02 ve ASG-BR-01/02’yi, liste ASG-FR-03’ü, teslim okuma ASG-NFR-01’i karşılar.
+
+**22.11.2026 kullanıcı onaylı uygulama kararı:** Bölüm aidiyeti minimal kalıcı crs_sections (Id/CourseId/Name), gerçek ICourseSectionQuery ve yetkili GET/POST /courses/{courseId}/sections ile sağlanır. Yeni grup modeli veya yönetim ekranı eklenmez. [Migration, yetki ve test kararı](asg-file-wbs3/SON-BOLUM-ENTEGRASYONU.md).
 
 ### 3.5 Değerlendirme (Aslı Ceren)
 

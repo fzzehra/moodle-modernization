@@ -59,6 +59,16 @@ public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicy
     {
         var draft = await RequireOwnDraftAsync(userId, draftId, ct);
         if (!await CanWriteAsync(userId, target, ct)) throw AppException.NotFound();
+        // Real course files must commit before CRS deletion, or be rejected after it.
+        var courseTarget = policies.Find(target.Component) is CourseFilePolicy;
+        await using var courseTransaction = courseTarget && db.Database.CurrentTransaction is null
+            ? await db.Database.BeginTransactionAsync(ct) : null;
+        if (courseTarget)
+        {
+            var rows = await db.Database.SqlQuery<int>($"SELECT \"Id\" AS \"Value\" FROM crs_courses WHERE \"Id\"={target.ContextId} FOR KEY SHARE").ToListAsync(ct);
+            if (rows.Count == 0) throw AppException.NotFound();
+        }
+
 
         var sourceArea = DraftArea(userId, draftId);
         var draftEntries = await ActiveEntries(sourceArea, null).ToListAsync(ct);
@@ -78,6 +88,7 @@ public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicy
             entry.UpdatedAt = now;
         }
         await db.SaveChangesAsync(ct);
+        if (courseTransaction is not null) await courseTransaction.CommitAsync(ct);
         return draftEntries.Select(ToMeta).ToList();
     }
 

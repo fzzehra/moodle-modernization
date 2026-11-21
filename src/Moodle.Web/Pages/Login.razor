@@ -40,12 +40,11 @@
         error = null;
         try
         {
-            // RequiresPasswordChange burada ayrı bir sayfaya yönlendirilmez; 1. sürüm kapsamı yalnızca
-            // giriş sayfasıdır (WBS-3). API uç noktası (change-password) hazırdır, kendi arayüzü yoktur.
-            await Api.LoginAsync(_model.Username, _model.Password);
+            var result = await Api.LoginAsync(_model.Username, _model.Password);
             // AUTH-FR-01: çerez yeni ayarlandı; mevcut devre eski (anonim) HttpContext'i taşıdığından
             // tam sayfa yenileme ile yeni bir istek (ve devre) başlatılır ki oturum hemen görünsün.
-            Nav.NavigateTo("/", forceLoad: true);
+            // AUTH-FR-09 / BR-06: zorunlu parola değişikliği varsa normal akış yerine parola değiştirme sayfası açılır.
+            Nav.NavigateTo(result.RequiresPasswordChange ? ChangePassword.RequiredPath : "/", forceLoad: true);
         }
         catch (AuthApiException ex)
         {

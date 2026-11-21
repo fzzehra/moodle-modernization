@@ -75,6 +75,16 @@ public sealed class AuthService(
         return true;
     }
 
+    /// <summary>
+    /// AUTH-FR-09 / AUTH-BR-06: kullanıcı için zorunlu parola değişikliği bekliyor mu. Her istekte veritabanından
+    /// okunur; böylece parola değişince (veya bayrak sonradan konunca) yeni oturum açmadan hemen etkili olur.
+    /// </summary>
+    public async Task<bool> RequiresPasswordChangeAsync(int userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        return user?.RequirePasswordChange == true;
+    }
+
     private async Task LogAsync(int? userId, string attemptedUsername, SecurityEventType type, CancellationToken ct)
     {
         db.SecurityEvents.Add(new SecurityEvent

@@ -70,6 +70,7 @@ public sealed class AuthApiClient(HttpClient http) : IDisposable
                 "account_locked" => "Hesabınız çok sayıda başarısız denemeden sonra kilitlendi. Lütfen daha sonra tekrar deneyin.",
                 "current_password_invalid" => "Mevcut parola hatalı.",
                 "not_authenticated" => "Oturum açmanız gerekiyor.",
+                "password_change_required" => "Devam etmek için parolanızı değiştirmeniz gerekiyor.",
                 _ when !string.IsNullOrWhiteSpace(message) => message,
                 _ => "İşlem tamamlanamadı. Lütfen daha sonra yeniden deneyin.",
             };

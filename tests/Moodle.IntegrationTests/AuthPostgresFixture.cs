@@ -47,7 +47,7 @@ public sealed class AuthPostgresFixture : IAsyncLifetime
     /// <summary>Testin kendi kullanıcısını doğrudan UserManager ile oluşturur (gerçek parola özetiyle).</summary>
     public static async Task<AppUser> SeedUserAsync(
         WebApplicationFactory<Program> factory, string username, string password,
-        bool suspended = false, bool deleted = false, string[]? systemRoles = null)
+        bool suspended = false, bool deleted = false, string[]? systemRoles = null, bool requirePasswordChange = false)
     {
         using var scope = factory.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
@@ -57,7 +57,7 @@ public sealed class AuthPostgresFixture : IAsyncLifetime
         {
             Id = Interlocked.Increment(ref _nextTestUserId),
             UserName = username, Email = $"{username}@example.com", EmailConfirmed = true,
-            Suspended = suspended, Deleted = deleted,
+            Suspended = suspended, Deleted = deleted, RequirePasswordChange = requirePasswordChange,
         };
         var created = await userManager.CreateAsync(user, password);
         if (!created.Succeeded)

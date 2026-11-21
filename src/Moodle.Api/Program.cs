@@ -46,6 +46,8 @@ app.UseStaticFiles();
 // ile döndüğünden çerez tabanlı 302 yönlendirmesi AddCookie olay işleyicilerinde devre dışı bırakılmıştır.
 app.UseAuthentication();
 app.UseAuthorization();
+// AUTH-FR-09: zorunlu parola değişikliği tamamlanmadan AUTH dışındaki API işlemleri reddedilir.
+app.UseMiddleware<PasswordChangeRequiredMiddleware>();
 app.UseAntiforgery();
 
 app.MapAssignmentEndpoints();

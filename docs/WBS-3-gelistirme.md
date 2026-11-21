@@ -163,6 +163,19 @@ Manuel kod yazma zorunluluğu kullanıcı tarafından kaldırılmıştır; geçm
 | --- | --- | --- |
 | `LocalDiskFileStore` | 107 | ~35 saat |
 | `FileConsistencyChecker` | 27 | ~8 saat |
+| `FileCourseDeletedExtension` | 30 | ~9 saat |
+
+Bu tablo ön tahmindir; COCOMO hesabı raporda herkes için aynı kurallarla toplu yapılır (§3).
+
+#### YZ kaydı (Seray, `course.deleted` dinleyicisi)
+
+**Model ve sürüm:** Claude Sonnet 5.5 (Claude Code)
+**Kullanılan adım(lar):** Kod üretimi, test yazımı
+**Verilen bağlam:** CRS'nin `ICrsEventExtension` arayüzü ve olay altyapısı (`CrsChangeEvent`, `CrsEventExtensionPipeline`), `CourseFilePolicy`, `FileService.SoftDeleteAsync`
+**Yapılan iş:** `FileCourseDeletedExtension` (`src/Moodle.Infrastructure/Files/`): `course.deleted` olayında dersin dosyalarını (`component = course`, bağlam = ders kimliği) çöpe taşır, başka kayıtça kullanılmayan içeriği boşa düşürür. Kalıcı silme temizlik görevinde kalır (FILE-BUG-04 yeniden denetimi korunur). Tekrar iletime dayanıklıdır: yalnızca `DeletedAt = null` kayıtlar işlenir. Ödev teslim dosyaları (`mod_assign`) ASG'nin kapsamındadır, dokunulmadı. Gerçek PostgreSQL ile 4 entegrasyon testi (`FileCourseDeletedTests`).
+**Yapılan düzeltmeler:** Düzeltme gerekmedi, testler ilk çalıştırmada geçti. İnsan düzeltmesi: yok.
+**Harcanan süre:** İnsan: ~0,3 saat (tahmin) · YZ ile çalışma: ~0,3 saat (tahmin; oturum kaydı alt sınırı ~0,1 saat)
+**Kanıt:** PR (`seray/file-course-deleted`)
 
 ### 2.2 Dosya kaydetme, indirme, silme ve kota (İrem)
 

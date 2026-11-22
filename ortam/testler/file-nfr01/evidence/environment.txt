@@ -1,0 +1,7 @@
+2026-11-22T10:57:22+0000
+Darwin arm64
+Docker CPUs=8 RAM bytes=4108632064
+PostgreSQL 17.12 (Debian 17.12-1.pgdg13+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit
+k6 v2.4.0 (commit/dd9395906d, go1.27.3, linux/arm64)
+73be9af7e8dbd36becabbdbd450d3f15b323d5cc
+file: performans-ornek.txt, size=234428 bytes (~229 KiB), fileId=1, owner=ogretmen1

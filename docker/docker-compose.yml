@@ -47,6 +47,11 @@ services:
       Database__SeedAsg: "${ASG_SEED:-false}"
       FILES_ROOT: /var/moodle-files   # içerik adresli dosya deposu (modern-files birimi)
       ConnectionStrings__Default: "Host=modern-db;Port=5432;Database=moodle_modern;Username=moodle;Password=${MODERN_DB_PASSWORD:-local_dev_only}"
+      # Opsiyonel: /admin/files gibi SiteAdmin'e özel uçları yerelde denemek için (bkz. ConfiguredSiteAdminSeedContributor).
+      # ornek-veri.feature'daki yonetici1 yalnızca Manager'dır, SiteAdmin değildir — bu, o veriye ek bir kullanıcıdır.
+      # Yalnızca ikisi birden ve SEED_SAMPLE_DATA=true iken devreye girer; Development/Testing dışında reddedilir.
+      Development__SiteAdmin__Username: "${SITEADMIN_USERNAME:-}"
+      Development__SiteAdmin__Password: "${SITEADMIN_PASSWORD:-}"
     volumes:
       - modern-files:/var/moodle-files
     ports:

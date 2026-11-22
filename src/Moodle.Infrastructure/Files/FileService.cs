@@ -177,19 +177,6 @@ public sealed class FileService(FilesDbContext db, IFileStore store, IFilePolicy
         }
     }
 
-    private async Task EnsureBlobRowAsync(StoredBlob blob, CancellationToken ct)
-    {
-        var row = await db.Blobs.FindAsync([blob.ContentHash], ct);
-        if (row is null)
-            db.Blobs.Add(new FileBlob
-            {
-                ContentHash = blob.ContentHash, SizeBytes = blob.SizeBytes,
-                StorageKey = blob.StorageKey, CreatedAt = clock.GetUtcNow(),
-            });
-        else
-            row.OrphanedAt = null; // içerik yeniden kullanılmaya başladı (ör. aynı içerik tekrar yüklendi)
-    }
-
     private Task<FileSetting> SettingsAsync(CancellationToken ct) => db.Settings.AsNoTracking().SingleAsync(ct);
 
     private static FileMeta ToMeta(FileEntry e) =>

@@ -217,6 +217,48 @@ Bu tablo ön tahmindir; COCOMO hesabı raporda herkes için aynı kurallarla top
 
 **Kanıt:** Bu PR (şube: `irem/file-wbs3-2surum`).
 
+#### Takip (22.11.2026): Fatma Zehra'nın §2.5 sınırlılıklarından İrem'e düşenler
+
+Fatma Zehra'nın temizlik görevi PR'ındaki (§2.5) "Sınırlılıklar" listesinden İrem'in kapsamına düşen üç
+madde incelendi:
+
+- **Yükleme tarafında kapanmayan FILE-BUG-04 yarış durumu — zaten kapanmış.** `FileService.cs`'teki
+  `EnsureBlobRowAsync` metodu (§2.5'in bahsettiği yer) artık hiçbir yerden çağrılmıyor: Aslı Ceren'in
+  `DraftUploadService.AddAsync`'i (PR #42) içeriğin SHA-256 özetinden türettiği aynı anahtarla
+  `pg_advisory_xact_lock` alıyor ve bu, `FileMaintenanceService.TryDeleteBlobRowAsync`'in kullandığı
+  `pg_advisory_lock`/`pg_advisory_unlock` ile aynı anahtar uzayını paylaşıyor (ikisi de hash baytlarının
+  ilk 8 baytını `BinaryPrimitives.ReadInt64BigEndian` ile okuyor) — PostgreSQL'de oturum ve işlem kapsamlı
+  advisory kilitler aynı anahtarda birbirini bloklar. Yani yükleme ile temizlik görevi artık aynı içerik
+  üzerinde yarışmıyor; §2.5 yazıldığındaki `EnsureBlobRowAsync` yolu Aslı Ceren'in PR'ıyla zaten devre dışı
+  kalmış, sadece ölü kod olarak duruyordu. Bu oturumda ölü kod silindi, davranışta değişiklik yok.
+- **`course.managefiles` tanımsızlığı — zaten tanımlı.** Aslı Ceren aynı gün (PR #52,
+  `a7eb58e`) `CapabilityRules.cs`'e `"course.managefiles" => isSiteManager || isEditingTeacher` satırını
+  eklemiş; §2.5'teki not o PR'dan önceki duruma aitti. Ek iş gerekmedi.
+- **Örnek veride `SiteAdmin` yok — düzeltildi.** `ornek-veri.feature`'a dokunmadan (sadakat kuralı,
+  Seray'ın tohumlaması), `docker/docker-compose.yml`'a opsiyonel `Development:SiteAdmin:Username/Password`
+  ortam değişkenleri eklendi; zaten var olan (ve test edilen) `ConfiguredSiteAdminSeedContributor`
+  bu değerler verilince ek bir `SiteAdmin` rolündeki kullanıcıyı `SEED_SAMPLE_DATA=true` ile birlikte
+  oluşturuyor. Varsayılan boş, prod'da da yalnızca Development/Testing ortamında çalışıyor (zaten
+  vardı). Yerelde denendi: `SITEADMIN_USERNAME=yonetici-test SITEADMIN_PASSWORD=... SEED_SAMPLE_DATA=true
+  docker compose -f docker/docker-compose.yml up -d --build` sonrası `/admin/files` bu kullanıcıyla açıldı.
+
+Ayrıca FILE-NFR-01/T-FILE-15'in §2.2'de "bu oturumda çalıştırılmadı" diye not edilen k6 ölçümü bu takipte
+gerçekten çalıştırıldı: `docker compose -f docker/docker-compose.yml up -d --build` ile uygulama ayağa
+kaldırıldı (ClamAV imajının bu Apple Silicon makinede `arm64` manifestosu olmadığından `docker pull
+--platform linux/amd64 clamav/clamav:stable` ile emülasyonla çekildi — tek seferlik yerel ortam sorunu,
+koda/compose dosyasına kalıcı bir değişiklik gerekmedi), `ogretmen1`'in zaten tohumlanmış özel dosyası
+(`performans-ornek.txt`, 234.428 bayt) eski sistemle aynı yöntemle (50 VU, paylaşılan tek oturum) `k6` ile
+indirildi. **Sonuç: FILE-NFR-01 karşılanıyor** — 3 tekrarda p95 = 95,64 / 62,84 / 150,75 ms (hedef ≤ 1.000
+ms), %0 hata. Ayrıntı ve tekrar çalıştırma adımları: `ortam/testler/file-nfr01/results.md`.
+
+**Yapay zekâ kaydı (bu takip):** Claude Code (Claude Sonnet 5). Verilen bağlam: Fatma Zehra'nın ekip
+mesajındaki madde madde istekler, mevcut `FileService.cs`/`DraftUploadService.cs`/`CapabilityRules.cs`/
+`ConfiguredSiteAdminSeedContributor.cs` kodu, WBS-1 §4.6.10'daki T-FILE-15 yöntemi. Yapılan iş: kod
+incelemesiyle iki maddenin zaten kapalı olduğunun doğrulanması, ölü kod temizliği, compose dosyasına
+SiteAdmin ortam değişkenleri, k6 betiğinin yazılması ve gerçek ölçümün çalıştırılması, iki belgenin
+güncellenmesi. İnsan incelemesi: henüz yapılmadı (bu PR'ın kod incelemesi sırada Sinem'e düşüyor, İrem →
+Sinem akışıyla aynı). Elle geliştirme: yapılmadı (COCOMO karşılaştırması raporda toplu yapılacak, §3).
+
 ### 2.3 AUTH ve CRS'nin kalan gereksinimleri (Sinem)
 
 #### CRS-FR-11 / CRS-NFR-06: Arka planda ders silme

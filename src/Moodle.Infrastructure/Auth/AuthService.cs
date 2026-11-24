@@ -71,6 +71,9 @@ public sealed class AuthService(
 
         user.RequirePasswordChange = false;
         await userManager.UpdateAsync(user);
+        // AUTH-NFR-03 (aday): ChangePasswordAsync güvenlik damgasını yeniledi. Parolayı değiştiren oturumun çerezi
+        // yeni damgayla yeniden yazılır (kalıcılığı korunur); bu kullanıcının diğer çerezleri damga doğrulamasında reddedilir.
+        await signInManager.RefreshSignInAsync(user);
         await LogAsync(userId, user.UserName ?? "", SecurityEventType.PasswordChanged, ct);
         return true;
     }

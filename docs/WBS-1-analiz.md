@@ -291,6 +291,12 @@ Ankette değerlendirilmesi önerilen konular:
 
 Bu maddeler doğrulanmış şikâyet değil, araştırılacak kullanıcı ihtiyaçlarıdır.
 
+**Anket sonrası güncelleme (24.11.2026).** Yukarıdaki metin anket tamamlanmadan yazılmıştır. §3.4 (c) tema 4'te 3 öğrenci bağımsız olarak tekrar tekrar oturum açmak zorunda kalmaktan şikâyet etmiştir ("sürekli tekrar tekrar giriş yapmak, kullanıcı hatırlamaması"). Anket öğrencilerin **mevcut Moodle** deneyimini sorar; bu bulgu yeni uygulamada gözlenmiş veya doğrulanmış bir kullanıcı hatası değildir. Yeni uygulamada oturum çerezi zaten kalıcı ve 14 günlük kayan sürelidir. İnceleme, yeni uygulamada aynı belirtiyi doğurabilecek iki yapılandırma eksiği bulmuş ve bunlar giderilmiştir (WBS-3 §2.3): oturum çerezini şifreleyen anahtarların konteyner yeniden oluşturulunca kaybolması ve parola değişikliğinin diğer oturumları sonlandırmaması. Bu bulguya dayanan gereksinim adayı aşağıdadır; §4.1.9'a alınması ekip onayına bağlıdır.
+
+| Kimlik | Sınıf | Gereksinim | Kaynak | Öncelik | Kabul ölçütü | Test |
+| --- | --- | --- | --- | --- | --- | --- |
+| AUTH-NFR-03 (aday) | Y | Kullanıcı, oturumu geçerli olduğu sürece aynı tarayıcıda yeniden giriş yapmak zorunda kalmamalı; oturum güvenlik olaylarında makul sürede sona ermelidir. | §3.4 (c) tema 4 (3 öğrenci, mevcut Moodle); AUTH-BR-07 | S | (1) Girişte kalıcı oturum çerezi verilir, 14 gün geçerlidir; süresinin yarısı geçtikten sonra yapılan bir istekte süre yeniden 14 gün olur. (2) Çerez anahtarları kalıcı bir dizinde (`DataProtection:KeysPath`) tutulduğu sürece uygulamanın yeniden başlatılması veya konteynerin yeniden oluşturulması oturumu sonlandırmaz. (3) Kullanıcı parolasını değiştirdiğinde değişikliği yapan oturum yenilenerek açık kalır; aynı kullanıcının diğer oturumları anında değil, en geç 30 dakikalık güvenlik damgası doğrulama aralığından sonraki ilk istekte reddedilir. (4) Çıkış, o tarayıcıdaki çerezi siler; çerezin kopyaları sunucu tarafında ayrıca iptal edilmez (bilinen sınır). | T-AUTH-11 (aday): kalıcı çerez süresi; aynı anahtar dizinini kullanan iki ayrı host arasında oturumun korunması ve farklı dizinde reddedilmesi; parola değişikliği sonrası eski çerezin doğrulamada reddedilmesi ve değiştiren oturumun yenilenmesi |
+
 #### 4.1.4 İş kuralları: korunacaklar
 
 | Kimlik | Kural | Eski kod |

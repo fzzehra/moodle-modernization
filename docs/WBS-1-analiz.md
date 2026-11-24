@@ -214,12 +214,12 @@ Anketin amacı, modül analizlerinde koddan çıkarılan "araştırılacak kulla
 
 | Tema | Modül/Gereksinim | Durum |
 | --- | --- | --- |
-| 1. Teslim durumu belirsizliği | ASG-FR-02 (gönderme onayı ayarı) | Doğrulandı — WBS-3 1. sürümde zaten kapsamda (Aslı Ceren) |
+| 1. Teslim durumu belirsizliği | ASG-FR-02 (kaydetme/yeniden açma), ASG-BR-01 (gönderme onayına göre taslak/gönderildi) | Mevcut gereksinimleri destekler; yeni geliştirme değildir (§4.4.3) |
 | 2. Gecikme hatırlatması | Yeni aday gereksinim (ASG bildirimi) | Şu an hiçbir FR'de yok; WBS-4 adayı olarak önerilir |
 | 3. Not gerekçesi/toplu görünüm | GRD-FR-02 (öğrencinin kendi not raporu) | Kısmen kapsanıyor; "tüm derslerde tek ekran" WBS-4 adayı |
 | 4. Tekrarlı oturum açma | AUTH (oturum süresi/"beni hatırla") | Sinem'in §4.1.3'üne aktarılması önerilir; 14 günlük çerez süresine rağmen kullanıcı algısı farklı |
 | 5. Mobil uygulama | — | Kapsam dışı, kayıt amaçlı not düşüldü |
-| 6. Öğretmen toplu teslim takibi | ASG-FR-03 (teslim listesi), GRD-FR-03 (not defteri) | Doğrulandı — zaten WBS-3 1. sürüm kapsamında |
+| 6. Öğretmen toplu teslim takibi | ASG-FR-03 (teslim listesi), GRD-FR-03 (not defteri) | Mevcut gereksinimleri destekler (§4.4.3, §4.5.3); kilitli/elle değiştirilmiş not göstergeleri için kabul netleştirmesi adayı §4.5.9’da değerlendirilir |
 | 7. Zorunlu ön şart önceliği | ADV-FR-01, 02 (§4.3.9); §4.3.11/§5.8 kapsam kararı | Doğrulandı — "önce zorunlu, sonra yumuşak kısıt" sıralamasını teyit ediyor |
 | 8. Tek ekranda zorunlu ders + eksik kredi | PLAN-FR-01, 04 (§5.5) | Doğrulandı — PLAN'ın §5.1/§5.3 kapsamını doğrudan destekliyor |
 
@@ -1033,7 +1033,13 @@ Düzenleyen öğretmen derse ödev ekler, tarihleri ve teslim türünü seçer. 
 
 #### 4.4.3 Kullanıcı ihtiyaçları ve şikâyetler
 
-§3’te yayımlanmış anket sonucu bulunmadığından şikâyet kaydı yok. Doğrulanacak ihtiyaçlar öğrencinin taslak ve gönderildi durumlarını ayırt edebilmesi ve öğretmenin değerlendirme bekleyen teslimleri bulabilmesidir.
+**Anket dayanağı (24.11.2026; §3.4 Tema 1 ve Tema 6).** [Ham CSV](../ortam/anket/sonuclar.csv) 16 yanıt içerir: 14 öğrenci ve yalnız 2 öğretmen. Çoklu seçimli önem sorusunda 7/14 öğrenci (%50), “Teslim durumumu (taslak/gönderildi) net görmek” seçeneğini işaretlemiştir. CSV kayıt 4'te bir öğrenci “Bazen ödevi yükledikten sonra gerçekten teslim edilip edilmediğinden emin olamıyorum. Tekrar kontrol etme ihtiyacı duyuyorum.” demiştir (başlık dahil kayıt numarası).
+
+Bu bulgular **ASG-FR-02** ile teslim metninin kaydedilmesi/yeniden açılmasını ve **ASG-BR-01** ile kaydetmenin gönderme onayına göre taslak ya da gönderildi sonucunu vermesini destekler. Gönderme onayı ayarı ASG-FR-02'nin değil, ASG-BR-01'in iş kuralıdır (§4.4.4/9). AssignmentService.SaveAsync durum geçişini, SubmitAsync ayrıca göndermeyi, MineAsync kayıt ve güncel durumu sağlar. AssignmentServiceTests içindeki T_ASG_01_ASG_FR_02_ASG_BR_01_save_confirmation_and_read ve AssignmentApiTests içindeki T_ASG_01_ASG_FR_02_ASG_BR_01_save_update_reopen_and_query ile gönderme/düzenleme koruması testleri bu davranışları kapsar.
+
+Tema 6'da iki öğretmenin de (%100, n=2) zaman kaybı yanıtı değerlendirme/teslim takibiyle ilgilidir: kayıt 5 “Diğer (Ödev oluşturma, öğrenci teslimlerini kontrol etme ve notlandırma)”, kayıt 6 “Ödev değerlendirmek” der. “Özellikle kalabalık sınıflarda teslim durumlarını karşılaştırmak zaman alıyor.” alıntısı aynı öğretmenin **danışmanlık/ön şart sorusuna** verdiği kayıt 5 yanıtındadır; değerlendirme sorusuna verilmiş gibi sunulmaz. Bu çapraz sorudaki teslim takibi görüşü **ASG-FR-03** gerekçesini destekler. ListAsync yükümlü/yetkili öğrenci kapsamını uygular, teslimi olmayanı notSubmitted olarak ayırır; durum filtresi ve cursor/limit sayfalaması sunar. T_ASG_03_ASG_FR_03_lists_missing_and_submitted_with_paging (birim) ve T_ASG_03_ASG_FR_03_list_missing_filter_page_empty_and_access (entegrasyon) ilgili kanıtlardır.
+
+Bunlar **mevcut ve uygulanmış gereksinimlerin anket desteğidir**; yeni/eksik WBS-3 görevleri değildir. Kod ve mevcut test kanıtları karşılaştırılmış, bu dokümantasyon çalışmasında testler yeniden çalıştırılmamıştır. Küçük ve gönüllü örneklem, özellikle n=2 öğretmen, tüm kullanıcı kitlesine genellenemez. [Son ASG/FILE WBS-3 kanıtı](asg-file-wbs3/DOGRULAMA.json), finalSectionDelivery alanında tarihsel koşu sonuçlarını korur.
 
 #### 4.4.4 Korunacak iş kuralları
 
@@ -1109,7 +1115,13 @@ Sabit revizyon `cfe123f2`. Ödev puanlama işlemi `public/mod/assign/locallib.ph
 
 #### 4.5.3 Kullanıcı ihtiyaçları ve şikâyetler
 
-§3’te yayımlanmış anket sonucu bulunmadığından şikâyet kaydı yok. Araştırılacak ihtiyaçlar öğrencinin bekleyen notu sıfırdan ayırt etmesi ve öğretmenin ödev puanının not defterine aktarımını görebilmesidir.
+**Anket dayanağı (24.11.2026; §3.4 Tema 6).** [Ham CSV](../ortam/anket/sonuclar.csv) içindeki iki öğretmenin değerlendirme/teslim takibinde bildirdiği zaman kaybı (§4.4.3, CSV kayıt 5–6), **GRD-FR-03** not defteri gereksinimini destekler. **ASG-FR-03**, kimin teslim ettiğini/etmediğini ve teslim durumunu gösterir; **GRD-FR-03**, izinli öğrencilerin not kalemlerini ve puanlarını topluca gösterir. Bu iki görünüm, teslim kontrolünden değerlendirmeye geçişte öğretmenin iş yükünü azaltma hedefini birlikte destekler; ankette veya bu çalışmada zaman kazancı ölçülmemiştir.
+
+Önceden kaydedilen bekleyen notu sıfırdan ayırma ve ödev puanının not defterine aktarımını görme ihtiyaçları korunur; ankette bu iki ayrımın ayrıca ölçüldüğü varsayılmaz.
+
+Mevcut GrdService.GetGradebookAsync, GradebookView ve GET /api/v1/courses/{courseId}/gradebook izinli öğrenci/kalem sayfasını üretir; endpoint grade.viewall ister. Gradebook.razor bu veriyi gösterir. GrdReportEndpointTests içindeki GRD_FR_03_teacher_sees_enrolled_learners_and_course_items_with_protection_flags, sayfalama testi ve GRD_NFR_01_student_cannot_open_the_course_gradebook bu uygulamayı kapsar. GRD'nin mevcut WBS-3 uygulaması ve diğer ekip üyelerinin sorumlulukları değiştirilmemiştir.
+
+Önem sorusunda **2/2 öğretmen (%100, n=2)** “Not defterinde kilitli/elle değiştirilmiş notları ayırt etmek” seçeneğini işaretlemiştir. Bu, ikisinin de bir yazılım hatası yaşadığını veya tüm öğretmenlerin aynı görüşte olduğunu göstermez; kayıt 6'nın sorun yanıtı “Yok”tur. İlgili **görsel özellik mevcut kodda vardır**: Locked/LockAt/Overridden model alanları, API hücre bayrakları ve GrdFlags bileşeniyle kilit/kalem simgeleri, başlıklar ve ekran okuyucu metinleri sağlanır. Genel GRD-FR-03 ile değer koruma kuralı GRD-BR-01, bu görsel kabul ayrıntılarını ayrı ayrı yazmadığından §4.5.9'da yalnız **kabul netleştirmesi adayı** önerilir; yeni zorunlu özellik veya eksik üretim kodu olarak kaydedilmez.
 
 #### 4.5.4 Korunacak iş kuralları
 
@@ -1158,6 +1170,29 @@ Not defteri ders, kayıt ve yetenek bağlamına bağlıdır. Ödev kaynak puanı
 | GRD-NFR-01 | K | Öğrencinin başka bir öğrencinin bireysel notlarına erişimi engellenir. | `grade/report/user/index.php:52-73` | M | Başka bir öğrencinin kimliğiyle istenen rapor not verisi döndürmez. | T-GRD-05 |
 
 Bu çekirdek gereksinimler mevcut sayısal notlandırmayı koruduğu için K sınıfındadır. Not kaydı, aktarım, puan sınırları, öğrenci ve öğretmen raporları ile gizlilik ilk sürüm senaryosu için gerekli olduğundan M önceliğindedir. Hata ayıklama kapalı tekrarında izin reddi 404 döndürdüğü için geliştirici ortamındaki 500 gözleminden D kimliği türetilmedi. Onaylanmış yeni kullanıcı işlevi bulunmadığından Y kimliği açılmadı.
+
+##### WBS-4 aday değerlendirmesi — kilitli/elle değiştirilmiş notların görsel ayrımı
+
+**Önerilen kimlik: GRD-FR-04 (aday; ekip değerlendirmesi/onayı bekliyor).** Mevcut onaylı işlevsel kimlikler GRD-FR-01–03'tür; öneri onlarla çakışmaz ve mevcut zorunlu gereksinim tablosuna eklenmemiştir. Kaynak: §3.4(b) öğretmen önem sorusu (2/2, %100), Tema 6 ve §4.5.3. Metin: “Yetkili öğretmen, not defterinde kilitli ve elle değiştirilmiş notları diğer notlardan görsel olarak ayırt edebilmelidir.”
+
+**Mevcut durum: işlev kodda mevcut; açık gereksinim/kabul izlenebilirliği netleştirilecek.** Bu aday yeni bir uygulama eksikliği iddiası değildir. GRD-FR-03 izinli öğrenci/kalem görünümünü, GRD-BR-01 korunan değerin değiştirilmemesini şart koşar; aşağıdaki görsel ölçütleri açıkça saymaz. Ekip, yeni kimlik yerine GRD-FR-03 kabulünü genişletmeyi de seçebilir. Sınıf/öncelik ve WBS-4'e alınma kararı henüz onaylanmamıştır; mevcut davranışın korunması otomatik olarak yeni “Y” işlevi sayılmaz.
+
+| Katman / kanıt | Doğrulanan mevcut durum |
+| --- | --- |
+| GradingEntities.cs; WBS-2 §3.5.1 | Kalemde Locked/LockAt, öğrenci notunda ayrıca Overridden vardır. |
+| GrdService.GetGradebookAsync; GradeResults.cs | Etkin kalem/not kilidi ve elle değiştirme ayrı Locked/Overridden bayrakları olarak API'ye taşınır. GRD-BR-01 yazma koruması ayrı işlevdir. |
+| Gradebook.razor; GrdFlags.razor; grd.css | Sütun/hücre göstergeleri, 🔒/✎ simgeleri, “Kilitli”/“Elle değiştirilmiş” başlıkları ve ekran okuyucu metinleri vardır. İki bağımsız if, iki bayrak birlikte true olduğunda iki göstergeyi de üretir; ayrım yalnız renge dayanmaz. |
+| Mevcut test kanıtları | GrdReportEndpointTests.GRD_FR_03_teacher_sees_enrolled_learners_and_course_items_with_protection_flags API bayraklarını; GrdBlazorTests.GRD_FR_03_gradebook_shows_learners_items_flags_and_editor_links ayrı kilitli/elle değiştirilmiş hücreleri doğrular. Öğrenci erişim reddi testi yetkiyi kapsar. Aynı hücrede iki bayrağın birlikte gösterimi için özel assertion incelenen testlerde bulunmadı; birleşik kabul ayrıca teyit edilebilir, mevcut kodun çalışmadığı anlamına gelmez. |
+
+**Önerilen kabul kriterleri (onaylanmış zorunlu kriter değildir):**
+
+- Kilitli not açık bir simge/metinle ayırt edilir.
+- Elle değiştirilmiş not açık bir simge/metinle ayırt edilir.
+- İki durumu birlikte taşıyan notta iki durum da anlaşılır; biri diğerini gizlemez.
+- Göstergeler yalnız renk farkına dayanmaz; anlamlı metin/başlık ve erişilebilir açıklama korunur.
+- Mevcut grade.viewall ve öğrenci kapsamı kuralları korunur; yetkisiz kullanıcı not defteri verisi alamaz.
+
+Bu aşamada üretim kodu, migration veya test değiştirilmedi; aday kriterler yeni çalıştırılmış kabul testi olarak gösterilmez. GRD sorumlusu/ekip, yeni kimlik veya mevcut GRD-FR-03 altında netleştirme kararını vermelidir.
 
 #### 4.5.10 Test senaryoları
 

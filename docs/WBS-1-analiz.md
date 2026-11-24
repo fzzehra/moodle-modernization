@@ -123,7 +123,7 @@ Her gereksinim aşağıdaki alanlarla yazılır:
 
 ## 3. Kullanıcı ihtiyaçları anketi (İrem)
 
-**Durum:** Anket tasarımı tamamlandı; yanıt toplama henüz yapılmadı. Bu bölüm anket formunu ve dağıtım planını tanımlar. Sonuçlar toplandıkça §3.3'teki özet doldurulacak ve ilgili modül analizlerindeki "Kullanıcı ihtiyaçları ve şikâyetler" alt başlıklarına (§4.1.3, §4.4.3, §4.5.3, §4.6.3 ve ADV §4.3.3) işlenecektir.
+**Durum:** Anket tasarlandı, dağıtıldı ve 16 yanıt toplandı (17–23 Kasım 2026). Bu bölüm anket formunu ve dağıtım planını tanımlar; sonuçların özeti §3.4'tedir. Kendi bölümlerim olan ADV (§4.3.3) ve PLAN (§5.1) bu sonuçlarla güncellendi; diğer modül analizlerindeki "Kullanıcı ihtiyaçları ve şikâyetler" alt başlıkları (§4.1.3 AUTH, §4.4.3 ASG, §4.5.3 GRD, §4.6.3 FILE) ilgili modül sahipleri tarafından §3.4'teki temalarla güncellenebilir.
 
 ### 3.1 Amaç ve yöntem
 
@@ -161,7 +161,71 @@ Anketin amacı, modül analizlerinde koddan çıkarılan "araştırılacak kulla
 
 ### 3.4 Sonuçların özeti
 
-**Bekleniyor.** Yanıtlar toplandığında burada: (a) yanıt sayısı ve rol dağılımı, (b) kapalı uçlu soruların yüzdeleri, (c) açık uçlu yanıtlardan çıkan 3-5 tema ve (d) her temanın hangi modülün hangi gereksinimine (XXX-FR/BR/BUG) bağlandığı listelenecektir.
+**Toplandı (17–23 Kasım 2026), 16 yanıt.** Ham veri: `ortam/anket/sonuclar.csv` (Google Forms dışa aktarımı; karakter kodlaması bu PR'da düzeltildi).
+
+**(a) Yanıt sayısı ve rol dağılımı**
+
+16 yanıt: 14 öğrenci (%87,5), 2 öğretmen (%12,5). Hedef (§3.2: en az 10 öğrenci ve 3 öğretmen) öğrenci tarafında aşıldı; öğretmen tarafında bir yanıt eksik kaldı (2/3). Öğretmen örneklemi küçük olduğundan öğretmen bulguları kesin sonuç değil, **gösterge** olarak okunmalıdır. Gönüllü katılım nedeniyle örneklem rastgele değildir (self-selection olası).
+
+**(b) Kapalı uçlu soruların dağılımı**
+
+*Öğrenci — Moodle'ı en çok ne için kullanıyor? (n=14, tekli seçim)*
+
+| Seçenek | Yanıt | % |
+| --- | ---: | ---: |
+| Ders materyaline erişim | 9 | %64,3 |
+| Ödev teslimi | 3 | %21,4 |
+| Not görme | 2 | %14,3 |
+
+*Öğrenci — aşağıdakilerden hangisi çok önemli? (n=14, çoklu seçim)*
+
+| Seçenek | Yanıt | % |
+| --- | ---: | ---: |
+| Gecikme/kesim tarihine yaklaştığımda uyarı almak | 9 | %64,3 |
+| Notumu neden aldığımı anlamak | 8 | %57,1 |
+| Teslim durumumu (taslak/gönderildi) net görmek | 7 | %50,0 |
+| Dosyalarımı kolayca bulmak | 6 | %42,9 |
+
+*Öğrenci — "Moodle'ı kullanımı kolay buluyorum" (1-5 Likert, n=14):* **ortalama 3,36/5** (dağılım: 1→1 kişi, 2→2, 3→4, 4→5, 5→2).
+
+*Öğretmen — aşağıdakilerden hangisi çok önemli? (n=2, çoklu seçim)*
+
+| Seçenek | Yanıt | % |
+| --- | ---: | ---: |
+| Not defterinde kilitli/elle değiştirilmiş notları ayırt etmek | 2 | %100 |
+| Değerlendirme bekleyen teslimleri hızlı bulmak | 1 | %50 |
+| Ön şartı sağlamayan öğrenciyi otomatik engellemek | 1 | %50 |
+| Ders dosyalarını düzenlemek | 0 | %0 |
+
+*Öğretmen — "Moodle'ın ders ve kayıt yönetimi ihtiyaçlarımı karşılıyor" (1-5 Likert, n=2):* **ortalama 4,5/5**.
+
+**(c) Açık uçlu yanıtlardan çıkan temalar**
+
+1. **Teslimin gerçekten kaydedildiğinden emin olamama** — "Bazen ödevi yükledikten sonra gerçekten teslim edilip edilmediğinden emin olamıyorum" (1 öğrenci, doğrudan alıntı); kapalı uçlu (b)'deki %50 destekle örtüşüyor.
+2. **Gecikme/kesim tarihi hatırlatması isteği** — kapalı uçlu sorunun en çok seçilen maddesi (%64,3).
+3. **Notun gerekçesini / toplu görünümünü anlama** — "Toplu not görünümü" (1 öğrenci) ve kapalı uçlu %57,1 desteği.
+4. **Tekrar tekrar oturum açmak zorunda kalma** — 3 öğrenci bağımsız olarak bundan şikâyet etti ("sürekli hesaba giriş yapmak", "sürekli tekrar tekrar giriş yapmak, kullanıcı hatırlamaması").
+5. **Mobil uygulamanın çalışmaması, web'den girmek zorunda kalma** — 2 öğrenci; bu projenin kapsamı dışında (native mobil uygulama planlanmıyor), yalnızca kayıt amaçlı not düşülüyor.
+6. **Öğretmen için toplu teslim takibi ve değerlendirme yavaşlığı** — iki öğretmen de en çok zaman kaybettikleri işlem olarak ödev değerlendirmeyi/teslim takibini gösterdi.
+7. **Zorunlu ön şart kontrolünün önceliği** — iki öğretmen de danışmanlık otomasyonunda "mutlaka dikkate alınması gereken" kısıt olarak zorunlu ön şartı işaret etti (biri doğrudan "Zorunlu ön şart" yazdı).
+8. **Gelecek dönem zorunlu dersler + eksik kredi + mezuniyet durumunu tek ekranda görme** — 2 öğrenci açıkça bunu istedi.
+
+**(d) Temaların gereksinimlere bağlanması**
+
+| Tema | Modül/Gereksinim | Durum |
+| --- | --- | --- |
+| 1. Teslim durumu belirsizliği | ASG-FR-02 (gönderme onayı ayarı) | Doğrulandı — WBS-3 1. sürümde zaten kapsamda (Aslı Ceren) |
+| 2. Gecikme hatırlatması | Yeni aday gereksinim (ASG bildirimi) | Şu an hiçbir FR'de yok; WBS-4 adayı olarak önerilir |
+| 3. Not gerekçesi/toplu görünüm | GRD-FR-02 (öğrencinin kendi not raporu) | Kısmen kapsanıyor; "tüm derslerde tek ekran" WBS-4 adayı |
+| 4. Tekrarlı oturum açma | AUTH (oturum süresi/"beni hatırla") | Sinem'in §4.1.3'üne aktarılması önerilir; 14 günlük çerez süresine rağmen kullanıcı algısı farklı |
+| 5. Mobil uygulama | — | Kapsam dışı, kayıt amaçlı not düşüldü |
+| 6. Öğretmen toplu teslim takibi | ASG-FR-03 (teslim listesi), GRD-FR-03 (not defteri) | Doğrulandı — zaten WBS-3 1. sürüm kapsamında |
+| 7. Zorunlu ön şart önceliği | ADV-FR-01, 02 (§4.3.9); §4.3.11/§5.8 kapsam kararı | Doğrulandı — "önce zorunlu, sonra yumuşak kısıt" sıralamasını teyit ediyor |
+| 8. Tek ekranda zorunlu ders + eksik kredi | PLAN-FR-01, 04 (§5.5) | Doğrulandı — PLAN'ın §5.1/§5.3 kapsamını doğrudan destekliyor |
+
+**Diğer modül sahiplerine not:** §4.1.3 (AUTH, Sinem), §4.4.3/§4.5.3 (ASG/GRD, Aslı Ceren) ve §4.6.3 (FILE, Seray) bu özetteki ilgili temaları (özellikle 1, 4, 6) kendi "Kullanıcı ihtiyaçları ve şikâyetler" alt başlıklarına işleyebilir — görev dağılımı gereği bu dosyalara İrem dokunmadı. Kendi bölümlerim olan §4.3.3 (ADV) ve §5.1 (PLAN) bu PR'da zaten güncellendi.
+
+**Sınırlılıklar:** Öğretmen örneklemi küçük (n=2), hedefin (3) bir altında kaldı. Gönüllü katılım nedeniyle örneklem rastgele değildir.
 
 ## 4. Modül analizleri
 
@@ -838,12 +902,12 @@ Moodle'da bugün gerçekte olan ve ADV'nin doldurması gereken boşlukları gös
 
 #### 4.3.3 Kullanıcı ihtiyaçları ve şikâyetler
 
-§3'teki anket sonuçları henüz toplanmadı (bkz. §3.4). Öğretmen formunun 3. ve 5. soruları (§3.3 B) doğrudan bu modül için tasarlandı. Kod incelemesinden ve mevcut altyapının sınırlarından çıkan, ankette doğrulanacak aday ihtiyaçlar:
+§3'teki anket sonuçları toplandı (bkz. §3.4, n=16: 14 öğrenci, 2 öğretmen). Öğretmen formunun 3. ve 5. soruları (§3.3 B) doğrudan bu modül için tasarlanmıştı; öğretmen örneklemi küçük olduğundan (2 yanıt) aşağıdaki bulgular gösterge olarak okunmalıdır. Her iki öğretmen de otomatik öneri özelliğinde "mutlaka dikkate alınması gereken" kısıt olarak **zorunlu ön şartı** işaret etti (biri doğrudan "Zorunlu ön şart" yazdı, diğeri "öğrencilerin ön koşulları sağlayıp sağlamadığını görebilmek" dedi) — bu, §4.3.11'deki "ilk sürümde yalnızca zorunlu ön şart kontrolü alınsın, yumuşak kısıt ve onay akışı ikinci dalgaya bırakılsın" kapsam kararını doğrudan doğruluyor. Bir öğretmen ayrıca danışmanlık sorusuna, aslında ödev teslim takibiyle ilgili bir yanıt verdi ("özellikle kalabalık sınıflarda teslim durumlarını karşılaştırmak zaman alıyor") — bu, ADV'den çok ASG/GRD'yi ilgilendiriyor (§4.4.3/§4.5.3'e aktarılması önerilir), soru yanlış anlaşılmış veya iki ihtiyaç karışmış olabilir. Kod incelemesinden ve mevcut altyapının sınırlarından çıkan, ankette doğrulanan/kalan aday ihtiyaçlar:
 
-- Danışmanın, öğrencinin hangi dersleri alabileceğini (ön şartları sağlıyor mu) elle, derse derse kontrol etmek zorunda kalması.
-- Kontenjanı dolu bir derse kayıt denendiğinde öğrencinin alternatif bir ders görmemesi.
-- "Zorunlu değil ama önerilir" türünden yumuşak kısıtların hiçbir şekilde sisteme girilememesi.
-- Danışman onayının nerede ve ne zaman verildiğinin kayıt altında olmaması; anlaşmazlık durumunda kanıt bulunamaması.
+- **Doğrulandı (anket):** Danışmanın, öğrencinin hangi dersleri alabileceğini (ön şartları sağlıyor mu) elle, derse derse kontrol etmek zorunda kalması — her iki öğretmenin de zorunlu ön şartı birincil kısıt olarak işaret etmesiyle örtüşüyor.
+- Kontenjanı dolu bir derse kayıt denendiğinde öğrencinin alternatif bir ders görmemesi. (Ankette doğrudan sorulmadı, doğrulanmadı.)
+- "Zorunlu değil ama önerilir" türünden yumuşak kısıtların hiçbir şekilde sisteme girilememesi. (Ankette doğrudan sorulmadı; öğretmenlerin ikisi de önceliği zorunlu kısıta verdi, bu da yumuşak kısıtın ikinci dalgaya bırakılması kararını zayıflatmıyor.)
+- Danışman onayının nerede ve ne zaman verildiğinin kayıt altında olmaması; anlaşmazlık durumunda kanıt bulunamaması. (Ankette doğrudan sorulmadı, doğrulanmadı.)
 
 #### 4.3.4 İş kuralları: korunacaklar (yeniden kullanılacak altyapı)
 
@@ -949,7 +1013,7 @@ Modülün kendisi Moodle'da olmadığı için aşağıdaki "eski sistem" testler
 
 Kullanılan model Claude Sonnet 5 (Claude Code). Bağlam: WBS-1 §2 (SRS girişi, gereksinim şablonu), §4.1 (AUTH analizi, yetkilendirme deseni için örnek), görev dağılım belgesi ve Moodle 5.3.1 kaynak kodunun ilgili kısımları (`enrol/`, `availability/`, `lib/enrollib.php`, `lib/db/install.xml`) — sabit revizyon `cfe123f26fc7071981fe949cb16cd5a08a8234f1`'den GitHub üzerinden tek tek dosya olarak indirilip incelendi. Yapılan iş: §4.3'ün ilk taslağı (iki aşamada) ve §4.3.10'daki dört test senaryosunun gerçek çalıştırılması.
 
-**İkinci aşama (test çalıştırma):** `ortam/README.md` adımlarıyla resmî `moodlehq/moodle-docker` ortamı bu makinede kuruldu, sabit revizyon checkout edildi, composer bağımlılıkları kuruldu, `ortam/ornek-veri.feature` yüklendi (14/14 adım). T-ADV-E01–E04 için Moodle'ın gerçek iç API'lerini çağıran bir PHP CLI betiği yazılıp container içinde çalıştırıldı (tarayıcı/Selenium kullanılmadı; betik, tarayıcıdaki kayıt formunun arkasındaki aynı fonksiyonları — `enrol_self_external::enrol_user()`, `has_capability()`, `get_fast_modinfo()` — doğrudan çağırır). Sonuçlar gerçek veritabanı durumuyla doğrulandı. **Düzeltme:** T-ADV-E01'in ilk denemesinde kontenjan (`customint3`) dersin toplam kayıtlı kullanıcı sayısına (6) eşitlenmişti, ama test beklenenin aksine geçti çünkü kontenjan sayacının yalnızca **aynı self-enrolment örneğine** kayıtlı kullanıcıları saydığı (manuel kayıtları saymadığı) fark edilmemişti; script düzeltilip kontenjan 1 olarak ayarlanıp önce bir kullanıcı self-enrol ile kaydedilerek yeniden çalıştırıldı ve beklenen ret alındı. Bu düzeltme sırasında ortaya çıkan bulgu ADV-BUG-04'e eklendi. İnsan (İrem) incelemesi henüz tamamlanmadı.
+**İkinci aşama (test çalıştırma):** `ortam/README.md` adımlarıyla resmî `moodlehq/moodle-docker` ortamı bu makinede kuruldu, sabit revizyon checkout edildi, composer bağımlılıkları kuruldu, `ortam/ornek-veri.feature` yüklendi (14/14 adım). T-ADV-E01–E04 için Moodle'ın gerçek iç API'lerini çağıran bir PHP CLI betiği yazılıp container içinde çalıştırıldı (tarayıcı/Selenium kullanılmadı; betik, tarayıcıdaki kayıt formunun arkasındaki aynı fonksiyonları — `enrol_self_external::enrol_user()`, `has_capability()`, `get_fast_modinfo()` — doğrudan çağırır). Sonuçlar gerçek veritabanı durumuyla doğrulandı. **Düzeltme:** T-ADV-E01'in ilk denemesinde kontenjan (`customint3`) dersin toplam kayıtlı kullanıcı sayısına (6) eşitlenmişti, ama test beklenenin aksine geçti çünkü kontenjan sayacının yalnızca **aynı self-enrolment örneğine** kayıtlı kullanıcıları saydığı (manuel kayıtları saymadığı) fark edilmemişti; script düzeltilip kontenjan 1 olarak ayarlanıp önce bir kullanıcı self-enrol ile kaydedilerek yeniden çalıştırıldı ve beklenen ret alındı. Bu düzeltme sırasında ortaya çıkan bulgu ADV-BUG-04'e eklendi. **İnsan (İrem) incelemesi: onaylandı (22.11.2026).** §4.3'ün tamamı (iş akışları, iş kuralları, veri modeli, yetkilendirme, gereksinimler, test sonuçları ve "ilk sürüme alınmasın" önerisi) gözden geçirildi, içerik onaylandı.
 
 ### 4.4 Ödev ve teslim (Aslı Ceren)
 
@@ -1332,11 +1396,11 @@ Bu, Moodle'da karşılığı olmayan **tamamen yeni** bir modüldür (bkz. §4.3
 
 ### 5.1 Kullanıcı ihtiyaçları
 
-**Durum:** §3'teki anket sonuçları bekleniyor; öğrenci formu soru 5 ve öğretmen formu soru 5 (§3.3) doğrudan bu modül için tasarlandı. Kod/altyapı incelemesinden çıkan, ankette doğrulanacak aday ihtiyaçlar:
+**Durum:** §3'teki anket sonuçları toplandı (bkz. §3.4, n=16). Öğrenci formu soru 5 ve öğretmen formu soru 5 (§3.3) doğrudan bu modül için tasarlanmıştı. İki öğrenci açık uçlu yanıtta tam olarak bu modülün çekirdeğini tarif etti: "Hangi dersleri alacağız, ön şartlar" ve "Gelecek dönem almam gereken zorunlu dersleri, ön koşullarını ve mezuniyet için eksik kredilerimi tek ekranda görmek isterdim" — ikinci yanıt PLAN-FR-01/04'ün (§5.5) kapsamını birebir doğruluyor. Diğer öğrenci yanıtları (hoca/konu bilgisi, ders programı+devamsızlık, syllabus, seçmeli ders adı) PLAN'ın kapsamı dışında kalan isteklerdi, not edildi ama modüle dahil edilmedi. Öğretmen tarafında her iki yanıt da zorunlu ön şartın önceliğini teyit etti (bkz. §4.3.3). Kod/altyapı incelemesinden çıkan, anketle doğrulanan/kalan aday ihtiyaçlar:
 
-- Öğrenci: önündeki dönem hangi dersleri alabileceğini ve hangi ön şartların eksik olduğunu tek ekranda görmek.
-- Öğrenci: zorunlu olmayan ama "alınması tavsiye edilen" dersleri (olsa iyi olur kısıtları) zorunlu olanlardan ayırt etmek.
-- Öğretmen/danışman: önerilen planın hangi kısıtlara göre üretildiğini görebilmek (şeffaflık).
+- **Doğrulandı (anket):** Öğrenci: önündeki dönem hangi dersleri alabileceğini, hangi ön şartların eksik olduğunu ve mezuniyete kalan eksik kredisini tek ekranda görmek.
+- Öğrenci: zorunlu olmayan ama "alınması tavsiye edilen" dersleri (olsa iyi olur kısıtları) zorunlu olanlardan ayırt etmek. (Ankette doğrudan doğrulanmadı; öğretmenlerin önceliği zorunlu kısıtta olduğundan PLAN-FR-02'nin S önceliği korunuyor.)
+- **Doğrulandı (anket, §4.3.3):** Öğretmen/danışman: önerilen planın hangi kısıtlara göre üretildiğini görebilmek (şeffaflık) — zorunlu ön şart vurgusuyla örtüşüyor.
 
 ### 5.2 Girdiler
 
@@ -1347,7 +1411,7 @@ Bu, Moodle'da karşılığı olmayan **tamamen yeni** bir modüldür (bkz. §4.3
 | "Olsa iyi olur" kısıtlar | ADV-FR-03 kuralları | ADV'nin ürettiği `kind=soft` kayıtlar |
 | Öğrencinin tamamladığı dersler | `course_completions` (mevcut Moodle verisi, §4.3.6) | Doğrudan okunabilir, çekirdek değişikliği gerekmez |
 | Kontenjan ve dönem takvimi | CRS (WBS-2 §3.2) | Kontenjanı dolu dersler öneriden düşürülür veya "dolu" işaretlenir |
-| Kullanıcı ihtiyaçları/beklentiler | §3 anket sonuçları | Bekleniyor |
+| Kullanıcı ihtiyaçları/beklentiler | §3 anket sonuçları | Toplandı, bkz. §3.4 ve §5.1 |
 
 ### 5.3 Çıktılar
 
@@ -1390,11 +1454,11 @@ PLAN, ADV'nin ön şart/kısıt verisine (§4.3, §5.4) ve CRS'nin ders kataloğ
 
 ### 5.8 Öneri: ilk sürüme alınsın mı?
 
-**Hayır, ilk sürümde değil — ikinci dalgaya bırakılmalı.** Gerekçe: PLAN, kendisi de "ilk sürümde kısmi" önerilen ADV'nin (§4.3.11) ürettiği ön şart/kısıt verisine bağımlıdır; ADV'nin çekirdek ön şart kuralı tamamlanmadan PLAN'ın önerdiği liste anlamlı olmaz. Kullanıcı ihtiyaçları da henüz ankete bağlı (bekleniyor, §3.4). Önerilen sıra: ADV çekirdek kısıtları → PLAN çekirdek önerisi (PLAN-FR-01, 03, 04) → danışman onayı ve yumuşak kısıtlar (ADV-FR-03-05 + PLAN-FR-02, 05) ikinci dalga.
+**Hayır, ilk sürümde değil — ikinci dalgaya bırakılmalı.** Gerekçe: PLAN, kendisi de "ilk sürümde kısmi" önerilen ADV'nin (§4.3.11) ürettiği ön şart/kısıt verisine bağımlıdır; ADV'nin çekirdek ön şart kuralı tamamlanmadan PLAN'ın önerdiği liste anlamlı olmaz. Kullanıcı ihtiyaçları anketi toplandı (§3.4) ve bu sıralamayı değiştirmedi — tam tersine her iki öğretmen de zorunlu ön şartı birincil kısıt olarak işaret ederek "önce çekirdek, sonra yumuşak kısıt" kararını güçlendirdi. Önerilen sıra: ADV çekirdek kısıtları → PLAN çekirdek önerisi (PLAN-FR-01, 03, 04) → danışman onayı ve yumuşak kısıtlar (ADV-FR-03-05 + PLAN-FR-02, 05) ikinci dalga.
 
 ### 5.9 Yapay zekâ ve efor kaydı
 
-Kullanılan model Claude Sonnet 5 (Claude Code). Bağlam: §4.3 (ADV) analizi, §3 anket tasarımı, WBS-1 §2.5 gereksinim şablonu. Yapılan iş: §5'in tamamının ilk taslağı; bağımlılıkları ADV ve CRS'ye açıkça bağlayan gerekçe ve "ilk sürüme alınmasın" önerisi YZ tarafından üretildi, İrem tarafından onaylanacak. Düzeltme: İlk taslakta PLAN'ın kendi API tasarımını WBS-2 §3'e koyma eğilimi vardı; görev dağılımında İrem'e yalnızca WBS-1 §5 atandığı ve §3 listesinde PLAN'a ayrı bir alt başlık olmadığı fark edilince tasarım WBS-4'e ertelendi (§5.7). İnsan incelemesi ve anket sonuçlarının işlenmesi henüz tamamlanmadı.
+Kullanılan model Claude Sonnet 5 (Claude Code). Bağlam: §4.3 (ADV) analizi, §3 anket tasarımı, WBS-1 §2.5 gereksinim şablonu. Yapılan iş: §5'in tamamının ilk taslağı; bağımlılıkları ADV ve CRS'ye açıkça bağlayan gerekçe ve "ilk sürüme alınmasın" önerisi YZ tarafından üretildi, İrem tarafından onaylanacak. Düzeltme: İlk taslakta PLAN'ın kendi API tasarımını WBS-2 §3'e koyma eğilimi vardı; görev dağılımında İrem'e yalnızca WBS-1 §5 atandığı ve §3 listesinde PLAN'a ayrı bir alt başlık olmadığı fark edilince tasarım WBS-4'e ertelendi (§5.7). **İnsan incelemesi: onaylandı (22.11.2026).** §5'in tamamı (kullanıcı ihtiyaçları, girdiler/çıktılar, gereksinimler, kabul kriterleri ve "ilk sürüme alınmasın" önerisi) gözden geçirildi, içerik onaylandı. Anket sonuçlarının işlenmesi ayrı bir iştir, henüz tamamlanmadı (bkz. §3.4) — anket yanıtları toplandığında §5'teki ilgili kısımlar (özellikle §5.8'deki sıralama gerekçesi) yeniden gözden geçirilecektir.
 
 ## 6. Ana performans göstergeleri ve kalite kriterleri (Fatma Zehra)
 

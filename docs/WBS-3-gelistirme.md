@@ -77,12 +77,17 @@ Herkes yalnızca kendi bölümünü düzenler. Her bölümde WBS-2 §4.3 şablon
 
 **Yapay zekâ kaydı**
 
-**Model ve sürüm:** _Doldurulacak._ Commit (`fd3e155`) ve CRS belgelerinde kullanılan araç/model kaydı yoktur; doğrulanamadı.
-**Kullanılan adım(lar):** _Doldurulacak (doğrulanamadı)._
-**Verilen bağlam:** _Doldurulacak (doğrulanamadı)._
+**Model ve sürüm:** Codex (VS Code eklentisi), model `gpt-6.1-sol`, akıl yürütme `low` (yerel Codex oturum kaydı, 17.11.2026).
+**Kullanılan adım(lar):** Kodun anlaşılması, hedef dilde kod üretme, test senaryosu üretme, derleme/test çalıştırma, belge taslağı (WBS-2 §4.1). Codex kod yazdı, derleme ve testleri kendisi çalıştırdı.
+**Prompt özeti (yerel Codex kaydı, 17.11.2026):** (1) 12:18: o ana kadar yazılan CRS altyapısının (varlıklar, `CourseValidation`, `CrsDbContext`, `CrsService`, DI, doğrulama testleri) özeti ve devam talimatı; kullanıcı kendi çalıştırdığı derleme (192,7 sn) ve test sonucunu (18/18) bildirdi. (2) 12:38: veritabanı ve migration doğrulamasına geçiş ("tamam yapalım"). (3) 13:21: kategori/ders/kayıt API uçları; mevcut `Program.cs` kayıtlarının korunması, gerçek AUTH yokken yetkisiz işlemin açık bırakılmaması, birim ve entegrasyon testleri, mevcut 23 testin korunması. (4) 14:09: ders listesi, ders detayı ve katılımcılar Blazor sayfaları; `503 auth_not_ready` davranışının atlatılmaması, bileşen ve entegrasyon testleri, mevcut 130 testin korunması.
+**Verilen bağlam:** Proje iskeleti ve katman yapısı, önceki WBS çalışmalarındaki CRS analizi ve tasarımı, mevcut `Program.cs`, AUTH arayüzleri (`ICurrentUser`, `IAccessPolicy`) ve mevcut testler (istem metinlerinden).
 **Yapılan iş:** Yukarıdaki dosyalar ve testleri (PR #20). Kodun YZ desteğiyle üretildiği kod içi notlarda ve CRS belgelerinde belirtilir (`CrsService` "YZ destekli" yorumları, `docs/crs-veritabani.md`).
-**Yapılan düzeltmeler:** _Doldurulacak (doğrulanamadı)._ (`CrsService.EnrolAsync` üzerinde "YZ taslağıdır" notu bulunur.)
-**Harcanan süre:** PR bazında ayrılmadı; AUTH/CRS WBS-3 toplamına dahildir (§2.3, "Süre", geçici tahmin).
+**Yapılan düzeltmeler ve test turları (kayıttan):**
+- API turu (13:21–13:57): ara koşuda 31 birim + 89 entegrasyon testi geçti; tur sonunda derleme 0 hata/0 uyarı, 130/130 test (önceki 23 test değiştirilmeden).
+- Blazor turu (14:09–15:27): 15:08'deki koşuda 105 testten 3'ü başarısız oldu (`ErrorBodyTests` entegrasyon testleri dahil); düzeltmeden sonra tur sonunda derleme 0 hata/0 uyarı, 161/161 test ve 7 JavaScript testi geçti. Başarısızlığın nedeni ve düzeltmenin içeriği YZ'nin tur raporunda özetlenmemiş; araç çağrılarından ayrıca çıkarılmadı (tespit edilemedi). Kayıtta 1 hata turu görülür.
+- 12:18 öncesinde yazılan altyapı kodunun üretim süreci ve düzeltmeleri kayıt dışıdır (tespit edilemedi).
+- İnsan düzeltmesi: kod üzerinde kayıtlı insan düzeltmesi yok. (`CrsService.EnrolAsync` üzerinde "YZ taslağıdır" notu bulunur.)
+**Harcanan süre:** Kayıtlı YZ işlem süresi 133,6 dk (derleme/test 33,9 dk dahil); kullanıcı etkileşim aralığı 43,9 dk. 17.11 12:18 öncesi ve 15:27–16:09 kayıt dışı (§2.3, "Efor kaydı").
 **Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
 **Kanıt:** PR #20.
 
@@ -343,7 +348,7 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 - **YZ'nin kendi düzelttikleri:** Test dosyasında iki `EF1002` derleme uyarısı (ham SQL ile DDL) giderildi. İki test doğrulaması sadeleştirildi.
 - **İnsan katkısı:** Kodlamadan önce plan aşamasında tasarım kararları verildi (yukarıdaki 3. madde). Kod üzerinde insan düzeltmesi henüz yok; inceleme sonrası güncellenecek.
 
-**Harcanan süre:** PR bazında ayrılmadı; AUTH/CRS WBS-3 toplamına dahildir (aşağıda "Süre", geçici tahmin).
+**Harcanan süre:** Kayıtlı YZ işlem süresi 16,5 dk (derleme 2,9 dk dahil); kullanıcı etkileşim aralığı 21,3 dk (aşağıda "Efor kaydı").
 **Elle geliştirme:** Yapılmadı (yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
 **Kanıt:** PR #44 (şube: `sinem/crs-background-delete`, commit `24666ed`).
 
@@ -351,14 +356,14 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 
 **Yapılan iş** (commit `09e9484`, `d1f64c5`, `599d8a5`; 19.11.2026): `crs_record_change` trigger'ı ders ve kayıt değişikliklerini veriyle aynı transaction'da `crs_events` tablosuna yazar (alan değerleri değil alan adları tutulur). `ICrsEventExtension`, `CrsEventExtensionPipeline` ve `CrsEventDispatcher` modüllerin olayları en az bir kez, alındı kaydıyla almasını sağlar. `CrsQueryCache` olay revizyonuna bağlı geçersizleştirme yapar. Değişmeyen kayıt güncellemesi veritabanına yazılmaz. Ayrıntı: `docs/crs-events-extensions.md`, `docs/crs-nfr04-cache.md`, `docs/crs-nfr05.md`.
 **Testler:** `CrsEventExtensionTests`, `CrsNfr04CacheTests`, `CrsNfr05NoopTests` (birim); `CrsEventsPostgresTests`, `CrsNfr04CachePostgresTests`, `CrsNfr05NoopPostgresTests` (entegrasyon).
-**YZ kaydı:** Model ve sürüm, kullanılan adımlar ve düzeltmeler: _doldurulacak_ (commit'lerde ve belgelerde araç/model kaydı yok; doğrulanamadı). İlgili belgeler çalışmanın YZ desteğiyle üretildiğini belirtir. Süre: PR bazında ayrılmadı, toplam geçici tahmine dahildir. Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #31.
+**YZ kaydı:** Model ve sürüm: Codex (VS Code eklentisi), `gpt-6.1-sol`, akıl yürütme `low` (yerel Codex oturum kaydı). Kullanılan adımlar: kodun anlaşılması, hedef dilde kod üretme, test senaryosu üretme, derleme/test çalıştırma, yerel commit (WBS-2 §4.1). **Prompt özeti (yerel Codex kaydı):** (1) 18.11 23:45 ve 19.11 00:10: dosya değiştirmeden CRS durum raporu ve yeni görev dağılımına göre bağımsız yapılabilecek işlerin analizi. (2) 00:21: CRS-NFR-05'in servis/SQL düzeyinde ölçülmesi, gerekirse en küçük düzeltme. (3) 00:46: NFR-05 commit'i (`599d8a5`). (4) 00:48: CRS-FR-10, NFR-07, NFR-08 (transaction içinde olay, rollback'te olay olmaması, hassas veri tutulmaması, ortak DI dosyalarına onaysız dokunulmaması). (5) 00:59: commit (`09e9484`). (6) 14:08: CRS-NFR-04 önbelleği. (7) 14:29: commit (`d1f64c5`). (8) 14:33–14:52: push ve PR; aynı istem 14:33 ve 14:34'te iki kez gönderildi, ardından `gh` kullanımı istendi ve kullanıcı tarayıcıdan GitHub girişini yaptı; PR'ı kullanıcı GitHub üzerinden oluşturdu. **Test turları (YZ'nin tur raporlarından):** NFR-05 542/542 (üretim kodunda gereksiz yazım bulunmadı, düzeltme gerekmedi; 8 birim + 17 PostgreSQL testi eklendi); FR-10/NFR-07/NFR-08 568/568 (8 yeni dosya, mevcut dosya değişmedi); NFR-04 594/594. Derlemelerde 0 hata; NuGet güvenlik verisine erişilemediği için 5 adet NU1900 uyarısı. **Düzeltmeler:** Kayıtta kod hatası nedeniyle başarısız test turu görülmedi. NFR-04 turunda ilk test koşusu Docker erişim hatası verdi; Docker başlatılıp testler yeniden çalıştırıldı (ortam sorunu, kod hatası sayılmadı). İnsan düzeltmesi kaydı yok. İlgili belgeler çalışmanın YZ desteğiyle üretildiğini belirtir. Süre: kayıtlı YZ işlem süresi 108,2 dk (derleme/test 11,3 dk, GitHub 10,3 dk ve Docker 2,1 dk dahil); kullanıcı etkileşim aralığı 20,9 dk (aşağıda "Efor kaydı"). Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #31.
 
 #### CRS-NFR-03: Yedekleme/geri yükleme sırasında silme koruması (PR #43)
 
 **Yapılan iş** (commit `86d6125`, 20.11.2026): `ICrsCourseOperationRegistry` ve `CrsCourseOperationRegistry` (`RegisterPendingAsync`, `MarkRunningAsync`, `ReleaseAsync`), `crs_course_operations` tablosu; `DeleteCourseAsync` ders satırı kilidi altında bekleyen/devam eden işlem varsa `409 course_operation_in_progress` döner. Ayrıntı: `docs/crs-nfr03-delete-guard.md`.
 **Testler:** `CrsNfr03DeleteGuardTests` (birim), `CrsNfr03DeleteGuardPostgresTests` (entegrasyon).
 **Sınırlılık:** Depoda gerçek bir yedekleme/geri yükleme yürütücüsü yoktur; koruma kayıt arayüzü üzerinden çalışır.
-**YZ kaydı:** Model ve sürüm, kullanılan adımlar ve düzeltmeler: _doldurulacak_ (commit'te ve `docs/crs-nfr03-delete-guard.md`'de araç/model kaydı yok; belge kodun YZ desteğiyle üretildiğini belirtir). Süre: PR bazında ayrılmadı, toplam geçici tahmine dahildir. Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #43.
+**YZ kaydı:** Model ve sürüm: 19.11 bölümü için Codex (VS Code eklentisi), `gpt-6.1-sol`, akıl yürütme `low` (yerel Codex oturum kaydı); 20.11 bölümü için kayıt yok. Kullanılan adımlar (19.11 bölümü): Git doğrulaması, gereksinim analizi, ASG/GRD/FILE sözleşmelerinin yalnızca okunması, hedef dilde kod üretme, test senaryosu üretme, derleme/test çalıştırma (WBS-2 §4.1). **Prompt özeti (19.11 15:02):** PR #31'in merge ve CI durumunun doğrulanması, güncel main'den `sinem/crs-nfr03-delete-guard` branch'i, CRS-NFR-03'ün tam tanımına göre yalnızca bağımsız CRS kısmının geliştirilmesi, sunucu tarafı denetim, eşzamanlılık yarışlarının değerlendirilmesi, başka modüllere ve ortak DI dosyalarına onaysız dokunulmaması. **Test turları (YZ'nin tur raporundan):** 661/661 (10 birim + 20 PostgreSQL/API testi yeni); derleme 0 hata, 1 NU1900 uyarısı. 19.11 bölümünde başarısız test turu kaydı yok. YZ, gerçek yedekleme/geri yükleme yürütücüsü olmadığı için gereksinimi uçtan uca tamamlanmış saymadı. **Tespit edilemeyenler:** 20.11'deki çalışma (commit `86d6125` 20.11 16:55; `docs/crs-nfr03-delete-guard.md`'de geçen CodeQL denetimi ve NuGet erişimi nedeniyle tekrarlanan koşu dahil) yerel kayıtta yoktur; bu bölümdeki düzeltme turları, kullanılan araç ve insan müdahalesi tespit edilemedi. `docs/crs-nfr03-delete-guard.md` kodun YZ desteğiyle üretildiğini belirtir. Süre: yalnızca 19.11 için kayıtlı YZ işlem süresi 24,3 dk (derleme/test 3,5 dk dahil); 20.11 kayıt dışı, tespit edilemedi. Elle geliştirme yapılmadı; elle efor §3'te COCOMO ile tahmin edilir. **Kanıt:** PR #43.
 
 #### CRS-FR-07: Kayıt başlangıç ve bitiş zamanının güncellenmesi (PR #45)
 
@@ -385,7 +390,7 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 
 `Pages/CourseDetails.razor`'a "Ders dosyaları" (`/courses/{id}/files`), "Not defteri" (`/courses/{id}/gradebook`) ve "Notlarım" (`/courses/{id}/my-grades`) bağlantıları eklendi. Bağlantılar yalnızca gezinme sağlar; yetki hedef sayfalarda ve API'de denetlenir (mevcut "Ödevler" bağlantısıyla aynı). `CrsBlazorTests.Details_show_category_visibility_dates_and_editable_information` bağlantıları doğrular. Önceki çalışma sırasında bildirilen test sonucu: `CrsBlazorTests` 14/14 başarılı. Aynı PR'da `docs/izlenebilirlik.md` CRS tablosu, bu bölüm ve `docs/crs-api.md` güncellendi. **Kanıt:** PR #48 (commit `b96f147`).
 
-#### YZ kaydı (PR #45, #46, #47, #48)
+#### YZ kaydı (PR #45, #46, #47, #48, #49)
 
 **Model ve sürüm:** Claude Code (VS Code eklentisi), model Claude Opus 5.5 (`claude-opus-5-5`).
 **Üretim şekli:** YZ.
@@ -396,13 +401,65 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 - YZ'nin kendi düzelttikleri: `CrsCourseDeletionCleanupTests` olayları teslim sırasının ortasında denetliyordu (zamanlama); bekleme koşulu iki olayı birlikte bekleyecek şekilde düzeltildi, doğrulamalar gevşetilmedi (PR #47).
 - CRS-FR-07 sonrası genel koşuda 2 başarısız test bildirildi (863 test, 861 geçti). YZ test çıktısına erişemediği için test adlarını ve hata mesajlarını istedi; bu bilgi kayda geçmedi. İki testin adı, nedeni ve düzeltmesi: _doldurulacak (doğrulanamadı)._
 - İnsan düzeltmesi: Kod üzerinde insan düzeltmesi kaydı yoktur (doğrulanamadı). İnsan katkısı görev tanımları, plan aşamasındaki kararlar ve test/build koşturmasıyla sınırlı olarak kayıtlıdır.
-**Harcanan süre:** PR bazında ayrılmadı; aşağıdaki geçici toplam tahmine dahildir.
+**Harcanan süre:** Kayıtlı YZ işlem süresi / kullanıcı etkileşim aralığı: #45 3,8 / 17,3 dk (12:02–12:51 kayıt dışı); #46 6,5 / 23,2 dk; #47 5,9 / 8,5 dk; #48 7,2 / 0,0 dk; #49 5,8 / 1,5 dk. PR'sız durum/uyumluluk incelemeleri 9,7 / 7,8 dk (aşağıda "Efor kaydı").
 **Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
-**Kanıt:** PR #45, #46, #47, #48; bu kayıtları tamamlayan belge PR'ı: _doldurulacak._
+**Kanıt:** PR #45, #46, #47, #48; bu kayıtları tamamlayan belge PR'ı #49 (merge 21.11.2026 16:44).
 
-#### Süre (geçici, 21.11.2026)
+#### Efor kaydı (Sinem, AUTH/CRS; yerel oturum kayıtlarından, 24.11.2026)
 
-Sinem'in WBS-3 AUTH/CRS çalışması için 21.11.2026 itibarıyla geçici tahmin: **yaklaşık 13 saat aktif YZ destekli çalışma + 6 saat test/doğrulama = 19 saat**. Bu süre nihai değildir ve WBS-3 tamamlanınca güncellenecektir. PR bazında dağılım ölçülmediği için verilmemiştir; §3'teki efor sütunları bu tahmin kesinleşince doldurulacaktır.
+**Kayıt kaynakları**
+- **Codex** (VS Code eklentisi, CLI 0.169.0-alpha.11.1), model `gpt-6.1-sol`, akıl yürütme `low`: bu projeye ait tek oturum, 17.11.2026 12:18 – 19.11.2026 15:26 (#20, #31, #43'ün 19.11 bölümü).
+- **Claude Code** (VS Code eklentisi), model `claude-opus-5-5`: tek oturum, 21.11.2026 10:57'den itibaren (#44–#49, #56).
+- **Git:** commit ve merge zamanları yalnızca sınır noktası olarak kullanıldı; commit saatleri arasındaki fark çalışma süresi sayılmadı.
+- **Kontrol edilip iş kaydı bulunmayanlar:** VS Code Copilot sohbet dizinleri (yalnızca boş sohbetler), WSL içindeki Moodle kopyası. Başka projelere (CardioRAG) ait Codex ve Claude Code oturumları hariç tutuldu.
+
+**Ölçüm yöntemi**
+- **Tur:** bir kullanıcı isteminden bir sonraki isteme kadar geçen bölüm.
+- **YZ işlem süresi:** tur içindeki ardışık YZ kayıtları (asistan mesajı, araç çağrısı ve çıktısı) arasındaki 10 dakikaya kadar olan aralıkların toplamı. Daha uzun aralıklar sayılmadı (#20'de bir dosya yaması sırasında 12,0 dk; büyük olasılıkla kullanıcı onayı beklendi).
+- **Derleme/test süresi:** YZ'nin çalıştırdığı `dotnet build/test/run` komutlarının süresi. **YZ işlem süresine dahildir**, ayrıca eklenmez.
+- **Kullanıcı etkileşim aralığı:** YZ'nin son yanıtından bir sonraki isteme kadar geçen, 30 dakikayı aşmayan aralıklar. Bu aralıklar okuma, karar verme, kullanıcının çalıştırdığı testler ve kısa molaları birlikte içerir; **kesin insan eforu değildir**. 30 dakikayı aşan aralıklar mola veya kayıt dışı iş sayıldı.
+- Codex zaman damgaları UTC'dir; tüm saatler yerel saate (UTC+3) çevrildi. Claude Code kayıtlarında tekrarlanan girdiler ayıklandı.
+
+**PR bazında kayıtlı süreler (dakika)**
+
+| PR | Araç / model | Kayıtlı YZ işlem süresi | Bunun içinde derleme/test | Bunun içinde GitHub / Docker | Kullanıcı etkileşim aralığı | Not |
+| --- | --- | --- | --- | --- | --- | --- |
+| #20 | Codex / gpt-6.1-sol | 133,6 | 33,9 | 0,7 / 0,0 | 43,9 | Veritabanı kurulumu (Docker Compose) 8,1 dk geliştirme sayıldı |
+| #31 | Codex / gpt-6.1-sol | 108,2 | 11,3 | 10,3 / 2,1 | 20,9 | 29 dk durum incelemesi dahil; GitHub kimlik doğrulama/push ve Docker Desktop başlatma ortam işlemidir |
+| #43 | Codex / gpt-6.1-sol | 24,3 | 3,5 | 0,2 / 0,0 | 0,0 | Yalnızca 19.11 bölümü; 20.11 kayıt dışı |
+| #44 | Claude Code / claude-opus-5-5 | 16,5 | 2,9 | — | 21,3 | — |
+| #45 | Claude Code | 3,8 | — | — | 17,3 | 12:02–12:51 (iki başarısız testin düzeltmesi) kayıt dışı |
+| #46 | Claude Code | 6,5 | — | — | 23,2 | — |
+| #47 | Claude Code | 5,9 | — | — | 8,5 | — |
+| #48 | Claude Code | 7,2 | — | — | 0,0 | — |
+| #49 | Claude Code | 5,8 | — | — | 1,5 | — |
+| #56 | Claude Code | 9,9 | — | — | 19,4 | Ayrıntı AUTH-NFR-03 kaydında; Docker sorunu ayrı |
+| PR'sız WBS-3 incelemeleri | Claude Code | 9,7 | — | 0,1 / — | 7,8 | Üç durum/uyumluluk incelemesi |
+| **Toplam** | | **331,4** | **51,6** | **11,3 / 2,1** | **163,8** | |
+
+**Toplamlar**
+- Kayıtlı YZ işlem süresi: **331,4 dk**. Derleme/test (51,6 dk) bunun içindedir.
+- GitHub (11,3 dk) ve Docker ortam işlemleri (2,1 dk) çıkarıldığında: **318 dk (5,3 saat)**.
+- Kullanıcı etkileşim aralıkları: **163,8 dk**.
+- Kayıtlı etkileşimli çalışma zarfı (318 + 163,8): **481,8 dk (yaklaşık 8 saat)**.
+
+**Ortam kaynaklı sorunlar (geliştirmeden ayrı)**
+- 19.11: Docker Desktop'ın başlatılması (00:25–00:32 ve 14:17–14:19, toplam yaklaşık 9 dk duvar saati) ve GitHub kimlik doğrulama/push sorunu (14:33–14:57, yaklaşık 24 dk duvar saati). Bu pencerelerin YZ işlem süresine düşen kısmı yukarıdaki GitHub/Docker sütunundadır.
+- 24.11 (#56): Docker bağlantı sorunu 11:19–12:44 penceresinde (85,2 dk) çözüldü. Bu pencere kullanıcının test koşularını da içerdiği için Docker'a harcanan süre ayrıştırılamaz; geliştirme süresine eklenmedi.
+
+**Kayıt dışı dönemler (tespit edilemedi)**
+- 17.11 12:18 öncesi ve 15:27–16:09 (#20 commit'ine kadar).
+- 20.11'in tamamı (#43 uygulamasının büyük bölümü; commit 20.11 16:55).
+- 21.11 12:02–12:51 (#45'teki iki başarısız testin düzeltilmesi).
+- Commit, PR açma ve PR inceleme adımlarının çoğu.
+
+**Sınırlılıklar**
+- 5,3 saat, YZ'nin geliştirme için çalıştığı kayıtlı süredir; kişi-saat değildir. 8 saatlik zarf, 30 dakikaya kadar olan kullanıcı aralıklarını da içerir; bu aralıklar kesin insan eforu değildir. Bu nedenle 5,3–8,1 saat aralığı **kesin toplam insan eforu veya gerçek eforun üst sınırı değildir**; yalnızca yerel kayıtlarla doğrulanabilen kısmı gösterir. Kayıt dışı dönemler nedeniyle gerçek efor bu aralığın dışında kalabilir.
+- 19.11 14:08–15:27 arasında başka bir projenin (CardioRAG) Codex oturumu da açıktı. YZ süresi yalnızca bu projeye ait kayıtlardan hesaplandı; ancak bu penceredeki kullanıcı aralıklarında dikkat iki projeye bölünmüş olabilir.
+- "Model" süresi (YZ'nin düşünmesi ve kod/belge metni üretmesi) kod geliştirme, analiz ve dokümantasyon olarak araç kayıtlarından ayrıştırılamaz.
+- 21.11.2026 tarihli **13 + 6 = 19 saatlik geçici tahmin ölçüm değildir**; kayıtlarla doğrulanamadığı için efor hesabında kullanılmamalıdır.
+- **WBS-1 (#7) ve WBS-2 (#11, #12, #13, #17) süreleri tespit edilemedi:** bu dönem için yerel YZ oturum kaydı yoktur; Git'te yalnızca commit zamanları bulunur.
+- §3'teki merkezi COCOMO hesabı bu kayıt kullanılarak ayrıca yapılacaktır; bu bölüm o hesabı içermez.
 
 #### AUTH-NFR-03 (aday): Oturum kalıcılığı ve parola değişikliği sonrası oturumlar
 
@@ -451,9 +508,9 @@ Sinem'in WBS-3 AUTH/CRS çalışması için 21.11.2026 itibarıyla geçici tahmi
 - YZ'nin kendi düzelttikleri: İlk hedefli koşuda görülen HTTP 500 (eksik `Identity.TwoFactorRememberMe` şema kaydı) kök neden analiziyle bulundu ve şema kaydı ile bir birim testi eklenerek düzeltildi (toplam 1 hata, 1 düzeltme turu).
 - Docker bağlantı sorunu ortamla ilgilidir; kod hatası olarak sayılmadı.
 - İnsan düzeltmesi: Kod üzerinde insan düzeltmesi kaydı yoktur.
-**Harcanan süre:** _Doldurulacak._ 21.11.2026 tarihli geçici toplam tahmine dahil değildir.
+**Harcanan süre:** İnceleme isteminden merge'e kadar geçen toplam süre 2 saat 6 dakika (24.11.2026). Bunun içinde kayıtlı YZ işlem süresi 9,9 dk, kullanıcı etkileşim aralığı 19,4 dk. Docker bağlantı sorunu ayrı tutulmuştur: 11:19–12:44 penceresi (85,2 dk) kullanıcının test koşularını da içerdiği için Docker'a harcanan süre ayrıştırılamaz ve geliştirme süresine eklenmemiştir.
 **Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
-**Kanıt:** _PR numarası doldurulacak_ (şube: `sinem/auth-session-persistence`).
+**Kanıt:** PR #56 (şube: `sinem/auth-session-persistence`, commit `ca2a975`; merge 24.11.2026 13:10).
 
 #### Bilinen sınırlılıklar (§2.3 geneli)
 - **ASG/GRD/FILE ders silme temizliği tamamlanmadı.** CRS, `course.deleted` olayını iletir; ancak ASG (Aslı Ceren), GRD (Fatma Zehra) ve FILE (İrem, Seray) için üretim uzantısı yoktur. Bu modüllerin ders verileri silmeden sonra kalır; dersin varlığını denetledikleri için erişilemez.

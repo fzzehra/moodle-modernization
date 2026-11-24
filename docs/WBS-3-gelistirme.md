@@ -404,6 +404,57 @@ Bekleme gereken testlerde sabit `Task.Delay` yerine 30 saniye zaman aşımlı yo
 
 Sinem'in WBS-3 AUTH/CRS çalışması için 21.11.2026 itibarıyla geçici tahmin: **yaklaşık 13 saat aktif YZ destekli çalışma + 6 saat test/doğrulama = 19 saat**. Bu süre nihai değildir ve WBS-3 tamamlanınca güncellenecektir. PR bazında dağılım ölçülmediği için verilmemiştir; §3'teki efor sütunları bu tahmin kesinleşince doldurulacaktır.
 
+#### AUTH-NFR-03 (aday): Oturum kalıcılığı ve parola değişikliği sonrası oturumlar
+
+> Bu geliştirme **YZ destekli** yapılmıştır (Claude Code, Claude Opus 5.5).
+
+**Kaynak:** WBS-1 §3.4 (c) tema 4 (3 öğrenci tekrarlı oturum açmaktan şikâyet etti) ve §4.1.3'teki aday gereksinim. Anket mevcut Moodle'a aittir; yeni uygulamada doğrulanmış bir kullanıcı hatası değildir.
+
+**Ön inceleme bulguları:** Oturum çerezi zaten kalıcıydı (`PasswordSignInAsync(isPersistent: true)`), 14 gün geçerliydi ve kayan süre çerçeve varsayılanıyla açıktı; "beni hatırla" seçeneği yoktu. Aynı belirtiyi yeni uygulamada doğurabilecek iki eksik bulundu:
+- Data Protection anahtarları yapılandırılmamıştı; Docker'da anahtarlar konteyner içinde kaldığından konteyner yeniden oluşturulunca tüm oturum çerezleri okunamaz hâle geliyordu.
+- `AddIdentityCore` ile kendi `AddCookie` yapılandırması kullanıldığı için güvenlik damgası doğrulaması çereze bağlı değildi; parola değişikliği diğer oturumları sonlandırmıyordu.
+
+**Yapılan iş**
+
+| Dosya | Değişiklik |
+| --- | --- |
+| `src/Moodle.Infrastructure/DependencyInjection.cs` | `AddDataProtection().SetApplicationName("Moodle.Modernization")`; `DataProtection:KeysPath` ayarlıysa anahtarlar bu dizinde saklanır (ayar yoksa çerçeve varsayılanı). Çerezde `OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync`, doğrulama aralığı 30 dakika (Identity varsayılanı, sabitlendi). 14 gün ve `SlidingExpiration = true` korundu (açıkça yazıldı). |
+| `src/Moodle.Infrastructure/Auth/AuthService.cs` | `ChangePasswordAsync` başarılı olunca `RefreshSignInAsync`: parolayı değiştiren oturum yeni damgayla yeniden yazılır, kalıcılığı korunur. AUTH-FR-09 akışı aynı oturumda devam eder. |
+| `docker/Dockerfile`, `docker/docker-compose.yml` | `/var/moodle-keys` dizini (izin 700), `DataProtection__KeysPath` ortam değişkeni ve `modern-dp-keys` adlı kalıcı birim. |
+
+"Beni hatırla" seçeneği eklenmedi. Çıkış davranışı değişmedi.
+
+**Testler**
+- Birim: `AuthSessionConfigurationTests` (14 gün, kayan süre, HttpOnly, SameSite=Lax, damga doğrulayıcısının bağlı olması, 30 dakikalık aralık, anahtar dizini ayarı, reddetme sırasında kullanılan kimlik doğrulama şemalarının kayıtlı olması).
+- Entegrasyon (gerçek PostgreSQL ve çerez): `AuthSessionPersistenceTests`: kalıcı 14 günlük çerez; aynı anahtar dizinini kullanan ikinci host'ta oturumun korunması, farklı (boş) dizinde reddedilmesi; parola değişikliğinde değiştiren oturumun yenilenmesi, diğer cihazdaki ve değişiklik öncesi çerezin doğrulamada reddedilmesi (test host'unda aralık sıfır); varsayılan 30 dakikalık aralıkta diğer oturumun hemen reddedilmediği; AUTH-FR-09 akışının damga doğrulamasıyla birlikte çalışması.
+- Sonuç (kullanıcı tarafından çalıştırıldı ve bildirildi; YZ test çalıştırmadı):
+  - **Ortam sorunu (uygulama hatası değil):** İlk denemede Docker bağlantısı kurulamadığı için entegrasyon testleri çalışmadı; Docker sorunu giderildikten sonra testler koşturuldu.
+  - **İlk hedefli AUTH entegrasyon koşusu:** 20 testten 19'u geçti. `AuthSessionPersistenceTests.AUTH_NFR_03_Password_change_refreshes_own_session_and_old_sessions_are_rejected_on_validation`, eski çerezle yapılan oturum isteğinde `InternalServerError` (500) aldı. Kök neden: `SecurityStampValidator` çerezi reddederken `Identity.TwoFactorRememberMe` şemasından da çıkış yapar; `AddIdentityCookies` kullanılmadığı için bu şema kayıtlı değildi. Düzeltme: şema kaydı (`DependencyInjection.cs`) ve bunu doğrulayan birim testi. Beklenen sonuç değiştirilmedi, doğrulama kapatılmadı.
+  - **Düzeltme sonrası:** `AuthSessionPersistenceTests` 5/5, `AuthSessionConfigurationTests` 4/4 geçti.
+  - **Tam birim regresyonu:** 0 başarısız, 1 atlanan (toplam test sayısı kaydedilmedi).
+  - **Tam entegrasyon regresyonu:** 508 test; 507 geçti, 0 başarısız, 1 atlanan; süre 235,1 saniye.
+
+**Bilinen sınırlılıklar**
+- Diğer oturumlar anında değil, en geç 30 dakikalık doğrulama aralığından sonraki ilk istekte reddedilir.
+- Çıkış yalnızca o tarayıcıdaki çerezi siler; kopyalanmış çerezler sunucu tarafında iptal edilmez (yeni çerez sonlandırma listesi tutulmuyor).
+- Linux'ta anahtarlar dosyada şifresiz durur; koruma dizin izinlerine (700) ve birimin erişim denetimine dayanır. Birden çok örnek çalıştırılırsa aynı anahtar dizinini paylaşmaları gerekir.
+- `SetApplicationName` eklendiği için bu değişiklik dağıtıldığında mevcut oturumlar bir kez sona erer.
+
+**YZ kaydı**
+
+**Model ve sürüm:** Claude Code (VS Code eklentisi), model Claude Opus 5.5 (`claude-opus-5-5`).
+**Üretim şekli:** YZ.
+**Kullanılan adım(lar):** Kodun anlaşılması (oturum yapılandırması inceleme), hedef dilde kod üretme, test senaryosu üretme, belge güncelleme (WBS-2 §4.1).
+**Verilen bağlam:** WBS-1 §3.4 tema 4 ve §4.1.3; `DependencyInjection.cs`, `AuthService.cs`, `docker/` dosyaları, AUTH testleri.
+**Prompt özeti:** (1) Oturum yönetiminin incelenmesi ve AUTH-NFR adayı önerisi (dosya değiştirmeden); (2) Data Protection anahtarlarının kalıcı yapılması, güvenlik damgası doğrulamasının bağlanması, mevcut oturumun parola değişikliğinde yenilenmesi, 14 gün/kayan süre korunarak, "beni hatırla" eklenmeden; aday gereksinimin WBS-1 §4.1.3'e, kayıtların WBS-3 ve izlenebilirliğe işlenmesi.
+**Yapılan düzeltmeler:**
+- YZ'nin kendi düzelttikleri: İlk hedefli koşuda görülen HTTP 500 (eksik `Identity.TwoFactorRememberMe` şema kaydı) kök neden analiziyle bulundu ve şema kaydı ile bir birim testi eklenerek düzeltildi (toplam 1 hata, 1 düzeltme turu).
+- Docker bağlantı sorunu ortamla ilgilidir; kod hatası olarak sayılmadı.
+- İnsan düzeltmesi: Kod üzerinde insan düzeltmesi kaydı yoktur.
+**Harcanan süre:** _Doldurulacak._ 21.11.2026 tarihli geçici toplam tahmine dahil değildir.
+**Elle geliştirme:** Yapılmadı (18.11.2026 yöntem değişikliği); elle efor §3'te Basic COCOMO ile tahmin edilir.
+**Kanıt:** _PR numarası doldurulacak_ (şube: `sinem/auth-session-persistence`).
+
 #### Bilinen sınırlılıklar (§2.3 geneli)
 - **ASG/GRD/FILE ders silme temizliği tamamlanmadı.** CRS, `course.deleted` olayını iletir; ancak ASG (Aslı Ceren), GRD (Fatma Zehra) ve FILE (İrem, Seray) için üretim uzantısı yoktur. Bu modüllerin ders verileri silmeden sonra kalır; dersin varlığını denetledikleri için erişilemez.
 - **Kayıt yöntemi modeli** WBS-2'den sapmadır (§1.3).

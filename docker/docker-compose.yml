@@ -46,6 +46,7 @@ services:
       SEED_SAMPLE_DATA: "${SEED_SAMPLE_DATA:-false}"   # true: ortam/ornek-veri.feature verisini yükler (ISeedContributor'lar)
       Database__SeedAsg: "${ASG_SEED:-false}"
       FILES_ROOT: /var/moodle-files   # içerik adresli dosya deposu (modern-files birimi)
+      DataProtection__KeysPath: /var/moodle-keys   # oturum çerezi anahtarları (modern-dp-keys birimi; AUTH-NFR-03 aday)
       ConnectionStrings__Default: "Host=modern-db;Port=5432;Database=moodle_modern;Username=moodle;Password=${MODERN_DB_PASSWORD:-local_dev_only}"
       # Opsiyonel: /admin/files gibi SiteAdmin'e özel uçları yerelde denemek için (bkz. ConfiguredSiteAdminSeedContributor).
       # ornek-veri.feature'daki yonetici1 yalnızca Manager'dır, SiteAdmin değildir — bu, o veriye ek bir kullanıcıdır.
@@ -54,10 +55,12 @@ services:
       Development__SiteAdmin__Password: "${SITEADMIN_PASSWORD:-}"
     volumes:
       - modern-files:/var/moodle-files
+      - modern-dp-keys:/var/moodle-keys
     ports:
       - "127.0.0.1:8080:8080"
 
 volumes:
   modern-db-data:
   modern-files:
+  modern-dp-keys:
   clamav-data:

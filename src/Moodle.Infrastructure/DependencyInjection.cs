@@ -1,9 +1,14 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moodle.Application.Abstractions;
 using Moodle.Application.Assignments;
 using Moodle.Application.Courses;
@@ -20,6 +25,9 @@ namespace Moodle.Infrastructure;
 
 public static class DependencyInjection
 {
+    /// <summary>AUTH-NFR-03 (aday): güvenlik damgasının yeniden doğrulanma aralığı (Identity varsayılanı, açıkça sabitlendi).</summary>
+    public static readonly TimeSpan SecurityStampValidationInterval = TimeSpan.FromMinutes(30);
+
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, bool useDevelopmentFakes = false)
         => services.AddInfrastructure(_ => useDevelopmentFakes);
 
@@ -49,16 +57,38 @@ public static class DependencyInjection
             .AddSignInManager()
             .AddDefaultTokenProviders();
 
+        // AUTH-NFR-03 (aday): oturum çerezini şifreleyen Data Protection anahtarları DataProtection:KeysPath
+        // (ör. Docker'da DataProtection__KeysPath=/var/moodle-keys, kalıcı volume) altında saklanır; böylece konteyner
+        // yeniden oluşturulunca oturumlar düşmez. Ayar yoksa çerçevenin varsayılan anahtar deposu kullanılır.
+        // Linux'ta anahtarlar dosyada şifresiz durur; dizin yalnızca uygulama kullanıcısına açık olmalıdır (Dockerfile: 700).
+        services.AddDataProtection().SetApplicationName("Moodle.Modernization");
+        services.AddOptions<KeyManagementOptions>().Configure<IServiceProvider>((options, sp) =>
+        {
+            var path = sp.GetService<IConfiguration>()?["DataProtection:KeysPath"];
+            if (!string.IsNullOrWhiteSpace(path))
+                options.XmlRepository = new FileSystemXmlRepository(new DirectoryInfo(path),
+                    sp.GetService<ILoggerFactory>() ?? NullLoggerFactory.Instance);
+        });
+        // AUTH-NFR-03 (aday): parola değişince güvenlik damgası değişir; bu kullanıcının diğer çerezleri en geç
+        // ValidationInterval sonra yapılan ilk istekte reddedilir (anında değil). Parolayı değiştiren oturum
+        // AuthService.ChangePasswordAsync içinde yenilenir.
+        services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = SecurityStampValidationInterval);
+
         services.AddAuthentication(IdentityConstants.ApplicationScheme)
             .AddCookie(IdentityConstants.ApplicationScheme, options =>
             {
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
                 options.ExpireTimeSpan = TimeSpan.FromDays(14);
+                options.SlidingExpiration = true; // Çerçeve varsayılanı; davranış değişmedi, açıkça yazıldı.
+                options.Events.OnValidatePrincipal = SecurityStampValidator.ValidatePrincipalAsync;
                 // Uçlar kendi 401/403'ünü ApiErrorMiddleware ile döner; çerez tabanlı 302 yönlendirmesi istenmez.
                 options.Events.OnRedirectToLogin = context => { context.Response.StatusCode = StatusCodes.Status401Unauthorized; return Task.CompletedTask; };
                 options.Events.OnRedirectToAccessDenied = context => { context.Response.StatusCode = StatusCodes.Status403Forbidden; return Task.CompletedTask; };
-            });
+            })
+            // SecurityStampValidator bir çerezi reddederken bu şemadan da çıkış yapar; AddIdentityCookies kullanılmadığı
+            // için şema kayıtlı değildi ve ret yanıtı 500 oluyordu. İki adımlı doğrulama yoktur; şema yalnızca bu çağrı için kayıtlıdır.
+            .AddCookie(IdentityConstants.TwoFactorRememberMeScheme);
         services.AddAuthorization();
 
         services.AddScoped<AuthService>();

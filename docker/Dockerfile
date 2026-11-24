@@ -11,5 +11,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 COPY --from=build /out .
+# AUTH-NFR-03 (aday): oturum çerezini şifreleyen Data Protection anahtarları (docker-compose: modern-dp-keys birimi).
+# Anahtarlar Linux'ta dosyada şifresiz durduğundan dizin yalnızca uygulama kullanıcısına açıktır.
+RUN mkdir -p /var/moodle-keys && chmod 700 /var/moodle-keys
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Moodle.Api.dll"]
